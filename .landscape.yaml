@@ -1,0 +1,9 @@
+pep8:
+  full: true
+ignore-paths:
+  - bin
+pylint:
+  disable:
+    - expression-not-assigned
+    - unnecessary-lambda
+max-line-length: 120
