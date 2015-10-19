@@ -18,14 +18,14 @@ def main():
 
 def setup_args_parser():
     return argparse.ArgumentParser(
-        prog="WordSpot",
+        prog='WordSpot',
         add_help=True
     )
 
 
 def get_options(parser):
     parser.add_argument("-dl", "--debuglevel", nargs=1,
-                        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+                        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
                         help="Sets the level of information shown in the logger")
     return parser.parse_args()
 
