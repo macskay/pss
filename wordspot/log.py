@@ -5,7 +5,7 @@ import logging
 logger = logging.getLogger("Log")
 
 
-def setup_log_level(debuglevel):
+def setup_log_level(debuglevel):  # pragma: no cover
     level_msg = "Debug-Level set to {}"
     if debuglevel == "DEBUG":
         logging.basicConfig(level=logging.DEBUG)
