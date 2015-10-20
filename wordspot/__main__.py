@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 
 import logging
-from configuration import Configuration
+from wordspot.configuration import Configuration
 
 logger = logging.getLogger('Main')
 
