@@ -1,1 +1,1 @@
-[![Build Status](https://magnum.travis-ci.com/mkli90/wordspot.svg?token=xEVYJYrvJz6Rn6xmqs2w&branch=master)](https://magnum.travis-ci.com/mkli90/wordspot)
+[![Build Status](https://travis-ci.org/mkli90/wordspot.svg?branch=master)](https://travis-ci.org/mkli90/wordspot)
