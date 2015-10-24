@@ -52,4 +52,4 @@ class ArgumentListener(object):  # pragma: no cover
             level_msg = "ACTIVE"
 
         logging.basicConfig(level=debuglevel)
-        configLogger.info("Verbose-Mode {}".format(level_msg))
+        configLogger.info("Verbose-Mode %s", level_msg)
