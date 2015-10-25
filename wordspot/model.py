@@ -4,16 +4,16 @@ from numpy import matrix
 
 
 class Node(object):
-    def __init__(self, parent=None, position=[0, 0], offset=[0, 0]):
+    def __init__(self, parent=None, position=None, offset=None):
         """
         :param parent: parent-node - None for root (default: None)
         :param position: 2d coordinate vector of the image plane (default: [0, 0])
         :param offset: relative offset to parent-node, which is set by the rest configuration (default: [0, 0)
         """
-        self.offset = offset
         self.children = list()
         self.parent = parent
-        self.position = position
+        self.position = [0, 0] if position is None else position
+        self.offset = [0, 0] if offset is None else offset
 
     def add_child(self, child):
         self.children.append(child)
