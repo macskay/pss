@@ -1,12 +1,12 @@
 # -*- encoding: utf-8 -*-
 
-import logging
+from logging import getLogger, INFO, DEBUG, basicConfig
 from argparse import ArgumentParser
 
-configLogger = logging.getLogger('Configuration')
+settings_logger = getLogger('Settings')
 
 
-class Configuration(object):  # pragma: no cover
+class Settings(object):  # pragma: no cover
     """
     This class sets the initial configuration of WordSpot, such as activating verbose mode.
     This is not unit-tested, since arguments to parse can't be added to the tests
@@ -45,11 +45,11 @@ class ArgumentListener(object):  # pragma: no cover
         self.setup_verbose_mode()
 
     def setup_verbose_mode(self):
-        debuglevel = logging.INFO
+        debuglevel = INFO
         level_msg = "INACTIVE"
         if self.options.verbose:
-            debuglevel = logging.DEBUG
+            debuglevel = DEBUG
             level_msg = "ACTIVE"
 
-        logging.basicConfig(level=debuglevel)
-        configLogger.info("Verbose-Mode %s", level_msg)
+        basicConfig(level=debuglevel)
+        settings_logger.info("Verbose-Mode %s", level_msg)
