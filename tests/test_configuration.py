@@ -1,7 +1,8 @@
 # -*- encoding: utf-8 -*-
 
 from unittest import TestCase
-from wordspot.configuration import ArgumentListener
+from wordspot.settings import ArgumentListener
+
 
 # Placeholder for tests later
 class ConfigurationTestCase(TestCase):
