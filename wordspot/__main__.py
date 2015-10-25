@@ -1,9 +1,10 @@
 # -*- encoding: utf-8 -*-
 
-import logging
+from logging import getLogger
+
 from wordspot.settings import Settings
 
-logger = logging.getLogger('Main')
+logger = getLogger('Main')
 
 
 def main():
