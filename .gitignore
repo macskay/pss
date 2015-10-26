@@ -58,4 +58,5 @@ coverage.xml
 # PyBuilder
 target/
 .idea/
-.svg
+resources/
+*.svg
