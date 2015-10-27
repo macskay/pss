@@ -26,3 +26,4 @@ class SvgHandlerTestCase(TestCase):
         self.assertTrue(len(svg_handler.names) > 0)
         self.assertTrue(len(svg_handler.symbol_groups) > 0)
 
+#TODO: Alter TestCases using a file that actually exists (dummy-file)
