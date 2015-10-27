@@ -1,0 +1,1 @@
+Resources are not included in the public repository because of copyright reasons
