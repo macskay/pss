@@ -5,7 +5,7 @@ from xml.etree.ElementTree import iterparse as iterparse_xml
 import re
 
 # Own
-import graphlib
+# import graphlib
 
 # PyQt4
 from PyQt4 import QtGui
@@ -119,7 +119,7 @@ def find_subtree_titled(title, source):
 
 
 def parse(infix, source):
-    assert infix != "", "Weird things happen with infix == ''"
+    #assert infix != "", "Weird things happen with infix == ''"
     mark = None
     mat_stack = [numpy.identity(4)]
     for ev, elem in iterparse_xml(source, events=("start", "end")):
@@ -134,11 +134,11 @@ def parse(infix, source):
                     # Begin a new paths group upon hitting a mark
                     name = t.text
                     paths = []
-                elif "id" in elem.attrib and infix in elem.attrib["id"]:
-                    mark = elem.attrib["id"]
-                    # Begin a new paths group upon hitting a mark
-                    name = elem.attrib["id"]
-                    paths = []
+                #elif "id" in elem.attrib and infix in elem.attrib["id"]:
+                #    mark = elem.attrib["id"]
+                #    # Begin a new paths group upon hitting a mark
+                #    name = elem.attrib["id"]
+                #    paths = []
 
                 # Keep track of the current transformation stack.
                 # This has to be done independently of the current mark
@@ -210,6 +210,7 @@ def parse(infix, source):
 
 
 def path_intersections(paths):
+    # ODO: Most expensive function where controlPointRect most expensive call.
     for i, path1 in enumerate(paths):
         for j, path2 in enumerate(paths):
             if path1 == path2:
@@ -279,6 +280,7 @@ def graph_from_paths(paths):
         # Remove duplicates from collapsed edges.
         stroke = list(set([ends[0]] + iscts + [ends[1]]))
         # Tilted sweep line sorting.
+        # IXME: This is already failing on concave objects titled slightly
         # unfortunately
         stroke.sort(key=lambda a: vertices[a][0]-vertices[a][1])
         for v1, v2 in zip(stroke[:-1], stroke[1:]):

@@ -1,13 +1,16 @@
 # -*- encoding: utf-8 -*-
 
 # Module under test
-from unittest import TestCase, skip
-import lib.elka_svg
-from os.path import join
+from unittest import TestCase
+from os.path import join, dirname, abspath
+
+from external.elka_svg import parse
+
+FILE_LOCATION = dirname(abspath(__file__))
 
 
-@skip("Still working on this, test not working yet")
 class ElkaSvgTestCase(TestCase):
     def test_parse(self):
-        names, pathss = lib.elka_svg.parse(" ", join("..", "resources", "grouped_VAT_09671_Rs_SJakob.svg"))
-        self.assertEqual(len(names), 5)
+        names, pathss = zip(*parse("", join(FILE_LOCATION, "..", "resources", "grouped_VAT_09671_Rs_SJakob.svg")))
+        self.assertEqual(len(names), 12)
+        self.assertEqual(len(names), 12)
