@@ -14,7 +14,7 @@ class SvgHandler(object):
         """
         if not isfile(path):
             raise FileNotFoundError
-        self.names, self.pathss = zip(*parse(infix, path))
+        self.names, self.symbol_groups = zip(*parse(infix, path))
 
     # TODO: add thinner (from skimage.morphology import merdial_axis)
     # TODO: add GUI class to show image (reference this class, calls pathhs to create image on QtApplicaiton)

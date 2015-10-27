@@ -22,5 +22,5 @@ class SvgHandlerTestCase(TestCase):
     def test_when_valid_svg_given_names_and_pathss_should_not_be_empty(self):
         svg_handler = SvgHandler(self.valid_path)
         self.assertTrue(len(svg_handler.names) > 0)
-        self.assertTrue(len(svg_handler.pathss) > 0)
+        self.assertTrue(len(svg_handler.symbol_groups) > 0)
 
