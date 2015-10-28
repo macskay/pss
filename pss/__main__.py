@@ -3,8 +3,8 @@
 from logging import getLogger
 from os.path import dirname, abspath, join
 
-from wordspot.settings import Settings
-from wordspot.svg import SvgHandler
+from pss.settings import Settings
+from pss.svg import SvgHandler
 
 logger = getLogger('Main')
 FILE_LOCATION = dirname(abspath(__file__))
@@ -12,7 +12,7 @@ FILE_LOCATION = dirname(abspath(__file__))
 
 def main():
     Settings()
-    logger.info("WordSpot started")
+    logger.info("PartStructuredSpotting started")
 
     SvgHandler(join(FILE_LOCATION, "..", "resources", "grouped_VAT_09671_Rs_SJakob.svg"))
 

@@ -3,7 +3,7 @@
 from unittest import TestCase, skipIf
 from os.path import join, dirname, abspath, isfile
 
-from wordspot.svg import SvgHandler
+from pss.svg import SvgHandler
 
 FILE_LOCATION = dirname(abspath(__file__))
 

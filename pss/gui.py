@@ -14,6 +14,12 @@ class SymbolGroupWidget(QtGui.QWidget):  # pragma: no cover
         self.setWindowTitle("SymbolGroup")
 
     def show_as_image(self, symbol_group):
+        image = self.rasterize_symbol_group(symbol_group)
+
         gui_logger.info("Opening symbol group image")
         self.show()
+
+    def rasterize_symbol_group(self, symbol_group):
+        return ""
+
 

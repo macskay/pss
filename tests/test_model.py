@@ -4,7 +4,7 @@ from unittest import TestCase
 
 from numpy import matrix
 
-from wordspot.model import Node, RestConfiguration
+from pss.model import Node, RestConfiguration
 
 
 def assertEqualMatrix(a, b):  # noqa

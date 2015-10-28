@@ -3,12 +3,14 @@
 from logging import getLogger, INFO, DEBUG, basicConfig
 from argparse import ArgumentParser
 
+from os.path import join
+
 settings_logger = getLogger('Settings')
 
 
 class Settings(object):  # pragma: no cover
     """
-    This class sets the initial configuration of WordSpot, such as activating verbose mode.
+    This class sets the initial configuration of PartStructuredSpotting, such as activating verbose mode.
     This is not unit-tested, since arguments to parse can't be added to the tests
     """
     def __init__(self):
@@ -18,7 +20,7 @@ class Settings(object):  # pragma: no cover
     @staticmethod
     def setup_arg_parser():
         return ArgumentParser(
-            prog='WordSpot',
+            prog='PartStructuredSpotting',
             add_help=True
         )
 
@@ -33,7 +35,7 @@ class Settings(object):  # pragma: no cover
 
 class ArgumentListener(object):  # pragma: no cover
     """
-    This class handles the functionalities for the given arguments and options via command-line.
+    This class handles the functionality for the given arguments and options via command-line.
     This class is not unit-tested, since the argument parser fails on unittests, since no arguments get passed.
     """
     def __init__(self, arg_parser):
@@ -51,5 +53,5 @@ class ArgumentListener(object):  # pragma: no cover
             debuglevel = DEBUG
             level_msg = "ACTIVE"
 
-        basicConfig(level=debuglevel)
+        basicConfig(level=debuglevel, filename=join("..", "pss.log"))
         settings_logger.info("Verbose-Mode %s", level_msg)

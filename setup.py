@@ -3,11 +3,11 @@
 
 from setuptools import setup
 
-setup(name="wordspot",
+setup(name="pss",
       version="0.0.1",
-      description="Wordspot",
+      description="PartStructuredSpotting",
       author="Maximilian Klingmann",
-      packages=['wordspot'],
+      packages=['pss'],
       license="",
       url="",
       classifiers=[

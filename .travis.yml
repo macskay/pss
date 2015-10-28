@@ -10,8 +10,8 @@ install:
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
   - conda info -a
-  - conda create -q -n travis_wordspot python=$TRAVIS_PYTHON_VERSION --file requirements_conda.txt
-  - source activate travis_wordspot
+  - conda create -q -n travis_pss python=$TRAVIS_PYTHON_VERSION --file requirements_conda.txt
+  - source activate travis_pss
   - pip install -r requirements_pip.txt
 notifications:
   email:

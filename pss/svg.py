@@ -6,7 +6,7 @@ from sys import argv
 from external.elka_svg import parse
 
 from PyQt4 import QtGui, QtCore
-from wordspot.gui import SymbolGroupWidget
+from pss.gui import SymbolGroupWidget
 
 svg_logger = getLogger("SvgHandler")
 
