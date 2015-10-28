@@ -33,5 +33,8 @@ class SvgHandler(object):
         svg_gui = SymbolGroupWidget(symbol_group)
         app.exec_()
 
+    def get_symbol_group_path_count(self, symbol_group):
+        return len(symbol_group)
+
     # TODO: add thinner (from skimage.morphology import medial_axis)
     # TODO: add GUI class to show image (reference this class, calls pathhs to create image on QtApplicaiton)
