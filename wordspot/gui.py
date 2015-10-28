@@ -6,7 +6,7 @@ from PyQt4 import QtGui
 gui_logger = getLogger("GUI")
 
 
-class SymbolGroupWidget(QtGui.QWidget):
+class SymbolGroupWidget(QtGui.QWidget):  # pragma: no cover
     def __init__(self, symbol_group):
         gui_logger.info("Creating SymbolGroup-Widget")
         super(SymbolGroupWidget, self).__init__()
