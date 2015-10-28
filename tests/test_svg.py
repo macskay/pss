@@ -19,7 +19,7 @@ class SvgHandlerTestCase(TestCase):
         invalid_path = join("..", "resources", "invalid.svg")
         self.assertRaises(FileNotFoundError, SvgHandler, invalid_path)
 
-    def test_when_valid_svg_given_names_and_pathss_should_not_be_empty(self):
+    def test_when_valid_svg_given_names_and_symbol_group_should_not_be_empty(self):
         svg_handler = SvgHandler(self.valid_path, "Query")
         symbol_group = svg_handler.symbol_groups[0]
 
