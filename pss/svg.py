@@ -3,9 +3,9 @@ from logging import getLogger
 from os.path import isfile
 from sys import argv
 
-from external.elka_svg import parse
+from PyQt4 import QtGui
 
-from PyQt4 import QtGui, QtCore
+from external.elka_svg import parse
 from pss.gui import SymbolGroupWidget
 
 svg_logger = getLogger("SvgHandler")
@@ -28,11 +28,17 @@ class SvgHandler(object):
         svg_logger.info("SVG-File successfully loaded. (%d names, %d symbol-groups)",
                         len(self.names), len(self.symbol_groups))
 
+        self.show_symbol_group_as_image(5)
 
-    def show_symbol_group_as_image(self, symbol_group):  # pragma: no cover
-        app = QtGui.QApplication(argv)
-        svg_gui = SymbolGroupWidget(symbol_group)
-        app.exec_()
+
+    def show_symbol_group_as_image(self, index):  # pragma: no cover
+        if index < len(self.names) and index < len(self.symbol_groups):
+            svg_logger.info("Showing symbol group [%d] with name [%s]", index, self.names[index])
+            app = QtGui.QApplication(argv)
+            svg_gui = SymbolGroupWidget(self.symbol_groups[index])
+            app.exec_()
+        else:
+            svg_logger.warning("Can't show symbol group [%d], IndexOutOfBounds: %d", index, len(self.symbol_groups))
 
     def get_symbol_group_path_count(self, symbol_group):
         return len(symbol_group)
