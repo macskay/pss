@@ -3,8 +3,6 @@
 from logging import getLogger, INFO, DEBUG, basicConfig
 from argparse import ArgumentParser
 
-from os.path import join
-
 settings_logger = getLogger('Settings')
 
 

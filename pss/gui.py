@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-from functools import reduce
+from functools import reduce  # pylint:disable=redefined-builtin
 from logging import getLogger
 
 from PyQt4 import QtGui

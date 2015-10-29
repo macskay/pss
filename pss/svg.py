@@ -13,12 +13,12 @@ svg_logger = getLogger("SvgHandler")
 
 class SvgHandler(object):
     def __init__(self, path, infix=""):
-        svg_logger.info("SVG-Handler started")
         """
         :param path: Path to the SVG-file (required)
         :param infix: Infix to look for in svg-file (default: "")
         :raise FileNotFoundError: This is raised, when an invalid svg file is passed.
         """
+        svg_logger.info("SVG-Handler started")
         if not isfile(path):
             svg_logger.error("Path to SVG-File invalid!")
             raise FileNotFoundError
@@ -35,7 +35,7 @@ class SvgHandler(object):
         if index < len(self.names) and index < len(self.symbol_groups):
             svg_logger.info("Showing symbol group [%d] with name [%s]", index, self.names[index])
             app = QtGui.QApplication(argv)
-            svg_gui = SymbolGroupWidget(self.symbol_groups[index])
+            svg_gui = SymbolGroupWidget(self.symbol_groups[index])  # pylint:disable=unused-variable
             app.exec_()
         else:
             svg_logger.warning("Can't show symbol group [%d], IndexOutOfBounds: %d", index, len(self.symbol_groups))
