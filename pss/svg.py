@@ -21,7 +21,7 @@ class SvgHandler(object):
         svg_logger.info("SVG-Handler started")
         if not isfile(path):
             svg_logger.error("Path to SVG-File invalid!")
-            raise FileNotFoundError  # pylint:disable=undefined-variable
+            raise FileNotFoundError  # noqa
 
         svg_logger.info("Opening SVG-File at [%s]", path)
         self.names, self.symbol_groups = zip(*parse(infix, path))
@@ -35,7 +35,7 @@ class SvgHandler(object):
         if index < len(self.names) and index < len(self.symbol_groups):
             svg_logger.info("Showing symbol group [%d] with name [%s]", index, self.names[index])
             app = QtGui.QApplication(argv)
-            svg_gui = SymbolGroupWidget(self.symbol_groups[index])  # pylint:disable=unused-variable noqa
+            svg_gui = SymbolGroupWidget(self.symbol_groups[index])  # noqa
             app.exec_()
         else:
             svg_logger.warning("Can't show symbol group [%d], IndexOutOfBounds: %d", index, len(self.symbol_groups))
