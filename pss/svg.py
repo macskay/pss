@@ -28,6 +28,10 @@ class SvgHandler(object):
         svg_logger.info("SVG-File successfully loaded. (%d names, %d symbol-groups)",
                         len(self.names), len(self.symbol_groups))
 
+        svg_logger.info("Showing symbol group [%d] with name [%s]", 5, self.names[5])
+        self.show_symbol_group_as_image(self.symbol_groups[5])
+
+
     def show_symbol_group_as_image(self, symbol_group):  # pragma: no cover
         app = QtGui.QApplication(argv)
         svg_gui = SymbolGroupWidget(symbol_group)

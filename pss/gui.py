@@ -7,26 +7,29 @@ from PyQt4 import QtGui
 gui_logger = getLogger("GUI")
 
 
-class SymbolGroupWidget(QtGui.QWidget):  # pragma: no cover
+class SymbolGroupWidget(QtGui.QLabel):  # pragma: no cover
     def __init__(self, symbol_group):
         gui_logger.info("Creating SymbolGroup-Widget")
         super(SymbolGroupWidget, self).__init__()
-        self.show_as_image(symbol_group)
         self.setWindowTitle("SymbolGroup")
 
-    def show_as_image(self, symbol_group):
-        image = self.rasterize_symbol_group(symbol_group)
+        self.show_as_image(symbol_group)
 
+    def show_as_image(self, symbol_group):
         gui_logger.info("Opening symbol group image")
+        image = self.rasterize_symbol_group(symbol_group)
+        self.setPixmap(QtGui.QPixmap(image))
         self.show()
 
     def rasterize_symbol_group(self, symbol_group):
+        gui_logger.info("Rasterizing symbol group")
         bounding_box = self.create_bounding_box(symbol_group)
         image = self.create_empty_image(bounding_box)
         self.try_to_fill_image_with_paths(symbol_group, image, bounding_box)
         return image
 
     def create_bounding_box(self, symbol_group):
+        gui_logger.info("Creating bounding box")
         return reduce(lambda xs, x: xs | x.boundingRect(),
                       symbol_group[1:],
                       symbol_group[0].boundingRect())
@@ -45,6 +48,7 @@ class SymbolGroupWidget(QtGui.QWidget):  # pragma: no cover
             qpainter.end()
 
     def fill_image_with_paths(self, symbol_group, qpainter, bounding_box):
+        gui_logger.info("Filling image with paths")
         qpainter.setBrush(QtGui.QColor("Black"))
         qpainter.setPen(QtGui.QColor("Black"))
         qpainter.scale(5, 5)
