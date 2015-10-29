@@ -7,7 +7,7 @@ from PyQt4 import QtGui
 gui_logger = getLogger("GUI")
 
 
-class SymbolGroupWidget(QtGui.QLabel):  # pragma: no cover pylint:disable=super-on-old-class
+class SymbolGroupWidget(QtGui.QLabel):  # noqa pragma: no cover
     def __init__(self, symbol_group):
         gui_logger.info("Creating SymbolGroup-Widget")
         super(SymbolGroupWidget, self).__init__()
