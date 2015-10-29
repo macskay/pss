@@ -30,7 +30,6 @@ class SvgHandler(object):
 
         self.show_symbol_group_as_image(5)
 
-
     def show_symbol_group_as_image(self, index):  # pragma: no cover
         if index < len(self.names) and index < len(self.symbol_groups):
             svg_logger.info("Showing symbol group [%d] with name [%s]", index, self.names[index])
