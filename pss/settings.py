@@ -53,5 +53,5 @@ class ArgumentListener(object):  # pragma: no cover
             debuglevel = DEBUG
             level_msg = "ACTIVE"
 
-        basicConfig(level=debuglevel, filename=join("..", "pss.log"))
+        basicConfig(level=debuglevel)  # , filename=join("..", "pss.log"))
         settings_logger.info("Verbose-Mode %s", level_msg)
