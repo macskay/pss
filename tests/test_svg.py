@@ -1,9 +1,9 @@
 # -*- encoding: utf-8 -*-
 
-from unittest import TestCase, skipIf
-from os.path import join, dirname, abspath, isfile
+from os.path import join, dirname, abspath
+from unittest import TestCase
 
-from pss.svg import SvgHandler
+from pss.svg import SvgHandler, SymbolGroupImage
 
 FILE_LOCATION = dirname(abspath(__file__))
 
@@ -25,3 +25,19 @@ class SvgHandlerTestCase(TestCase):
 
         self.assertEqual(svg_handler.names[0], "Query")
         self.assertEqual(svg_handler.get_symbol_group_path_count(symbol_group), 16)
+
+
+class SymbolGroupImageTestCase(TestCase):
+    def setUp(self):
+        valid_path = join(FILE_LOCATION, "..", "resources", "test_query.svg")
+        self.svg_handler = SvgHandler(valid_path)
+        self.sgi = SymbolGroupImage(self.svg_handler.symbol_groups[0])
+
+    def test_when_creating_symbol_group_image_bounding_box_is_not_none(self):
+        self.assertIsNotNone(self.sgi.bounding_box)
+
+    def test_get_width_returns_width_of_image(self):
+        self.assertEqual(self.sgi.get_width(), self.sgi.bounding_box.width()*5)
+
+    def test_get_height_returns_height_of_image(self):
+        self.assertEqual(self.sgi.get_height(), self.sgi.bounding_box.height()*5)
