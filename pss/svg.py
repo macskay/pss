@@ -25,7 +25,7 @@ class SvgHandler(object):
         self.handle_file_not_existing(path)
         self.names, self.symbol_groups = self.load_svg(infix, path)
 
-        self.display_symbol_groups()
+        # self.display_symbol_groups()
 
     def handle_file_not_existing(self, path):
         if not isfile(path):
