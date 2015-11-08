@@ -31,7 +31,7 @@ class SymbolGroupImageTestCase(TestCase):
     def setUp(self):
         valid_path = join(FILE_LOCATION, "..", "resources", "test_query.svg")
         self.svg_handler = SvgHandler(valid_path)
-        self.sgi = SymbolGroupImage(self.svg_handler.symbol_groups[0])
+        self.sgi = SymbolGroupImage(self.svg_handler.symbol_groups[0], "Name")
 
     def test_when_creating_symbol_group_image_bounding_box_is_not_none(self):
         self.assertIsNotNone(self.sgi.bounding_box)
