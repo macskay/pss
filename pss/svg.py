@@ -53,12 +53,12 @@ sg_logger = getLogger("SymbolGroupImage")
 
 
 class SymbolGroupImage(QtGui.QImage):
-    def __init__(self, symbol_group, name):
+    def __init__(self, symbol_group, name):  # pylint:disable=super-on-old-class
         """
         :param symbol_group: The group of symbols to represent as QImage
         :param name: This is the name of the symbol group as set in the svg
         """
-        sg_logger.info("Setup SymbolGroupImage with name [{}]".format(name))
+        sg_logger.info("Setup SymbolGroupImage with name [%s]", name)
         self.symbol_group = symbol_group
         self.name = name
         self.bounding_box = self.create_bounding_box()
@@ -84,7 +84,7 @@ class SymbolGroupImage(QtGui.QImage):
         return self.bounding_box.height()*5
 
     def set_background(self, color):
-        sg_logger.info("Setting Background to [{}]".format(color))
+        sg_logger.info("Setting Background to [%s]", color)
         self.fill(QtGui.QColor(color))
 
     def try_to_fill_image_with_paths(self):
