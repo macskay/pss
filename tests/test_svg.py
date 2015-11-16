@@ -24,7 +24,7 @@ class SvgHandlerTestCase(TestCase):
         symbol_group = svg_handler.symbol_groups[0]
 
         self.assertEqual(svg_handler.names[0], "Query")
-        self.assertEqual(svg_handler.get_symbol_group_path_count(symbol_group), 16)
+        self.assertEqual(svg_handler.get_symbol_group_size(symbol_group), 16)
 
 
 class SymbolGroupImageTestCase(TestCase):
