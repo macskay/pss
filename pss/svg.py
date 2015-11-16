@@ -24,8 +24,9 @@ class SvgHandler(object):
         self.names, self.svg_symbol_groups = self.load_svg(infix, path)
         self.symbol_groups = self.create_symbol_groups()
 
+        # These need to be commented when pushing, to make the tests pass
         # self.display_symbol_groups()
-        self.display_single_symbol_group(6)
+        # self.display_single_symbol_group(6)
 
     @staticmethod
     def handle_file_not_existing(path):
