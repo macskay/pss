@@ -26,7 +26,8 @@ class SvgHandler(object):
 
         # These need to be commented when pushing, to make the tests pass
         # self.display_symbol_groups()
-        # self.display_single_symbol_group(6)
+        self.print_single_symbol_group_nodes(6)
+        self.display_single_symbol_group(6)
 
     @staticmethod
     def handle_file_not_existing(path):
@@ -50,6 +51,9 @@ class SvgHandler(object):
     def display_single_symbol_group(self, i):  # pragma: no cover
         ImagePlot(self.symbol_groups[i])
         show()
+
+    def print_single_symbol_group_nodes(self, i):
+        self.symbol_groups[i].print_nodes()
 
     @staticmethod
     def get_symbol_group_size(symbol_group):
