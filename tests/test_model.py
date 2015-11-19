@@ -30,10 +30,10 @@ class SymbolGroupImageTestCase(TestCase):
 
 class NodeTestCase(TestCase):
     def setUp(self):
-        self.node = Node()
+        self.node = Node(position=[0, 10])
 
     def test_has_position(self):
-        self.assertEqual(self.node.position, [0, 0])
+        self.assertEqual(self.node.position, [0, 10])
 
     def test_has_parent_none_as_default(self):
         self.assertIsNone(self.node.parent)
@@ -47,3 +47,6 @@ class NodeTestCase(TestCase):
     def test_adding_children_increases_list_size(self):
         self.node.add_child(Node())
         self.assertEqual(1, len(self.node.children))
+
+    def test_when_printing_node_return_position_string(self):
+        self.assertEqual("Node-Position: [0, 10]", self.node.__str__())

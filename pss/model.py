@@ -108,10 +108,6 @@ class SymbolGroup(object):
             nodes.append(Node(position=corner))
         return nodes
 
-    def print_nodes(self):
-        for node in self.nodes:
-            sg_logger.info(node)
-
 
 class Node(object):
     """

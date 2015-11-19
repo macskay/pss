@@ -43,3 +43,17 @@ class ImagePlot(object):  # pragma: no cover
                 ax.plot(node.position.item(1), node.position.item(0), "yo", markersize=NODESIZE)
 
 
+pn_logger = getLogger("PrintNodes")
+
+
+class PrintNodes(object):   # pragma: no cover
+    def __init__(self, symbol_group):
+        self.symbol_group = symbol_group
+        self.print()
+
+    def print(self):
+        for node in self.symbol_group.nodes:
+            pn_logger.info(node)
+        
+    
+

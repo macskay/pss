@@ -6,7 +6,7 @@ from os.path import isfile
 from matplotlib.pyplot import show
 
 from external.elka_svg import parse
-from pss.gui import ImagePlot
+from pss.gui import ImagePlot, PrintNodes
 from pss.model import SymbolGroup
 
 svg_logger = getLogger("SvgHandler")
@@ -26,8 +26,8 @@ class SvgHandler(object):
 
         # These need to be commented when pushing, to make the tests pass
         # self.display_symbol_groups()
-        self.print_single_symbol_group_nodes(6)
-        self.display_single_symbol_group(6)
+        # self.display_single_symbol_group(6)
+        # self.print_single_symbol_group_nodes(6)
 
     @staticmethod
     def handle_file_not_existing(path):
@@ -52,8 +52,8 @@ class SvgHandler(object):
         ImagePlot(self.symbol_groups[i])
         show()
 
-    def print_single_symbol_group_nodes(self, i):
-        self.symbol_groups[i].print_nodes()
+    def print_single_symbol_group_nodes(self, i):  # pragma: no cover
+        PrintNodes(self.symbol_groups[i])
 
     @staticmethod
     def get_symbol_group_size(symbol_group):
