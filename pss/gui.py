@@ -49,9 +49,9 @@ pn_logger = getLogger("PrintNodes")
 class PrintNodes(object):   # pragma: no cover
     def __init__(self, symbol_group):
         self.symbol_group = symbol_group
-        self.print()
+        self.print_positions()
 
-    def print(self):
+    def print_positions(self):
         for node in self.symbol_group.nodes:
             pn_logger.info(node)
         
