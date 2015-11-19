@@ -110,7 +110,7 @@ class SymbolGroup(object):
 
     def print_nodes(self):
         for node in self.nodes:
-            sg_logger.info(node)
+            sg_logger.info(node) GUI (now displaying a given symbol_grouop)
 
 
 class Node(object):
