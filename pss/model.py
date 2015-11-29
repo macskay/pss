@@ -2,7 +2,7 @@
 
 from functools import reduce  # pylint:disable=redefined-builtin
 from PyQt4 import QtGui
-from numpy import zeros, ndarray, matrix, asarray, array
+from numpy import zeros, array
 from skimage.feature import corner_harris
 from skimage.feature import corner_peaks
 from skimage.morphology import skeletonize
@@ -126,7 +126,7 @@ class SymbolGroup(object):
         known = False
         for known_node in closed_list:
             if (node.position == known_node.position).all():
-                    known = True
+                known = True
 
         if not known:
             closed_list.append(node)
