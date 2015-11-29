@@ -26,8 +26,10 @@ class SvgHandler(object):
 
         # These need to be commented when pushing, to make the tests pass
         # self.display_symbol_groups()
-        # self.display_single_symbol_group(6)
+        # self.display_single_symbol_group(0)
         # self.print_single_symbol_group_nodes(6)
+        # self.symbol_groups = self.create_single_symbol_group(0)
+        # self.display_single_symbol_group(0)
 
     @staticmethod
     def handle_file_not_existing(path):
@@ -55,14 +57,18 @@ class SvgHandler(object):
     def print_single_symbol_group_nodes(self, i):  # pragma: no cover
         PrintNodes(self.symbol_groups[i])
 
-    @staticmethod
-    def get_symbol_group_size(symbol_group):
-        return len(symbol_group)
-
-    def create_symbol_groups(self):
+    def create_symbol_groups(self):  # pragma: no cover
         symbol_groups = list()
         for i, item in enumerate(self.svg_symbol_groups):
             symbol_groups.append(SymbolGroup(item, self.names[i]))
         return symbol_groups
 
+    def create_single_symbol_group(self, i):  # pragma: no cover
+        symbol_group = list()
+        symbol_group.append(SymbolGroup(self.svg_symbol_groups[i], self.names[i]))
+        return symbol_group
+
+    @staticmethod
+    def get_symbol_group_size(symbol_group):
+        return len(symbol_group)
 

@@ -2,7 +2,7 @@
 
 from functools import reduce  # pylint:disable=redefined-builtin
 from PyQt4 import QtGui
-from numpy import zeros
+from numpy import zeros, ndarray, matrix, asarray, array
 from skimage.feature import corner_harris
 from skimage.feature import corner_peaks
 from skimage.morphology import skeletonize
@@ -101,12 +101,64 @@ class SymbolGroup(object):
         return skeletonize(self.original_array)
 
     def create_nodes(self):
+        initial_nodes = self.find_corners_and_junctions()
+        edge_nodes = self.find_nodes_on_edges(initial_nodes)
+        initial_nodes.extend(edge_nodes[0::10])
+        return initial_nodes
+
+    def find_corners_and_junctions(self):
         sg_logger.info("Detecting Nodes of skeletonized QImage with name [%s]\n", self.name)
-        skeleton_corners = corner_peaks(corner_harris(self.skeleton_array), min_distance=1)
+        skeleton_corners = corner_peaks(corner_harris(self.skeleton_array), min_distance=2)
         nodes = list()
         for corner in skeleton_corners:
             nodes.append(Node(position=corner))
         return nodes
+
+    def find_nodes_on_edges(self, corner_nodes):
+        closed_list = list()
+        closed_list.extend(self.find_nodes_recursively(corner_nodes[0], closed_list))
+        return closed_list
+
+    def find_nodes_recursively(self, node, closed_list):
+        x = node.position[0]
+        y = node.position[1]
+
+        known = False
+        for known_node in closed_list:
+            if (node.position == known_node.position).all():
+                    known = True
+
+        if not known:
+            closed_list.append(node)
+
+            if self.skeleton_array[x-1][y-1]:
+                new_Node = Node(position=array([x-1, y-1]))
+                self.find_nodes_recursively(new_Node, closed_list)
+            if self.skeleton_array[x][y-1]:
+                new_Node = Node(position=array([x, y-1]))
+                self.find_nodes_recursively(new_Node, closed_list)
+            if self.skeleton_array[x+1][y-1]:
+                new_Node = Node(position=array([x+1, y-1]))
+                self.find_nodes_recursively(new_Node, closed_list)
+
+            if self.skeleton_array[x-1][y]:
+                new_Node = Node(position=array([x-1, y]))
+                self.find_nodes_recursively(new_Node, closed_list)
+            if self.skeleton_array[x+1][y]:
+                new_Node = Node(position=array([x+1, y]))
+                self.find_nodes_recursively(new_Node, closed_list)
+
+            if self.skeleton_array[x-1][y+1]:
+                new_Node = Node(position=array([x-1, y+1]))
+                self.find_nodes_recursively(new_Node, closed_list)
+            if self.skeleton_array[x][y+1]:
+                new_Node = Node(position=array([x, y+1]))
+                self.find_nodes_recursively(new_Node, closed_list)
+            if self.skeleton_array[x+1][y+1]:
+                new_Node = Node(position=array([x+1, y+1]))
+                self.find_nodes_recursively(new_Node, closed_list)
+
+        return closed_list
 
 
 class Node(object):
@@ -126,6 +178,7 @@ class Node(object):
         self.parent = parent
         self.position = [0, 0] if position is None else position
         self.offset = [0, 0] if offset is None else offset
+        self.index = None
 
     def add_child(self, child):
         self.children.append(child)
