@@ -13,6 +13,6 @@ setup(name="pss",
       classifiers=[
           "Natural Language :: English",
           "Programming Language :: Python :: 3.5",
-      ],
+      ], requires=['matplotlib']
       )
 

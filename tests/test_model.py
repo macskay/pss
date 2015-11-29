@@ -1,22 +1,39 @@
 # -*- encoding: utf-8 -*-
-
+from os.path import join, dirname, abspath
 from unittest import TestCase
 
-from numpy import matrix
+from pss.model import Node, SymbolGroup, HEIGHT, WIDTH
+from pss.svg import SvgHandler
 
-from pss.model import Node, RestConfiguration
+FILE_LOCATION = dirname(abspath(__file__))
 
 
 def assertEqualMatrix(a, b):  # noqa
     return (a == b).all()
 
 
+class SymbolGroupImageTestCase(TestCase):
+    def setUp(self):
+        valid_path = join(FILE_LOCATION, "..", "resources", "test_query.svg")
+        self.svg_handler = SvgHandler(valid_path)
+        self.sgi = SymbolGroup(self.svg_handler.svg_symbol_groups[0], "Name")
+
+    def test_when_creating_symbol_group_image_bounding_box_is_not_none(self):
+        self.assertIsNotNone(self.sgi.bounding_box)
+
+    def test_get_width_returns_width_of_image(self):
+        self.assertEqual(self.sgi.get_image_width(), self.sgi.bounding_box.width() * WIDTH)
+
+    def test_get_height_returns_height_of_image(self):
+        self.assertEqual(self.sgi.get_image_height(), self.sgi.bounding_box.height() * HEIGHT)
+
+
 class NodeTestCase(TestCase):
     def setUp(self):
-        self.node = Node()
+        self.node = Node(position=[0, 10])
 
     def test_has_position(self):
-        self.assertEqual(self.node.position, [0, 0])
+        self.assertEqual(self.node.position, [0, 10])
 
     def test_has_parent_none_as_default(self):
         self.assertIsNone(self.node.parent)
@@ -31,42 +48,5 @@ class NodeTestCase(TestCase):
         self.node.add_child(Node())
         self.assertEqual(1, len(self.node.children))
 
-
-class RestConfigurationTestCase(TestCase):
-    def setUp(self):
-        self.rest_config = RestConfiguration()
-
-    def add_nodes_to_positions_matrix(self):
-        self.rest_config.add_node(Node(position=[1, 1]))
-        self.rest_config.add_node(Node(position=[2, 2]))
-
-    def add_nodes_to_offset_matrix(self):
-        self.rest_config.add_node(Node(offset=[5, 5]))
-        self.rest_config.add_node(Node(offset=[6, 6]))
-
-    def test_has_node_matrix(self):
-        self.assertEqual(0, len(self.rest_config.nodes))
-
-    def test_adding_node_increases_node_list_size(self):
-        self.rest_config.add_node(Node())
-        self.assertEqual(1, len(self.rest_config.nodes))
-
-    def test_can_get_matrix_of_node_positions(self):
-        self.add_nodes_to_positions_matrix()
-        pos_matrix = self.rest_config.get_position_matrix()
-        self.assertTrue(assertEqualMatrix(pos_matrix, matrix("1 2; 1 2")))
-
-    def test_can_get_elements_of_node_positions_matrix(self):
-        self.add_nodes_to_positions_matrix()
-        first_position = self.rest_config.get_position_matrix_at(0)
-        self.assertTrue(assertEqualMatrix(first_position, matrix("1; 1")))
-
-    def test_can_get_matrix_of_default_offsets(self):
-        self.add_nodes_to_offset_matrix()
-        offset_matrix = self.rest_config.get_offset_matrix()
-        self.assertTrue(assertEqualMatrix(offset_matrix, matrix("5 6; 5 6")))
-
-    def test_can_get_elements_of_node_offsets_matrix(self):
-        self.add_nodes_to_offset_matrix()
-        first_position = self.rest_config.get_offset_matrix_at(0)
-        self.assertTrue(assertEqualMatrix(first_position, matrix("5; 5")))
+    def test_when_printing_node_return_position_string(self):
+        self.assertEqual("Node-Position: [0, 10]", self.node.__str__())
