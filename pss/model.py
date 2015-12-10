@@ -6,6 +6,7 @@ from numpy import zeros, array
 from skimage.feature import corner_harris
 from skimage.feature import corner_peaks
 from skimage.morphology import skeletonize
+from copy import deepcopy
 
 from logging import getLogger
 
@@ -16,6 +17,7 @@ HEIGHT = 15
 COLORED = 127
 COLOR_BG = "Black"
 COLOR_FG = "White"
+DISTANCE = 4
 
 
 class SymbolGroup(object):
@@ -101,10 +103,9 @@ class SymbolGroup(object):
         return skeletonize(self.original_array)
 
     def create_nodes(self):
-        initial_nodes = self.find_corners_and_junctions()
-        edge_nodes = self.find_nodes_on_edges(initial_nodes)
-        initial_nodes.extend(edge_nodes[0::10])
-        return initial_nodes
+        nodes = self.find_corners_and_junctions()
+        nodes = self.add_nodes_greedily(nodes)
+        return nodes
 
     def find_corners_and_junctions(self):
         sg_logger.info("Detecting Nodes of skeletonized QImage with name [%s]\n", self.name)
@@ -114,51 +115,24 @@ class SymbolGroup(object):
             nodes.append(Node(position=corner))
         return nodes
 
-    def find_nodes_on_edges(self, corner_nodes):
-        closed_list = list()
-        closed_list.extend(self.find_nodes_recursively(corner_nodes[0], closed_list))
-        return closed_list
+    def add_nodes_greedily(self, corner_nodes):
+        additional_nodes = list()
+        true_list = list()
 
-    def find_nodes_recursively(self, node, closed_list):
-        x = node.position[0]
-        y = node.position[1]
+        for i, x in enumerate(self.skeleton_array):
+            for j, y in enumerate(x):
+                if y and Node(position=array([i, j])) not in corner_nodes:
+                    true_list.append(array([i, j]))
 
-        known = False
-        for known_node in closed_list:
-            if (node.position == known_node.position).all():
-                known = True
+        for corner in corner_nodes:
+            for true in true_list:
+                if corner.position[0] + DISTANCE > true[0] > corner.position[0] - DISTANCE:
+                    print(true)
+                if corner.position[1] + DISTANCE > true[1] > corner.position[1] - DISTANCE:
+                    print(true)
+        pass
 
-        if not known:
-            closed_list.append(node)
-
-            if self.skeleton_array[x-1][y-1]:
-                new_Node = Node(position=array([x-1, y-1]))
-                self.find_nodes_recursively(new_Node, closed_list)
-            if self.skeleton_array[x][y-1]:
-                new_Node = Node(position=array([x, y-1]))
-                self.find_nodes_recursively(new_Node, closed_list)
-            if self.skeleton_array[x+1][y-1]:
-                new_Node = Node(position=array([x+1, y-1]))
-                self.find_nodes_recursively(new_Node, closed_list)
-
-            if self.skeleton_array[x-1][y]:
-                new_Node = Node(position=array([x-1, y]))
-                self.find_nodes_recursively(new_Node, closed_list)
-            if self.skeleton_array[x+1][y]:
-                new_Node = Node(position=array([x+1, y]))
-                self.find_nodes_recursively(new_Node, closed_list)
-
-            if self.skeleton_array[x-1][y+1]:
-                new_Node = Node(position=array([x-1, y+1]))
-                self.find_nodes_recursively(new_Node, closed_list)
-            if self.skeleton_array[x][y+1]:
-                new_Node = Node(position=array([x, y+1]))
-                self.find_nodes_recursively(new_Node, closed_list)
-            if self.skeleton_array[x+1][y+1]:
-                new_Node = Node(position=array([x+1, y+1]))
-                self.find_nodes_recursively(new_Node, closed_list)
-
-        return closed_list
+        return corner_nodes.extend(additional_nodes)
 
 
 class Node(object):
@@ -185,3 +159,6 @@ class Node(object):
 
     def __str__(self):
         return "Node-Position: {}".format(self.position)
+
+    def __eq__(self, other):
+        return (self.position == other.position).all()
