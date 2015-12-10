@@ -130,7 +130,7 @@ class SymbolGroup(object):
                     print(true)
                 if corner.position[1] + DISTANCE > true[1] > corner.position[1] - DISTANCE:
                     print(true)
-        pass
+            pass
 
         return corner_nodes.extend(additional_nodes)
 
