@@ -2,7 +2,7 @@
 from copy import deepcopy
 from functools import reduce  # pylint:disable=redefined-builtin
 from PyQt4 import QtGui
-from numpy import zeros, array, delete, insert, c_, where
+from numpy import zeros, array, delete, insert, c_
 from skimage.feature import corner_harris
 from skimage.feature import corner_peaks
 from skimage.morphology import skeletonize
