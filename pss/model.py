@@ -116,22 +116,18 @@ class SymbolGroup(object):
         return nodes
 
     def add_nodes_greedily(self, corner_nodes):
-        additional_nodes = list()
-        new_nodes = list()
-        true_list = list()
+        additional_nodes = list()  # eventually holds all nodes between corner_nodes
+        true_list = list()  # holds indices of all 'True's
+        to_delete = list()  # holds indices of the neighbors, which were True, but too close to another node
+        open_list = list()  # nodes to check
+        closed_list = list()  # already checked nodes
+        rest_list = list()  # if there's more than one neighbor 'True' save them in a rest_list
 
         for i, x in enumerate(self.enlarged_skeleton):
             for j, y in enumerate(x):
                 if y and Node(position=array([i, j])) not in corner_nodes:
                     true_list.append(array([i, j]))
 
-        new_nodes.extend(corner_nodes)
-        to_delete = list()
-        open_list = list()
-        closed_list = list()
-        rest_list = list()
-
-#       corner = corner_nodes[0]
         for corner in corner_nodes:
             open_list.append(corner)
             while len(open_list) > 0 or len(rest_list) > 0:

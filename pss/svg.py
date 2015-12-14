@@ -22,7 +22,7 @@ class SvgHandler(object):
         svg_logger.info("SVG-Handler started")
         self.handle_file_not_existing(path)
         self.names, self.svg_symbol_groups = self.load_svg(infix, path)
-        #self.symbol_groups = self.create_symbol_groups()
+        # self.symbol_groups = self.create_symbol_groups()
 
         # These need to be commented when pushing, to make the tests pass
         # self.display_symbol_groups()
