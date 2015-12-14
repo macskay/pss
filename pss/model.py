@@ -267,7 +267,7 @@ class SymbolGroup(object):
                 bad_neighbors.append(i)
             elif self.is_neighbor_the_right_distance_away(node, true_position):
                 new_node = Node(position=true_position)
-                if self.is_node_completely_unknown(new_node):
+                if self.is_node_completely_unknown(new_node):  # pragma: no cover
                     self.open_list.append(new_node)
                     good_neighbors.append(new_node)
         return good_neighbors, bad_neighbors
