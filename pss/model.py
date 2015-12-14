@@ -2,11 +2,10 @@
 
 from functools import reduce  # pylint:disable=redefined-builtin
 from PyQt4 import QtGui
-from numpy import zeros, array
+from numpy import zeros, array, delete, insert, c_, where
 from skimage.feature import corner_harris
 from skimage.feature import corner_peaks
 from skimage.morphology import skeletonize
-from copy import deepcopy
 
 from logging import getLogger
 
@@ -46,6 +45,7 @@ class SymbolGroup(object):
         self.original_array = self.convert_qimage_to_ndarray()
 
         self.skeleton_array = self.create_skeleton(name)
+        self.enlarged_skeleton = self.enlarge_skeleton()
         self.nodes = self.create_nodes()
 
     def create_bounding_box(self):
@@ -104,12 +104,12 @@ class SymbolGroup(object):
 
     def create_nodes(self):
         nodes = self.find_corners_and_junctions()
-        nodes = self.add_nodes_greedily(nodes)
+        nodes.extend(self.add_nodes_greedily(nodes))
         return nodes
 
     def find_corners_and_junctions(self):
         sg_logger.info("Detecting Nodes of skeletonized QImage with name [%s]\n", self.name)
-        skeleton_corners = corner_peaks(corner_harris(self.skeleton_array), min_distance=2)
+        skeleton_corners = corner_peaks(corner_harris(self.enlarged_skeleton), min_distance=2)
         nodes = list()
         for corner in skeleton_corners:
             nodes.append(Node(position=corner))
@@ -117,22 +117,63 @@ class SymbolGroup(object):
 
     def add_nodes_greedily(self, corner_nodes):
         additional_nodes = list()
+        new_nodes = list()
         true_list = list()
 
-        for i, x in enumerate(self.skeleton_array):
+        for i, x in enumerate(self.enlarged_skeleton):
             for j, y in enumerate(x):
                 if y and Node(position=array([i, j])) not in corner_nodes:
                     true_list.append(array([i, j]))
 
-        for corner in corner_nodes:
-            for true in true_list:
-                if corner.position[0] + DISTANCE > true[0] > corner.position[0] - DISTANCE:
-                    print(true)
-                if corner.position[1] + DISTANCE > true[1] > corner.position[1] - DISTANCE:
-                    print(true)
-            pass
+        new_nodes.extend(corner_nodes)
+        to_delete = list()
+        open_list = list()
+        closed_list = list()
+        rest_list = list()
 
-        return corner_nodes.extend(additional_nodes)
+#       corner = corner_nodes[0]
+        for corner in corner_nodes:
+            open_list.append(corner)
+            while len(open_list) > 0 or len(rest_list) > 0:
+                to_delete.clear()
+                if len(open_list) > 1:
+                    rest_list.extend(open_list)
+                    open_list.clear()
+                    continue
+
+                node = None
+                if len(open_list) > 0:
+                    node = open_list.pop(0)
+                else:
+                    node = rest_list.pop(0)
+
+                closed_list.append(node)
+                for i, true in enumerate(true_list):
+                    if node.position[0] + DISTANCE > true[0] > node.position[0] - DISTANCE \
+                            and node.position[1] + DISTANCE > true[1] > node.position[1] - DISTANCE:
+                        to_delete.append(i)
+                    elif (node.position[0] + DISTANCE == true[0] and node.position[1] + DISTANCE >= true[1] >= node.position[1] - DISTANCE) \
+                      or (node.position[0] - DISTANCE == true[0] and node.position[1] + DISTANCE >= true[1] >= node.position[1] - DISTANCE) \
+                      or (node.position[1] + DISTANCE == true[1] and node.position[0] + DISTANCE >= true[0] >= node.position[0] - DISTANCE) \
+                      or (node.position[1] - DISTANCE == true[1] and node.position[0] + DISTANCE >= true[0] >= node.position[0] - DISTANCE):
+                        if Node(position=true) not in closed_list and Node(position=true) not in corner_nodes:
+                            new_node = Node(position=true)
+                            open_list.append(new_node)
+                            additional_nodes.append(new_node)
+
+                for item in reversed(to_delete):
+                    true_list = delete(true_list, item, 0)
+
+        return additional_nodes
+
+    def enlarge_skeleton(self):
+        rows = len(self.skeleton_array)
+        cols = len(self.skeleton_array[0])
+        enlarged_array = self.skeleton_array
+        enlarged_array = c_[zeros(rows, dtype=bool), enlarged_array, zeros(rows, dtype=bool)]
+        enlarged_array = insert(enlarged_array, 0, zeros(cols + 2, dtype=bool), 0)
+        enlarged_array = insert(enlarged_array, rows, zeros(cols + 2, dtype=bool), 0)
+        return enlarged_array
 
 
 class Node(object):
