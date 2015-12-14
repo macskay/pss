@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-
+from copy import deepcopy
 from functools import reduce  # pylint:disable=redefined-builtin
 from PyQt4 import QtGui
 from numpy import zeros, array, delete, insert, c_, where
@@ -46,32 +46,62 @@ class SymbolGroup(object):
 
         self.skeleton_array = self.create_skeleton(name)
         self.enlarged_skeleton = self.enlarge_skeleton()
-        self.nodes = self.create_nodes()
+        self.corner_nodes = self.find_corners_and_junctions()
+        self.true_list = self.create_true_list()
+
+        self.open_list = list()
+        self.closed_list = list()
+
+        self.nodes = self.add_remaining_nodes()
 
     def create_bounding_box(self):
+        """
+        Creates the Bounding Box given all the paths given to the constructor
+        :return: Bounding Box that surrounds all paths of this symbol group
+        """
         sg_logger.info("Setting up Bounding Box")
         return reduce(lambda xs, x: xs | x.boundingRect(),
                       self.paths[1:],
                       self.paths[0].boundingRect())
 
     def create_original_image(self):
+        """
+        Creates a QImage and sets its background to COLOR_BG. After that the QImage is tried to get filled with the paths
+        :return: QImage created out of QPainterPaths, which were given to the constructor
+        """
         image = QtGui.QImage(self.get_image_width(), self.get_image_height(), QtGui.QImage.Format_RGB32)
         self.set_background(COLOR_BG, image)
         image = self.try_to_fill_image_with_paths(image)
         return image
 
     def get_image_width(self):
+        """
+        Getter for the QImage width
+        :return: Width of the Bounding-Box
+        """
         return self.bounding_box.width()*WIDTH
 
     def get_image_height(self):
+        """
+        Getter for the QImage height
+        :return: Height of the Bounding-Box
+        """
         return self.bounding_box.height()*HEIGHT
 
     @staticmethod
     def set_background(color, image):
+        """
+        Sets the background color of the QImage
+        """
         sg_logger.info("Setting Background to [%s]", color)
         image.fill(QtGui.QColor(color))
 
     def try_to_fill_image_with_paths(self, image):
+        """
+        Tries filling up the QImage with QPainterPaths
+        :param image: The empty QImage
+        :return: The QImage, filled with QPainterPaths in a binary representation
+        """
         qpainter = QtGui.QPainter(image)
         try:
             return self.fill_image_with_paths(qpainter, image)
@@ -79,6 +109,13 @@ class SymbolGroup(object):
             qpainter.end()
 
     def fill_image_with_paths(self, qpainter, image):
+        """
+        Fills the QImage with the QPainterPaths
+        :param qpainter: QPainter to let Qt draw into the QImage
+        :param image: The empty QImage
+        :return: The QImage, filled with QPainterPaths in a binary representation
+
+        """
         sg_logger.info("Brushing Paths onto QImage")
         qpainter.setBrush(QtGui.QColor(COLOR_FG))
         qpainter.setPen(QtGui.QColor(COLOR_FG))
@@ -89,6 +126,10 @@ class SymbolGroup(object):
         return image
 
     def convert_qimage_to_ndarray(self):  # pragma: no cover
+        """
+        Converts a given QImage into a Numpy-Array
+        :return: Boolean Numpy-Array representing the QImage. "True" = Foreground, "False" = Background
+        """
         sg_logger.info("Converting QImage to NumPy-Array")
         m, n = self.get_image_height(), self.get_image_width()
         array = zeros((m, n))
@@ -99,70 +140,20 @@ class SymbolGroup(object):
         return array
 
     def create_skeleton(self, name):
+        """
+        Skeletonzes a given Numpy-Array to a 1px width. See skimage-documentation for skeletonize
+        :param name: Name of the QImage (For Logging purposes)
+        :return: Skeletonized Numpy-Array
+        """
         sg_logger.info("Skeletonizing QImage with name [%s]", name)
         return skeletonize(self.original_array)
 
-    def create_nodes(self):
-        nodes = self.find_corners_and_junctions()
-        nodes.extend(self.add_nodes_greedily(nodes))
-        return nodes
-
-    def find_corners_and_junctions(self):
-        sg_logger.info("Detecting Nodes of skeletonized QImage with name [%s]\n", self.name)
-        skeleton_corners = corner_peaks(corner_harris(self.enlarged_skeleton), min_distance=2)
-        nodes = list()
-        for corner in skeleton_corners:
-            nodes.append(Node(position=corner))
-        return nodes
-
-    def add_nodes_greedily(self, corner_nodes):
-        additional_nodes = list()  # eventually holds all nodes between corner_nodes
-        true_list = list()  # holds indices of all 'True's
-        to_delete = list()  # holds indices of the neighbors, which were True, but too close to another node
-        open_list = list()  # nodes to check
-        closed_list = list()  # already checked nodes
-        rest_list = list()  # if there's more than one neighbor 'True' save them in a rest_list
-
-        for i, x in enumerate(self.enlarged_skeleton):
-            for j, y in enumerate(x):
-                if y and Node(position=array([i, j])) not in corner_nodes:
-                    true_list.append(array([i, j]))
-
-        for corner in corner_nodes:
-            open_list.append(corner)
-            while len(open_list) > 0 or len(rest_list) > 0:
-                to_delete.clear()
-                if len(open_list) > 1:
-                    rest_list.extend(open_list)
-                    open_list.clear()
-                    continue
-
-                node = None
-                if len(open_list) > 0:
-                    node = open_list.pop(0)
-                else:
-                    node = rest_list.pop(0)
-
-                closed_list.append(node)
-                for i, true in enumerate(true_list):
-                    if node.position[0] + DISTANCE > true[0] > node.position[0] - DISTANCE \
-                            and node.position[1] + DISTANCE > true[1] > node.position[1] - DISTANCE:
-                        to_delete.append(i)
-                    elif (node.position[0] + DISTANCE == true[0] and node.position[1] + DISTANCE >= true[1] >= node.position[1] - DISTANCE) \
-                      or (node.position[0] - DISTANCE == true[0] and node.position[1] + DISTANCE >= true[1] >= node.position[1] - DISTANCE) \
-                      or (node.position[1] + DISTANCE == true[1] and node.position[0] + DISTANCE >= true[0] >= node.position[0] - DISTANCE) \
-                      or (node.position[1] - DISTANCE == true[1] and node.position[0] + DISTANCE >= true[0] >= node.position[0] - DISTANCE):
-                        if Node(position=true) not in closed_list and Node(position=true) not in corner_nodes:
-                            new_node = Node(position=true)
-                            open_list.append(new_node)
-                            additional_nodes.append(new_node)
-
-                for item in reversed(to_delete):
-                    true_list = delete(true_list, item, 0)
-
-        return additional_nodes
-
     def enlarge_skeleton(self):
+        """
+        Adds two columns and two rows at the top, bottom, left and right to ensure the neighbor-search doesn't hit
+        a border.
+        :return: Numpy-Array, which is a column and row larger on each side.
+        """
         rows = len(self.skeleton_array)
         cols = len(self.skeleton_array[0])
         enlarged_array = self.skeleton_array
@@ -170,6 +161,157 @@ class SymbolGroup(object):
         enlarged_array = insert(enlarged_array, 0, zeros(cols + 2, dtype=bool), 0)
         enlarged_array = insert(enlarged_array, rows, zeros(cols + 2, dtype=bool), 0)
         return enlarged_array
+
+    def find_corners_and_junctions(self):
+        """
+        Finds all junctions and corners of the enlarged_skeleton, which represents a QImage
+        :return: List of all junctions and corners found within the enlarged_skeleton Numpy-Array
+        """
+        sg_logger.info("Detecting Nodes of skeletonized QImage with name [%s]\n", self.name)
+        skeleton_corners = corner_peaks(corner_harris(self.enlarged_skeleton), min_distance=2)
+        nodes = list()
+        for corner in skeleton_corners:
+            nodes.append(Node(position=corner))
+        return nodes
+
+    def create_true_list(self):
+        """
+        Creates a List, which holds all indices of a "True"-appearance within the enlarged_skeleton.
+        Only Non-Corner-/Non-Junction-Nodes are added to this list.
+        :return: A list of 2D-Numpy-Arrays. The 2D-Numpy-Arrays represent the appearance of a "True" within the enlarged_skeleton.
+        """
+        true_list = list()
+        for i, x in enumerate(self.enlarged_skeleton):
+            for j, y in enumerate(x):
+                if y and Node(position=array([i, j])) not in self.corner_nodes:
+                    true_list.append(array([i, j]))
+        return true_list
+
+    def add_remaining_nodes(self):
+        """
+        This calls sub-functions to add the remaining nodes between junctions and corners.
+        :return: The list of all nodes representing the QImage
+        """
+        nodes = list()
+        nodes.extend(self.add_nodes_greedily())
+        nodes.extend(self.corner_nodes)
+        return nodes
+
+    def add_nodes_greedily(self):
+        """
+        Adds nodes between junctions and corners greedily.
+        All corners and junctions are given as starting points.
+        For each of these a neighborhood of DISTANCE is checked. If "True"'s within the enlarged_skeleton
+        are found closer than DISTANCE away they get deleted from the true_list. If they are exactly DISTANCE away
+        they are added to additional_nodes. This is done for every new "good" neighbor found until a corner_node is hit.
+        If there is more than one "good" neighbors for a given node they get saved into a rest_list.
+        This leads to a path getting finished before switching to a new path. The node creation therefor first checks
+        one path until it hits a corner_node. When this happens the algorithm switches to the next path (starting point
+        in rest_list).
+        :return: The list of all nodes representing the QImage
+        """
+        additional_nodes = list()
+
+        for corner in self.corner_nodes:
+            self.open_list.append(corner)
+            rest_list = list()
+
+            while self.still_neighbors_to_check(rest_list):
+                if self.has_node_more_than_one_neighbor():
+                    rest_list = self.create_copy_of_open_list_and_clear()
+                    continue
+
+                node = self.open_list.pop(0) if len(self.open_list) > 0 else rest_list.pop(0)
+                self.closed_list.append(node)
+
+                good_neighbors, bad_neighbors = self.decide_good_or_bad_neighbor(node)
+                additional_nodes.extend(good_neighbors)
+                self.delete_bad_neighbors_from_true_list(bad_neighbors)
+
+        return additional_nodes
+
+    def still_neighbors_to_check(self, rest_list):
+        """
+        :param rest_list: List of other Neighbors found when started to populate from corner_node
+        :return: True nodes still in open_list or rest_list
+        """
+        return len(self.open_list) > 0 or len(rest_list) > 0
+
+    def has_node_more_than_one_neighbor(self):
+        """
+        Checks if a node has more than one neighbor
+        :return: True if more than one neighbor
+        """
+        return len(self.open_list) > 1
+
+    def create_copy_of_open_list_and_clear(self):
+        """
+        Creates a copy of the open_list and saves it inside a rest_list. After that the open_list is cleared
+        :return: A list of all neighbors
+        """
+        rest_list = deepcopy(self.open_list)
+        self.open_list.clear()
+        return rest_list
+
+    def decide_good_or_bad_neighbor(self, node):
+        """
+        Decides if a neighbor is seen as good neighbor, meaning a new node should be build there or as a bad neighbor,
+        meaning it should get deleted, since it is too close to existing nodes.
+        :param node: Current node which neighbors should get checked
+        :return: List of "Good neighbors" and list of "Bad neighbors"
+        """
+        good_neighbors = list()
+        bad_neighbors = list()
+        for i, true_position in enumerate(self.true_list):
+            if self.is_neighbor_too_close(node, true_position):
+                bad_neighbors.append(i)
+            elif self.is_neighbor_the_right_distance_away(node, true_position):
+                new_node = Node(position=true_position)
+                if self.is_node_completely_unknown(new_node):
+                    self.open_list.append(new_node)
+                    good_neighbors.append(new_node)
+        return good_neighbors, bad_neighbors
+
+    @staticmethod
+    def is_neighbor_too_close(node, true_position):
+        """
+        Checks if a neighbor is too close to its node (Too close meaning less than DISTANCE away)
+        :param node: Current node
+        :param true_position: Position of potential neighbor
+        :return: True if distance is too close
+        """
+        return node.position[0] + DISTANCE > true_position[0] > node.position[0] - DISTANCE \
+                            and node.position[1] + DISTANCE > true_position[1] > node.position[1] - DISTANCE
+
+    @staticmethod
+    def is_neighbor_the_right_distance_away(node, true_position):
+        """
+        Checks if a neighbor is the right distance to be seen as a "Good neighbor"
+        :param node: Current node
+        :param true_position: Position of potential neighbor
+        :return: True if distance is just right to be seen as a "Good neighbor"
+        """
+        return (node.position[0] + DISTANCE == true_position[0] and node.position[1] + DISTANCE >= true_position[1] >= node.position[1] - DISTANCE) \
+                      or (node.position[0] - DISTANCE == true_position[0] and node.position[1] + DISTANCE >= true_position[1] >= node.position[1] - DISTANCE) \
+                      or (node.position[1] + DISTANCE == true_position[1] and node.position[0] + DISTANCE >= true_position[0] >= node.position[0] - DISTANCE) \
+                      or (node.position[1] - DISTANCE == true_position[1] and node.position[0] + DISTANCE >= true_position[0] >= node.position[0] - DISTANCE)
+
+    def is_node_completely_unknown(self, new_node):
+        """
+        Checks if a given node is completely unknown, meaning it is neither in the closed_list nor in the corner_nodes
+        :param new_node: Node to be checked
+        :return: True if completely unknown (not in self.closed_list and not in self.corner_nodes)
+        """
+        return new_node not in self.closed_list and new_node not in self.corner_nodes
+
+    def delete_bad_neighbors_from_true_list(self, bad_neighbors):
+        """
+        Deletes bad neighbors from the true_list, so they don't get checked ever again. They can't get "Good neighbors"
+        any longer.
+        :param bad_neighbors: List of "Bad neighbors", which should get deleted out of the true_list
+        """
+        for item in reversed(bad_neighbors):
+            self.true_list = delete(self.true_list, item, 0)
 
 
 class Node(object):
