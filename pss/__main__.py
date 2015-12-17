@@ -13,6 +13,9 @@ FILE_LOCATION = dirname(abspath(__file__))
 
 
 def main():
+    """
+    Main entry point for the application to start the program from.
+    """
     Settings()
     logger.info("PartStructuredSpotting started")
     setrecursionlimit(1000000)
