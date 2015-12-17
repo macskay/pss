@@ -20,6 +20,5 @@ def main():
     SvgHandler(join(FILE_LOCATION, "..", "resources", "grouped_VAT_09671_Rs_SJakob.svg"))
     # SvgHandler(join(FILE_LOCATION, "..", "resources", "test_query.svg"))
 
-
 if __name__ == "__main__":
     main()

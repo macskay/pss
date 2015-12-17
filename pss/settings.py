@@ -17,16 +17,26 @@ class Settings(object):  # pragma: no cover
 
     @staticmethod
     def setup_arg_parser():
+        """
+        Sets up the ArgumentParser
+        :return: The ArgumentParser to work with
+        """
         return ArgumentParser(
             prog='PartStructuredSpotting',
             add_help=True
         )
 
     def setup_arg_options(self):
+        """
+        Sets up the arguments to use within this program
+        """
         self.add_arguments()
         ArgumentListener(self.arg_parser)
 
     def add_arguments(self):
+        """
+        Adds the arguments supported by this program.
+        """
         self.arg_parser.add_argument("-v", "--verbose",
                                      help="Activates verbose mode (DEBUG-logging)", action="store_true")
 
@@ -42,9 +52,15 @@ class ArgumentListener(object):  # pragma: no cover
         self.setup_option_handler()
 
     def setup_option_handler(self):
+        """
+        Sets up all options for the current program
+        """
         self.setup_verbose_mode()
 
     def setup_verbose_mode(self):
+        """
+        Sets up verbose mode for debugging
+        """
         debuglevel = INFO
         level_msg = "INACTIVE"
         if self.options.verbose:
