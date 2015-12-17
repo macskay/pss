@@ -334,10 +334,22 @@ class Node(object):
         self.index = None
 
     def add_child(self, child):
+        """
+        Adds a child to the children list. Added to avoid a breach of the law of demeter.
+        :param child: The child to add.
+        """
         self.children.append(child)
 
     def __str__(self):
+        """
+        :return: Node-Position
+        """
         return "Node-Position: {}".format(self.position)
 
     def __eq__(self, other):
+        """
+        Two nodes are equal, if their position is equal
+        :param other: Other Node to check for equality
+        :return: True, if position is equal - False, else
+        """
         return (self.position == other.position).all()
