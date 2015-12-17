@@ -19,7 +19,7 @@ class ImagePlot(object):  # pragma: no cover
     def __init__(self, symbol_group):
         ax1, ax2 = self.setup_figure(symbol_group.name)
         self.setup_subplot(ax1, symbol_group.original_array, "original")
-        self.setup_subplot(ax2, symbol_group.skeleton_array, "skeleton", symbol_group.nodes)
+        self.setup_subplot(ax2, symbol_group.skeleton_array, "skeleton", symbol_group)
 
     @staticmethod
     def setup_figure(name):
@@ -30,9 +30,12 @@ class ImagePlot(object):  # pragma: no cover
                             bottom=SPACE, left=SPACE, right=POSITION)
         return ax1, ax2
 
-    def setup_subplot(self, ax, array, title, nodes=None):
+    def setup_subplot(self, ax, array, title, symbol_group=None):
         ax.imshow(array, cmap=cm.gray)
-        self.plot_nodes(ax, nodes)
+        if symbol_group is not None:
+            self.plot_nodes(ax, symbol_group.nodes)
+            self.plot_center_of_mass(ax, symbol_group.center_of_mass)
+            self.plot_root_node(ax, symbol_group.root_node)
         ax.axis('off')
         ax.set_title(title, fontsize=FONTSIZE)
 
@@ -41,6 +44,17 @@ class ImagePlot(object):  # pragma: no cover
         if nodes is not None and len(nodes) > 0:
             for node in nodes:
                 ax.plot(node.position.item(1), node.position.item(0), "yo", markersize=NODESIZE)
+
+    @staticmethod
+    def plot_center_of_mass(ax, center_of_mass):
+        if center_of_mass is not None:
+            ax.plot(center_of_mass.position.item(1), center_of_mass.position.item(0), "r.", markersize=NODESIZE)
+
+    @staticmethod
+    def plot_root_node(ax, root_node):
+        if root_node is not None:
+            ax.plot(root_node.position.item(1), root_node.position.item(0), "go", markersize=NODESIZE)
+
 
 
 pn_logger = getLogger("PrintNodes")
