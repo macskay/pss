@@ -13,6 +13,9 @@ svg_logger = getLogger("SvgHandler")
 
 
 class SvgHandler(object):
+    """
+    This class opens and manages a given svg file.
+    """
     def __init__(self, path, infix=""):
         """
         :param path: Path to the SVG-file (required)
