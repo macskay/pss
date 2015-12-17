@@ -2,10 +2,11 @@
 from copy import deepcopy
 from functools import reduce  # pylint:disable=redefined-builtin
 from PyQt4 import QtGui
-from numpy import zeros, array, delete, insert, c_
+from numpy import zeros, array, delete, insert, c_, mean
 from skimage.feature import corner_harris
 from skimage.feature import corner_peaks
 from skimage.morphology import skeletonize
+from math import sqrt
 
 from logging import getLogger
 
@@ -48,11 +49,14 @@ class SymbolGroup(object):
         self.enlarged_skeleton = self.enlarge_skeleton()
         self.corner_nodes = self.find_corners_and_junctions()
         self.true_list = self.create_true_list()
+        self.center_of_mass = self.calculate_center_of_mass()
 
         self.open_list = list()
         self.closed_list = list()
 
+        self.edge_list = list()
         self.nodes = self.add_remaining_nodes()
+        self.root_node = self.find_root_node()
 
     def create_bounding_box(self):
         """
@@ -225,8 +229,9 @@ class SymbolGroup(object):
                 self.closed_list.append(node)
 
                 good_neighbors, bad_neighbors = self.decide_good_or_bad_neighbor(node)
-                additional_nodes.extend(good_neighbors)
+                self.add_neighbor_relation_to_edge_list(good_neighbors, node)
                 self.delete_bad_neighbors_from_true_list(bad_neighbors)
+                additional_nodes.extend(good_neighbors)
 
         return additional_nodes
 
@@ -272,6 +277,18 @@ class SymbolGroup(object):
                     good_neighbors.append(new_node)
         return good_neighbors, bad_neighbors
 
+    def add_neighbor_relation_to_edge_list(self, good_neighbors, node):
+        """
+        This function creates a new list item consisting of the node currently observed and one of its good
+        neighbors. The relation is added in both directions, meaning [node, neighbor] and [neighbor, node]
+        :param good_neighbors: Good neighbors for a given node
+        :param node: The node tp add the [node, neighbor] relation to the edge_list
+        :return:
+        """
+        for neighbor in good_neighbors:
+            self.edge_list.append([node, neighbor])
+            self.edge_list.append([neighbor, node])
+
     @staticmethod
     def is_neighbor_too_close(node, true_position):
         """
@@ -312,6 +329,44 @@ class SymbolGroup(object):
         """
         for item in reversed(bad_neighbors):
             self.true_list = delete(self.true_list, item, 0)
+
+    def calculate_center_of_mass(self):
+        """
+        Calculates the center of mass by using the arithmetic mean of all node positions
+        :return: The arithmetic mean of all node positions
+        """
+        return Node(position=mean(self.true_list, axis=1, dtype=int))
+
+    def find_root_node(self):
+        """
+        Finds the closes node to the center of mass
+        :return: The node closed to the center od mass. This becomes the root node for the upcoming parent-child tree
+        """
+        closest_node = None
+        closest_distance = float("inf")
+        for node in self.nodes:
+            current_distance = self.get_euclidean_distance_to_center_of_mass(node)
+            if current_distance < closest_distance:
+                closest_node = node
+                closest_distance = current_distance
+        return closest_node
+
+    def get_euclidean_distance_to_center_of_mass(self, node):
+        """
+        Finds the euclidean distance of a node to the center of mass
+        :param node: node to calculate the euclidean distance to center of mass for
+        :return: euclidean distance from the given node to the center of mass
+        """
+        return sqrt(self.get_euclidean_addend(node, 0) + self.get_euclidean_addend(node, 1))
+
+    def get_euclidean_addend(self, node, i):
+        """
+        Calculates one addend of the euclidean distance
+        :param node: node to calculate the euclidean distance to center of mass for
+        :param i: Index of the axis/dimension
+        :return: One calculated addend of form (node.pos.item(i) - center_of_mass.pos.item(i))^2
+        """
+        return pow((node.position.item(i) - self.center_of_mass.position.item(i)), 2)
 
 
 class Node(object):

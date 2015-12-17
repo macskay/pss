@@ -27,7 +27,7 @@ class SvgHandler(object):
         # These need to be commented when pushing, to make the tests pass
         # self.display_symbol_groups()
         self.symbol_groups = self.create_single_symbol_group(0)
-        # self.display_single_symbol_group(0)
+        # self.display_single_symbol_group()
 
     @staticmethod
     def handle_file_not_existing(path):
@@ -62,12 +62,11 @@ class SvgHandler(object):
             ImagePlot(symbol_group)
         show()
 
-    def display_single_symbol_group(self, i):  # pragma: no cover
+    def display_single_symbol_group(self):  # pragma: no cover
         """
         Plots a single given SymbolGroup of all the SymbolGroups found by the program
-        :param i: Index of the SymbolGroup within the SymbolGroup-list
         """
-        ImagePlot(self.symbol_groups[i])
+        ImagePlot(self.symbol_groups[0])
         show()
 
     def print_single_symbol_group_nodes(self, i):  # pragma: no cover
