@@ -2,6 +2,8 @@
 from os.path import join, dirname, abspath
 from unittest import TestCase
 
+from numpy import array
+
 from pss.model import Node, SymbolGroup, HEIGHT, WIDTH
 from pss.svg import SvgHandler
 
@@ -26,6 +28,44 @@ class SymbolGroupImageTestCase(TestCase):
 
     def test_get_height_returns_height_of_image(self):
         self.assertEqual(self.sgi.get_image_height(), self.sgi.bounding_box.height() * HEIGHT)
+
+    def test_when_building_tree_make_sure_parents_are_not_added_as_children(self):
+        nodes = self.build_nodes()
+        edge_list = self.build_edge_list(nodes)
+        self.sgi.nodes = nodes
+        self.sgi.edge_list = edge_list
+        self.sgi.root_node = nodes[2]
+
+        self.sgi.build_up_tree()
+        self.assertEqual(len(self.sgi.nodes[0].children), 1)  # Node [1, 1] should have one children ([2, 0])
+        self.assertEqual(len(self.sgi.nodes[1].children), 0)  # Node [2, 0] should not have any children
+        self.assertEqual(len(self.sgi.nodes[2].children), 2)  # Node [4, 5] should have two children ([1, 1] & [5, 3])
+        self.assertEqual(len(self.sgi.nodes[3].children), 0)  # Node [5, 3] should not have any children
+        self.assertEqual(self.sgi.nodes[0].parent, self.sgi.nodes[2])  # Parent of [1, 1] should be [4, 5]
+        self.assertEqual(self.sgi.nodes[1].parent, self.sgi.nodes[0])  # Parent of [2, 0] should be [1, 1]
+        self.assertIsNone(self.sgi.nodes[2].parent)  # Node [4, 5] is root and therefore has no parent
+        self.assertEqual(self.sgi.nodes[3].parent, self.sgi.nodes[2])  # Parent of [5, 3] should be [4, 5]
+
+    def build_nodes(self):
+        node_list = list()
+        node_list.append(Node(position=array([1, 1], dtype=int)))
+        node_list.append(Node(position=array([2, 0], dtype=int)))
+        node_list.append(Node(position=array([4, 5], dtype=int)))
+        node_list.append(Node(position=array([5, 3], dtype=int)))
+        return node_list
+
+    def build_edge_list(self, nodes):
+        edge_list = list()
+        edge_list.append([nodes[0], nodes[1]])
+        edge_list.append([nodes[1], nodes[0]])
+
+        edge_list.append([nodes[0], nodes[2]])
+        edge_list.append([nodes[2], nodes[0]])
+
+        edge_list.append([nodes[2], nodes[3]])
+        edge_list.append([nodes[3], nodes[2]])
+
+        return edge_list
 
 
 class NodeTestCase(TestCase):

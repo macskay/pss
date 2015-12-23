@@ -10,7 +10,7 @@ SPACE = .02
 POSITION = .98
 FIG_POS = (3.5, 5.)
 ROWS = 1
-COLUMNS = 2
+COLUMNS = 3
 FONTSIZE = 20
 NODESIZE = 15
 
@@ -20,9 +20,12 @@ class ImagePlot(object):  # pragma: no cover
     This class is responsible for plotting the QImage.
     """
     def __init__(self, symbol_group):
-        ax1, ax2 = self.setup_figure(symbol_group.name)
+        ax1, ax2, ax3 = self.setup_figure(symbol_group.name)
         self.setup_subplot(ax1, symbol_group.original_array, "original")
-        self.setup_subplot(ax2, symbol_group.skeleton_array, "skeleton", symbol_group)
+        self.setup_subplot(ax2, symbol_group.skeleton_array, "skeleton", symbol_group=symbol_group)
+        root = symbol_group.root_node
+        center_of_mass = symbol_group.center_of_mass
+        self.setup_subplot(ax3, symbol_group.skeleton_array, "tree", root_node=root, center_of_mass=center_of_mass)
 
     @staticmethod
     def setup_figure(name):
@@ -31,14 +34,14 @@ class ImagePlot(object):  # pragma: no cover
         :param name: The name to set the windows title
         :return: The two empty subplots for the original image and the skeletonized one
         """
-        fig, (ax1, ax2) = subplots(ROWS, COLUMNS, figsize=FIG_POS, sharex=True, sharey=True,
-                                   subplot_kw={'adjustable': 'box-forced'})
+        fig, (ax1, ax2, ax3) = subplots(ROWS, COLUMNS, figsize=FIG_POS, sharex=True, sharey=True,
+                                    subplot_kw={'adjustable': 'box-forced'})
         fig.canvas.set_window_title("name: [{}]".format(name))
         fig.subplots_adjust(wspace=SPACE, hspace=SPACE, top=POSITION,
                             bottom=SPACE, left=SPACE, right=POSITION)
-        return ax1, ax2
+        return ax1, ax2, ax3
 
-    def setup_subplot(self, ax, array, title, symbol_group=None):
+    def setup_subplot(self, ax, array, title, symbol_group=None, root_node=None, center_of_mass=None):
         """
         This fills up the subplots
         :param ax: Empty subplot for the original image or the skeletonized image
@@ -46,13 +49,28 @@ class ImagePlot(object):  # pragma: no cover
         :param title: Title of the subplot
         :param nodes: Parameter to show given Nodes onto the subplot (optional)
         """
-        ax.imshow(array, cmap=cm.gray)
+        ax.axis('on')
+        ax.set_xlim([-25, 225])
+        ax.set_ylim([250, -20])
+        ax.set_title(title, fontsize=FONTSIZE)
+
+        if array is not None:
+            ax.imshow(array, cmap=cm.gray)
         if symbol_group is not None:
             self.plot_nodes(ax, symbol_group.nodes)
-            self.plot_center_of_mass(ax, symbol_group.center_of_mass)
-            self.plot_root_node(ax, symbol_group.root_node)
-        ax.axis('off')
-        ax.set_title(title, fontsize=FONTSIZE)
+        if root_node is not None:
+            self.plot_center_of_mass(ax, center_of_mass)
+
+            open_list = list()
+            open_list.append(root_node)
+            while len(open_list) > 0:
+                current_node = open_list.pop()
+                for child in current_node.children:
+                    open_list.append(child)
+                    self.plot_edge(ax, current_node, child)
+
+            self.plot_root_node(ax, root_node)
+
 
     @staticmethod
     def plot_nodes(ax, nodes):
@@ -85,6 +103,9 @@ class ImagePlot(object):  # pragma: no cover
         if root_node is not None:
             ax.plot(root_node.position.item(1), root_node.position.item(0), "go", markersize=NODESIZE)
 
+    def plot_edge(self, ax, parent, child):
+        ax.plot([parent.position[1], child.position[1]], [parent.position[0], child.position[0]], "b-")
+        ax.plot(child.position.item(1), child.position.item(0), "y.", markersize=NODESIZE)
 
 
 pn_logger = getLogger("PrintNodes")

@@ -55,8 +55,11 @@ class SymbolGroup(object):
         self.closed_list = list()
 
         self.edge_list = list()
+
         self.nodes = self.add_remaining_nodes()
         self.root_node = self.find_root_node()
+
+        self.build_up_tree()
 
     def create_bounding_box(self):
         """
@@ -368,6 +371,30 @@ class SymbolGroup(object):
         """
         return pow((node.position.item(i) - self.center_of_mass.position.item(i)), 2)
 
+    def build_up_tree(self):
+        """
+        Builds up the Parent-Child relationship starting from the root-Node. It is build up successively. Every Node
+        that is added as a child of a parent node does not get its parent as child.
+        ex.: Node1 -> Node2. If this is a valid parent-child relationship the edge [Node1, Node2] is used,
+        edge [Node2, Node1] is not valid anymore and therefore added to the closed list. This makes sure Node1 does not
+        become a child of Node1 as well. See Unittest for usage.
+        """
+        closed_edge_list = list()
+        open_nodes = list()
+        open_nodes.append(self.root_node)
+
+        while len(open_nodes) > 0:
+            current_node = open_nodes.pop()
+            for edge in self.edge_list:
+                if current_node == edge[0] and edge not in closed_edge_list:
+                    child = edge[1]
+                    current_node.add_child(child)
+                    child.set_parent(current_node)
+                    closed_edge_list.append(edge)
+                    closed_edge_list.append(list(reversed(edge)))
+
+                    open_nodes.append(child)
+
 
 class Node(object):
     """
@@ -394,6 +421,9 @@ class Node(object):
         :param child: The child to add.
         """
         self.children.append(child)
+
+    def set_parent(self, parent):
+        self.parent = parent
 
     def __str__(self):
         """
