@@ -9,5 +9,5 @@ Part-structured Spotting for Cuneiform tablets
 API Documentation
 -----------------
 
-.. automodule:: pss.pss
+.. automodule:: pss
    :members:
