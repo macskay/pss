@@ -20,13 +20,6 @@ pss.model module
     :undoc-members:
     :show-inheritance:
 
-pss.settings module
--------------------
-
-.. automodule:: pss.settings
-    :members:
-    :undoc-members:
-    :show-inheritance:
 
 pss.svg module
 --------------

@@ -67,7 +67,6 @@
 <li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-pss.gui">pss.gui module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-pss.model">pss.model module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-pss.settings">pss.settings module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-pss.svg">pss.svg module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-pss">Module contents</a></li>
 </ul>
@@ -512,56 +511,6 @@ a border.
 <dd><p>Adds new child to the current tree and removes it from the nodes list
 :param current_tree: Already created tree
 :param real_child: Child to add to tree and remove from nodes list</p>
-</dd></dl>
-
-</dd></dl>
-
-</div>
-<div class="section" id="module-pss.settings">
-<span id="pss-settings-module"></span><h2>pss.settings module<a class="headerlink" href="#module-pss.settings" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="pss.settings.ArgumentListener">
-<em class="property">class </em><code class="descclassname">pss.settings.</code><code class="descname">ArgumentListener</code><span class="sig-paren">(</span><em>arg_parser</em><span class="sig-paren">)</span><a class="headerlink" href="#pss.settings.ArgumentListener" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
-<p>This class handles the functionality for the given arguments and options via command-line.
-This class is not unit-tested, since the argument parser fails on unittests, since no arguments get passed.</p>
-<dl class="method">
-<dt id="pss.settings.ArgumentListener.setup_option_handler">
-<code class="descname">setup_option_handler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pss.settings.ArgumentListener.setup_option_handler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets up all options for the current program</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="pss.settings.ArgumentListener.setup_verbose_mode">
-<code class="descname">setup_verbose_mode</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pss.settings.ArgumentListener.setup_verbose_mode" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets up verbose mode for debugging</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="pss.settings.Settings">
-<em class="property">class </em><code class="descclassname">pss.settings.</code><code class="descname">Settings</code><a class="headerlink" href="#pss.settings.Settings" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
-<p>This class sets the initial configuration of PartStructuredSpotting, such as activating verbose mode.
-This is not unit-tested, since arguments to parse can&#8217;t be added to the tests</p>
-<dl class="method">
-<dt id="pss.settings.Settings.add_arguments">
-<code class="descname">add_arguments</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pss.settings.Settings.add_arguments" title="Permalink to this definition">¶</a></dt>
-<dd><p>Adds the arguments supported by this program.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="pss.settings.Settings.setup_arg_options">
-<code class="descname">setup_arg_options</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pss.settings.Settings.setup_arg_options" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets up the arguments to use within this program</p>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="pss.settings.Settings.setup_arg_parser">
-<em class="property">static </em><code class="descname">setup_arg_parser</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pss.settings.Settings.setup_arg_parser" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets up the ArgumentParser
-:return: The ArgumentParser to work with</p>
 </dd></dl>
 
 </dd></dl>
