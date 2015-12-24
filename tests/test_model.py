@@ -34,24 +34,47 @@ class SymbolGroupImageTestCase(TestCase):
         edge_list = self.build_edge_list(nodes)
         self.sgi.nodes = nodes
         self.sgi.edge_list = edge_list
-        self.sgi.root_node = nodes[2]
+        self.sgi.root_node = nodes[5]
 
         self.sgi.build_up_tree()
-        self.assertEqual(len(self.sgi.nodes[0].children), 1)  # Node [1, 1] should have one children ([2, 0])
-        self.assertEqual(len(self.sgi.nodes[1].children), 0)  # Node [2, 0] should not have any children
-        self.assertEqual(len(self.sgi.nodes[2].children), 2)  # Node [4, 5] should have two children ([1, 1] & [5, 3])
-        self.assertEqual(len(self.sgi.nodes[3].children), 0)  # Node [5, 3] should not have any children
-        self.assertEqual(self.sgi.nodes[0].parent, self.sgi.nodes[2])  # Parent of [1, 1] should be [4, 5]
-        self.assertEqual(self.sgi.nodes[1].parent, self.sgi.nodes[0])  # Parent of [2, 0] should be [1, 1]
-        self.assertIsNone(self.sgi.nodes[2].parent)  # Node [4, 5] is root and therefore has no parent
-        self.assertEqual(self.sgi.nodes[3].parent, self.sgi.nodes[2])  # Parent of [5, 3] should be [4, 5]
+
+        # Children Assertion
+        self.assertEqual(len(nodes[0].children), 0)
+        self.assertEqual(len(nodes[1].children), 2)
+        self.assertEqual(len(nodes[2].children), 1)
+        self.assertEqual(len(nodes[3].children), 0)
+        self.assertEqual(len(nodes[4].children), 1)
+        self.assertEqual(len(nodes[5].children), 2)
+        self.assertEqual(len(nodes[6].children), 2)
+        self.assertEqual(len(nodes[7].children), 0)
+        self.assertEqual(len(nodes[8].children), 1)
+        self.assertEqual(len(nodes[9].children), 0)
+
+        # Parent Assertion
+        self.assertEqual(nodes[0].parent, nodes[1])
+        self.assertEqual(nodes[1].parent, nodes[4])
+        self.assertEqual(nodes[2].parent, nodes[1])
+        self.assertEqual(nodes[3].parent, nodes[2])
+        self.assertEqual(nodes[4].parent, nodes[5])
+        self.assertIsNone(nodes[5].parent)
+        self.assertEqual(nodes[6].parent, nodes[5])
+        self.assertEqual(nodes[7].parent, nodes[6])
+        self.assertEqual(nodes[8].parent, nodes[6])
+        self.assertEqual(nodes[9].parent, nodes[8])
 
     def build_nodes(self):
         node_list = list()
-        node_list.append(Node(position=array([1, 1], dtype=int)))
-        node_list.append(Node(position=array([2, 0], dtype=int)))
-        node_list.append(Node(position=array([4, 5], dtype=int)))
-        node_list.append(Node(position=array([5, 3], dtype=int)))
+        node_list.append(Node(position=array([1, 2], dtype=int)))  # 4
+        node_list.append(Node(position=array([2, 2], dtype=int)))  # 3
+        node_list.append(Node(position=array([2, 4], dtype=int)))  # 5
+        node_list.append(Node(position=array([3, 5], dtype=int)))  # 6
+        node_list.append(Node(position=array([3, 1], dtype=int)))  # 2
+        node_list.append(Node(position=array([4, 2], dtype=int)))  # R
+        node_list.append(Node(position=array([5, 3], dtype=int)))  # 1
+        node_list.append(Node(position=array([6, 2], dtype=int)))  # 8
+        node_list.append(Node(position=array([7, 4], dtype=int)))  # 7
+        node_list.append(Node(position=array([6, 5], dtype=int)))  # 9
+
         return node_list
 
     def build_edge_list(self, nodes):

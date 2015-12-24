@@ -1,8 +1,10 @@
 # -*- encoding: utf-8 -*-
 from copy import deepcopy
 from functools import reduce  # pylint:disable=redefined-builtin
+from operator import attrgetter, itemgetter
+
 from PyQt4 import QtGui
-from numpy import zeros, array, delete, insert, c_, mean
+from numpy import zeros, array, delete, insert, c_, mean, inf
 from skimage.feature import corner_harris
 from skimage.feature import corner_peaks
 from skimage.morphology import skeletonize
@@ -58,7 +60,6 @@ class SymbolGroup(object):
 
         self.nodes = self.add_remaining_nodes()
         self.root_node = self.find_root_node()
-
         self.build_up_tree()
 
     def create_bounding_box(self):
@@ -338,7 +339,13 @@ class SymbolGroup(object):
         Calculates the center of mass by using the arithmetic mean of all node positions
         :return: The arithmetic mean of all node positions
         """
-        return Node(position=mean(self.true_list, axis=1, dtype=int))
+        return Node(position=mean(self.true_list, axis=0, dtype=int))
+
+    def calculate_mean(self, i):
+        sum = 0
+        for node in self.true_list:
+            sum += node.item(i)
+        return sum / len(self.true_list)
 
     def find_root_node(self):
         """
@@ -348,52 +355,102 @@ class SymbolGroup(object):
         closest_node = None
         closest_distance = float("inf")
         for node in self.nodes:
-            current_distance = self.get_euclidean_distance_to_center_of_mass(node)
+            current_distance = self.get_euclidean_distance(node, self.center_of_mass)
             if current_distance < closest_distance:
                 closest_node = node
                 closest_distance = current_distance
         return closest_node
 
-    def get_euclidean_distance_to_center_of_mass(self, node):
+    def get_euclidean_distance(self, a, b):
         """
-        Finds the euclidean distance of a node to the center of mass
-        :param node: node to calculate the euclidean distance to center of mass for
-        :return: euclidean distance from the given node to the center of mass
+        Finds the euclidean distance between two given nodes
+        :param a - first node
+        :param b - second node
+        :return: euclidean distance between node a and node b
         """
-        return sqrt(self.get_euclidean_addend(node, 0) + self.get_euclidean_addend(node, 1))
+        return sqrt(self.get_euclidean_addend(a, b, 0) + self.get_euclidean_addend(a, b, 1))
 
-    def get_euclidean_addend(self, node, i):
+    def get_euclidean_addend(self, a, b, i):
         """
         Calculates one addend of the euclidean distance
-        :param node: node to calculate the euclidean distance to center of mass for
+        :param a - first node
+        :param b - second node
         :param i: Index of the axis/dimension
-        :return: One calculated addend of form (node.pos.item(i) - center_of_mass.pos.item(i))^2
+        :return: One calculated addend of form (a.pos.item(i) - b.pos.item(i))^2
         """
-        return pow((node.position.item(i) - self.center_of_mass.position.item(i)), 2)
+        return pow((a.position.item(i) - b.position.item(i)), 2)
 
     def build_up_tree(self):
         """
-        Builds up the Parent-Child relationship starting from the root-Node. It is build up successively. Every Node
-        that is added as a child of a parent node does not get its parent as child.
-        ex.: Node1 -> Node2. If this is a valid parent-child relationship the edge [Node1, Node2] is used,
-        edge [Node2, Node1] is not valid anymore and therefore added to the closed list. This makes sure Node1 does not
-        become a child of Node1 as well. See Unittest for usage.
+        Builds up the tree structure starting from the root node.
         """
-        closed_edge_list = list()
-        open_nodes = list()
-        open_nodes.append(self.root_node)
+        copy_nodes = deepcopy(self.nodes)
+        current_tree = list()
+        current_tree.append(self.root_node)
 
-        while len(open_nodes) > 0:
-            current_node = open_nodes.pop()
-            for edge in self.edge_list:
-                if current_node == edge[0] and edge not in closed_edge_list:
-                    child = edge[1]
-                    current_node.add_child(child)
-                    child.set_parent(current_node)
-                    closed_edge_list.append(edge)
-                    closed_edge_list.append(list(reversed(edge)))
+        while not self.current_tree_equals_nodes_list(current_tree):
+            real_child, real_parent = self.find_closest_node(copy_nodes, current_tree)
+            if real_parent is None:
+                break
 
-                    open_nodes.append(child)
+            self.add_relation(real_child, real_parent)
+            self.update_tree_and_copy_nodes(copy_nodes, current_tree, real_child)
+        self.nodes = current_tree
+
+    def update_tree_and_copy_nodes(self, copy_nodes, current_tree, real_child):
+        """
+        Adds new child to the current tree and removes it from the nodes list
+        :param copy_nodes: list of nodes not yet in the tree
+        :param current_tree: Already created tree
+        :param real_child: Child to add to tree and remove from nodes list
+        """
+        current_tree.append(real_child)
+        copy_nodes.remove(real_child)
+
+    def add_relation(self, real_child, real_parent):
+        """
+        Adding the child to the parent and vice versa
+        :param real_child: Child-Node to add
+        :param real_parent: Parent-Node where Child-Node should be added
+        """
+        real_parent.add_child(real_child)
+        real_child.set_parent(real_parent)
+
+    def find_closest_node(self, copy_nodes, current_tree):
+        """
+        Finds node with closest distance to the already created tree with a greedy approach
+        :param copy_nodes: Nodes, not yet in the current tree
+        :param current_tree: Already created tree
+        :return: Child-Node to add to the tree and Parent-Node, where child should get added
+        """
+        print("{}, {}".format(len(current_tree), len(self.nodes)))
+        closest_distance = float(inf)
+        real_parent = None
+        real_child = None
+        for potential_child in copy_nodes:
+            for potential_source in current_tree:
+                current_distance = self.get_euclidean_distance(potential_child, potential_source)
+                if current_distance < closest_distance:
+                    closest_distance = current_distance
+                    real_child = potential_child
+                    real_parent = potential_source
+        return real_child, real_parent
+
+    def current_tree_equals_nodes_list(self, current_tree):
+        """
+        Checks if all nodes of the nodes list are in the tree. This is one of the loop conditions within build_up_tree
+        :param current_tree: Tree until this step
+        :return True if every node in the nodes list is also in current tree.
+        """
+        global_equal = False
+        for node in self.nodes:
+            local_equal = False
+            for tree_node in current_tree:
+                if node == tree_node:
+                    local_equal = True
+                    break
+            global_equal = local_equal
+        return len(current_tree) == len(self.nodes) and global_equal
 
 
 class Node(object):

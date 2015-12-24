@@ -1,8 +1,9 @@
 # -*- encoding: utf-8 -*-
-
+from copy import deepcopy
 from logging import getLogger
 
 from matplotlib.pyplot import subplots, cm
+from numpy import empty
 
 gui_logger = getLogger("SymbolGroupDisplay")
 
@@ -23,9 +24,11 @@ class ImagePlot(object):  # pragma: no cover
         ax1, ax2, ax3 = self.setup_figure(symbol_group.name)
         self.setup_subplot(ax1, symbol_group.original_array, "original")
         self.setup_subplot(ax2, symbol_group.skeleton_array, "skeleton", symbol_group=symbol_group)
+
         root = symbol_group.root_node
         center_of_mass = symbol_group.center_of_mass
-        self.setup_subplot(ax3, symbol_group.skeleton_array, "tree", root_node=root, center_of_mass=center_of_mass)
+        skeleton_empty = empty(shape=symbol_group.skeleton_array.shape, dtype=bool)
+        self.setup_subplot(ax3, skeleton_empty, "tree", root_node=root, center_of_mass=center_of_mass)
 
     @staticmethod
     def setup_figure(name):
@@ -50,8 +53,8 @@ class ImagePlot(object):  # pragma: no cover
         :param nodes: Parameter to show given Nodes onto the subplot (optional)
         """
         ax.axis('on')
-        ax.set_xlim([-25, 225])
-        ax.set_ylim([250, -20])
+        ax.set_xlim([0, array.shape[1]])
+        ax.set_ylim([array.shape[0], 0])
         ax.set_title(title, fontsize=FONTSIZE)
 
         if array is not None:
