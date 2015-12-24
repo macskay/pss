@@ -1,7 +1,6 @@
 # -*- encoding: utf-8 -*-
 from copy import deepcopy
 from functools import reduce  # pylint:disable=redefined-builtin
-from operator import attrgetter, itemgetter
 
 from PyQt4 import QtGui
 from numpy import zeros, array, delete, insert, c_, mean, inf
@@ -342,10 +341,10 @@ class SymbolGroup(object):
         return Node(position=mean(self.true_list, axis=0, dtype=int))
 
     def calculate_mean(self, i):
-        sum = 0
+        vector_axis_sum = 0
         for node in self.true_list:
-            sum += node.item(i)
-        return sum / len(self.true_list)
+            vector_axis_sum += node.item(i)
+        return vector_axis_sum / len(self.true_list)
 
     def find_root_node(self):
         """
