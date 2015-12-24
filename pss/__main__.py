@@ -20,8 +20,8 @@ def main():
     logger.info("PartStructuredSpotting started")
     setrecursionlimit(1000000)
 
-    SvgHandler(join(FILE_LOCATION, "..", "resources", "grouped_VAT_09671_Rs_SJakob.svg"))
-    # SvgHandler(join(FILE_LOCATION, "..", "resources", "test_query.svg"))
+    # SvgHandler(join(FILE_LOCATION, "..", "resources", "grouped_VAT_09671_Rs_SJakob.svg"))
+    SvgHandler(join(FILE_LOCATION, "..", "resources", "test_query.svg"))
 
 if __name__ == "__main__":
     main()

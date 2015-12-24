@@ -2,6 +2,8 @@
 from os.path import join, dirname, abspath
 from unittest import TestCase
 
+from numpy import array
+
 from pss.model import Node, SymbolGroup, HEIGHT, WIDTH
 from pss.svg import SvgHandler
 
@@ -26,6 +28,65 @@ class SymbolGroupImageTestCase(TestCase):
 
     def test_get_height_returns_height_of_image(self):
         self.assertEqual(self.sgi.get_image_height(), self.sgi.bounding_box.height() * HEIGHT)
+
+    def test_when_building_tree_make_sure_parents_are_not_added_as_children(self):
+        nodes = self.build_nodes()
+        self.sgi.nodes = nodes
+        self.sgi.root_node = nodes[5]
+
+        self.sgi.build_up_tree()
+
+        # Children Assertion
+        self.assertEqual(len(self.sgi.nodes[0].children), 0)
+        self.assertEqual(len(self.sgi.nodes[1].children), 2)
+        self.assertEqual(len(self.sgi.nodes[2].children), 1)
+        self.assertEqual(len(self.sgi.nodes[3].children), 0)
+        self.assertEqual(len(self.sgi.nodes[4].children), 1)
+        self.assertEqual(len(self.sgi.nodes[5].children), 2)
+        self.assertEqual(len(self.sgi.nodes[6].children), 2)
+        self.assertEqual(len(self.sgi.nodes[7].children), 0)
+        self.assertEqual(len(self.sgi.nodes[8].children), 1)
+        self.assertEqual(len(self.sgi.nodes[9].children), 0)
+
+        # Parent Assertion
+        self.assertEqual(self.sgi.nodes[0].parent, nodes[1])
+        self.assertEqual(self.sgi.nodes[1].parent, nodes[4])
+        self.assertEqual(self.sgi.nodes[2].parent, nodes[1])
+        self.assertEqual(self.sgi.nodes[3].parent, nodes[2])
+        self.assertEqual(self.sgi.nodes[4].parent, nodes[5])
+        self.assertIsNone(self.sgi.nodes[5].parent)
+        self.assertEqual(self.sgi.nodes[6].parent, nodes[5])
+        self.assertEqual(self.sgi.nodes[7].parent, nodes[6])
+        self.assertEqual(self.sgi.nodes[8].parent, nodes[6])
+        self.assertEqual(self.sgi.nodes[9].parent, nodes[8])
+
+    def build_nodes(self):
+        node_list = list()
+        node_list.append(Node(position=array([1, 2], dtype=int)))  # 4
+        node_list.append(Node(position=array([2, 2], dtype=int)))  # 3
+        node_list.append(Node(position=array([2, 4], dtype=int)))  # 5
+        node_list.append(Node(position=array([3, 5], dtype=int)))  # 6
+        node_list.append(Node(position=array([3, 1], dtype=int)))  # 2
+        node_list.append(Node(position=array([4, 2], dtype=int)))  # R
+        node_list.append(Node(position=array([5, 3], dtype=int)))  # 1
+        node_list.append(Node(position=array([6, 2], dtype=int)))  # 8
+        node_list.append(Node(position=array([7, 4], dtype=int)))  # 7
+        node_list.append(Node(position=array([6, 5], dtype=int)))  # 9
+
+        return node_list
+
+    def build_edge_list(self, nodes):
+        edge_list = list()
+        edge_list.append([nodes[0], nodes[1]])
+        edge_list.append([nodes[1], nodes[0]])
+
+        edge_list.append([nodes[0], nodes[2]])
+        edge_list.append([nodes[2], nodes[0]])
+
+        edge_list.append([nodes[2], nodes[3]])
+        edge_list.append([nodes[3], nodes[2]])
+
+        return edge_list
 
 
 class NodeTestCase(TestCase):

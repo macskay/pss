@@ -1,8 +1,9 @@
 # -*- encoding: utf-8 -*-
 from copy import deepcopy
 from functools import reduce  # pylint:disable=redefined-builtin
+
 from PyQt4 import QtGui
-from numpy import zeros, array, delete, insert, c_, mean
+from numpy import zeros, array, delete, insert, c_, mean, inf
 from skimage.feature import corner_harris
 from skimage.feature import corner_peaks
 from skimage.morphology import skeletonize
@@ -54,9 +55,9 @@ class SymbolGroup(object):
         self.open_list = list()
         self.closed_list = list()
 
-        self.edge_list = list()
         self.nodes = self.add_remaining_nodes()
         self.root_node = self.find_root_node()
+        # self.build_up_tree()
 
     def create_bounding_box(self):
         """
@@ -145,7 +146,7 @@ class SymbolGroup(object):
 
     def create_skeleton(self, name):
         """
-        Skeletonzes a given Numpy-Array to a 1px width. See skimage-documentation for skeletonize
+        Skeletonizes a given Numpy-Array to a 1px width. See skimage-documentation for skeletonize
         :param name: Name of the QImage (For Logging purposes)
         :return: Skeletonized Numpy-Array
         """
@@ -229,7 +230,6 @@ class SymbolGroup(object):
                 self.closed_list.append(node)
 
                 good_neighbors, bad_neighbors = self.decide_good_or_bad_neighbor(node)
-                self.add_neighbor_relation_to_edge_list(good_neighbors, node)
                 self.delete_bad_neighbors_from_true_list(bad_neighbors)
                 additional_nodes.extend(good_neighbors)
 
@@ -277,18 +277,6 @@ class SymbolGroup(object):
                     good_neighbors.append(new_node)
         return good_neighbors, bad_neighbors
 
-    def add_neighbor_relation_to_edge_list(self, good_neighbors, node):
-        """
-        This function creates a new list item consisting of the node currently observed and one of its good
-        neighbors. The relation is added in both directions, meaning [node, neighbor] and [neighbor, node]
-        :param good_neighbors: Good neighbors for a given node
-        :param node: The node tp add the [node, neighbor] relation to the edge_list
-        :return:
-        """
-        for neighbor in good_neighbors:
-            self.edge_list.append([node, neighbor])
-            self.edge_list.append([neighbor, node])
-
     @staticmethod
     def is_neighbor_too_close(node, true_position):
         """
@@ -335,7 +323,7 @@ class SymbolGroup(object):
         Calculates the center of mass by using the arithmetic mean of all node positions
         :return: The arithmetic mean of all node positions
         """
-        return Node(position=mean(self.true_list, axis=1, dtype=int))
+        return Node(position=mean(self.true_list, axis=0, dtype=int))
 
     def find_root_node(self):
         """
@@ -345,28 +333,100 @@ class SymbolGroup(object):
         closest_node = None
         closest_distance = float("inf")
         for node in self.nodes:
-            current_distance = self.get_euclidean_distance_to_center_of_mass(node)
+            current_distance = self.get_euclidean_distance(node, self.center_of_mass)
             if current_distance < closest_distance:
                 closest_node = node
                 closest_distance = current_distance
         return closest_node
 
-    def get_euclidean_distance_to_center_of_mass(self, node):
+    def get_euclidean_distance(self, a, b):
         """
-        Finds the euclidean distance of a node to the center of mass
-        :param node: node to calculate the euclidean distance to center of mass for
-        :return: euclidean distance from the given node to the center of mass
+        Finds the euclidean distance between two given nodes
+        :param a: first node
+        :param b: second node
+        :return: euclidean distance between node a and node b
         """
-        return sqrt(self.get_euclidean_addend(node, 0) + self.get_euclidean_addend(node, 1))
+        return sqrt(self.get_euclidean_addend(a, b, 0) + self.get_euclidean_addend(a, b, 1))
 
-    def get_euclidean_addend(self, node, i):
+    @staticmethod
+    def get_euclidean_addend(a, b, i):
         """
         Calculates one addend of the euclidean distance
-        :param node: node to calculate the euclidean distance to center of mass for
+        :param a: first node
+        :param b: second node
         :param i: Index of the axis/dimension
-        :return: One calculated addend of form (node.pos.item(i) - center_of_mass.pos.item(i))^2
+        :return: One calculated addend of form (a.pos.item(i) - b.pos.item(i))^2
         """
-        return pow((node.position.item(i) - self.center_of_mass.position.item(i)), 2)
+        return pow((a.position.item(i) - b.position.item(i)), 2)
+
+    def build_up_tree(self):
+        """
+        Builds up the tree structure starting from the root node.
+        """
+        current_tree = list()
+        current_tree.append(self.root_node)
+
+        while not self.current_tree_equals_nodes_list(current_tree):
+            real_child, real_parent = self.find_closest_node(current_tree)
+            if real_parent is None:  # pragma: no cover
+                break
+
+            self.add_relation(real_child, real_parent)
+            self.update_tree(current_tree, real_child)
+
+    def update_tree(self, current_tree, real_child):
+        """
+        Adds new child to the current tree and removes it from the nodes list
+        :param current_tree: Already created tree
+        :param real_child: Child to add to tree and remove from nodes list
+        """
+        current_tree.append(real_child)
+
+    def add_relation(self, real_child, real_parent):
+        """
+        Adding the child to the parent and vice versa
+        :param real_child: Child-Node to add
+        :param real_parent: Parent-Node where Child-Node should be added
+        """
+        real_parent.add_child(real_child)
+        real_child.set_parent(real_parent)
+
+    def find_closest_node(self, current_tree):
+        """
+        Finds node with closest distance to the already created tree with a greedy approach
+        :param current_tree: Already created tree
+        :return: Child-Node to add to the tree and Parent-Node, where child should get added
+        """
+        sg_logger.info(str(len(current_tree)) + ", " + str(len(self.nodes)))
+        closest_distance = float(inf)
+        real_parent = None
+        real_child = None
+        for potential_child in self.nodes:
+            if potential_child not in current_tree:
+                for potential_source in current_tree:
+                    if potential_child != potential_source: # pragma: no cover
+                        current_distance = self.get_euclidean_distance(potential_child, potential_source)
+                        if current_distance < closest_distance: # pragma: no cover
+                            closest_distance = current_distance
+                            real_child = potential_child
+                            real_parent = potential_source
+        return real_child, real_parent
+
+    def current_tree_equals_nodes_list(self, current_tree):
+        """
+        Checks if all nodes of the nodes list are in the tree. This is one of the loop conditions within build_up_tree
+        :param current_tree: Tree until this step
+        :return True if every node in the nodes list is also in current tree.
+        """
+        global_equal = False
+        for node in self.nodes:
+            local_equal = False
+            for tree_node in current_tree:
+                if node == tree_node:
+                    local_equal = True
+                    break
+            global_equal = local_equal
+        return len(current_tree) == len(self.nodes) and global_equal
 
 
 class Node(object):
@@ -394,6 +454,9 @@ class Node(object):
         :param child: The child to add.
         """
         self.children.append(child)
+
+    def set_parent(self, parent):
+        self.parent = parent
 
     def __str__(self):
         """
