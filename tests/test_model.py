@@ -31,36 +31,34 @@ class SymbolGroupImageTestCase(TestCase):
 
     def test_when_building_tree_make_sure_parents_are_not_added_as_children(self):
         nodes = self.build_nodes()
-        edge_list = self.build_edge_list(nodes)
         self.sgi.nodes = nodes
-        self.sgi.edge_list = edge_list
         self.sgi.root_node = nodes[5]
 
         self.sgi.build_up_tree()
 
         # Children Assertion
-        self.assertEqual(len(nodes[0].children), 0)
-        self.assertEqual(len(nodes[1].children), 2)
-        self.assertEqual(len(nodes[2].children), 1)
-        self.assertEqual(len(nodes[3].children), 0)
-        self.assertEqual(len(nodes[4].children), 1)
-        self.assertEqual(len(nodes[5].children), 2)
-        self.assertEqual(len(nodes[6].children), 2)
-        self.assertEqual(len(nodes[7].children), 0)
-        self.assertEqual(len(nodes[8].children), 1)
-        self.assertEqual(len(nodes[9].children), 0)
+        self.assertEqual(len(self.sgi.nodes[0].children), 0)
+        self.assertEqual(len(self.sgi.nodes[1].children), 2)
+        self.assertEqual(len(self.sgi.nodes[2].children), 1)
+        self.assertEqual(len(self.sgi.nodes[3].children), 0)
+        self.assertEqual(len(self.sgi.nodes[4].children), 1)
+        self.assertEqual(len(self.sgi.nodes[5].children), 2)
+        self.assertEqual(len(self.sgi.nodes[6].children), 2)
+        self.assertEqual(len(self.sgi.nodes[7].children), 0)
+        self.assertEqual(len(self.sgi.nodes[8].children), 1)
+        self.assertEqual(len(self.sgi.nodes[9].children), 0)
 
         # Parent Assertion
-        self.assertEqual(nodes[0].parent, nodes[1])
-        self.assertEqual(nodes[1].parent, nodes[4])
-        self.assertEqual(nodes[2].parent, nodes[1])
-        self.assertEqual(nodes[3].parent, nodes[2])
-        self.assertEqual(nodes[4].parent, nodes[5])
-        self.assertIsNone(nodes[5].parent)
-        self.assertEqual(nodes[6].parent, nodes[5])
-        self.assertEqual(nodes[7].parent, nodes[6])
-        self.assertEqual(nodes[8].parent, nodes[6])
-        self.assertEqual(nodes[9].parent, nodes[8])
+        self.assertEqual(self.sgi.nodes[0].parent, nodes[1])
+        self.assertEqual(self.sgi.nodes[1].parent, nodes[4])
+        self.assertEqual(self.sgi.nodes[2].parent, nodes[1])
+        self.assertEqual(self.sgi.nodes[3].parent, nodes[2])
+        self.assertEqual(self.sgi.nodes[4].parent, nodes[5])
+        self.assertIsNone(self.sgi.nodes[5].parent)
+        self.assertEqual(self.sgi.nodes[6].parent, nodes[5])
+        self.assertEqual(self.sgi.nodes[7].parent, nodes[6])
+        self.assertEqual(self.sgi.nodes[8].parent, nodes[6])
+        self.assertEqual(self.sgi.nodes[9].parent, nodes[8])
 
     def build_nodes(self):
         node_list = list()

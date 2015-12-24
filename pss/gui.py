@@ -1,5 +1,4 @@
 # -*- encoding: utf-8 -*-
-from copy import deepcopy
 from logging import getLogger
 
 from matplotlib.pyplot import subplots, cm
@@ -20,15 +19,20 @@ class ImagePlot(object):  # pragma: no cover
     """
     This class is responsible for plotting the QImage.
     """
+
     def __init__(self, symbol_group):
         ax1, ax2, ax3 = self.setup_figure(symbol_group.name)
         self.setup_subplot(ax1, symbol_group.original_array, "original")
-        self.setup_subplot(ax2, symbol_group.skeleton_array, "skeleton", symbol_group=symbol_group)
+        self.setup_subplot(ax2, symbol_group.skeleton_array, "skeleton", )
+
+        skeleton_empty = empty(shape=symbol_group.skeleton_array.shape, dtype=bool)
+        self.setup_subplot(ax3, skeleton_empty, "tree")
 
         root = symbol_group.root_node
         center_of_mass = symbol_group.center_of_mass
-        skeleton_empty = empty(shape=symbol_group.skeleton_array.shape, dtype=bool)
-        self.setup_subplot(ax3, skeleton_empty, "tree", root_node=root, center_of_mass=center_of_mass)
+        self.draw_array(ax1, symbol_group.original_array)
+        self.draw_skeleton_image(ax2, symbol_group.skeleton_array, symbol_group)
+        self.draw_tree_image(ax3, skeleton_empty, root, center_of_mass)
 
     @staticmethod
     def setup_figure(name):
@@ -38,42 +42,63 @@ class ImagePlot(object):  # pragma: no cover
         :return: The two empty subplots for the original image and the skeletonized one
         """
         fig, (ax1, ax2, ax3) = subplots(ROWS, COLUMNS, figsize=FIG_POS, sharex=True, sharey=True,
-                                    subplot_kw={'adjustable': 'box-forced'})
+                                        subplot_kw={'adjustable': 'box-forced'})
         fig.canvas.set_window_title("name: [{}]".format(name))
         fig.subplots_adjust(wspace=SPACE, hspace=SPACE, top=POSITION,
                             bottom=SPACE, left=SPACE, right=POSITION)
         return ax1, ax2, ax3
 
-    def setup_subplot(self, ax, array, title, symbol_group=None, root_node=None, center_of_mass=None):
+    @staticmethod
+    def setup_subplot(ax, array, title):
         """
         This fills up the subplots
         :param ax: Empty subplot for the original image or the skeletonized image
         :param array: The array to fill up the subplot
         :param title: Title of the subplot
-        :param nodes: Parameter to show given Nodes onto the subplot (optional)
         """
         ax.axis('on')
         ax.set_xlim([0, array.shape[1]])
         ax.set_ylim([array.shape[0], 0])
         ax.set_title(title, fontsize=FONTSIZE)
 
-        if array is not None:
-            ax.imshow(array, cmap=cm.gray)
-        if symbol_group is not None:
-            self.plot_nodes(ax, symbol_group.nodes)
-        if root_node is not None:
-            self.plot_center_of_mass(ax, center_of_mass)
+    @staticmethod
+    def draw_array(ax, array):
+        """
+        Fills the AxisSubplot with the array to draw
+        :param ax: AxisSubplot to draw on
+        :param array: Array to draw onto AxisSubplot
+        """
+        ax.imshow(array, cmap=cm.gray)
 
-            open_list = list()
-            open_list.append(root_node)
-            while len(open_list) > 0:
-                current_node = open_list.pop()
-                for child in current_node.children:
-                    open_list.append(child)
-                    self.plot_edge(ax, current_node, child)
+    def draw_skeleton_image(self, ax, array, symbol_group):
+        """
+        Draws skeletonized version of the original array
+        :param ax: AxisSubplot to draw on
+        :param array: Skeletonized-Array to draw onto AxisSubplot
+        :param symbol_group: SymbolGroup which holds all the nodes to draw
+        """
+        self.draw_array(ax, array)
+        self.plot_nodes(ax, symbol_group.nodes)
 
-            self.plot_root_node(ax, root_node)
+    def draw_tree_image(self, ax, emptied_array, root_node, center_of_mass):
+        """
+        Draws tree
+        :param ax: AxisSubplot to draw on
+        :param emptied_array: Background for Tree-Image
+        :param root_node: Root-Node (is drawn green)
+        :param center_of_mass: Center-Of-Mass NOde (is drawn red)
+        """
+        self.draw_array(ax, emptied_array)
+        self.plot_center_of_mass(ax, center_of_mass)
+        open_list = list()
+        open_list.append(root_node)
+        while len(open_list) > 0:
+            current_node = open_list.pop()
+            for child in current_node.children:
+                open_list.append(child)
+                self.plot_edge(ax, current_node, child)
 
+        self.plot_root_node(ax, root_node)
 
     @staticmethod
     def plot_nodes(ax, nodes):
@@ -114,10 +139,11 @@ class ImagePlot(object):  # pragma: no cover
 pn_logger = getLogger("PrintNodes")
 
 
-class PrintNodes(object):   # pragma: no cover
+class PrintNodes(object):  # pragma: no cover
     """
     Prints the Nodes locations to the log
     """
+
     def __init__(self, symbol_group):
         """
         Inititialized the PrintNodes-object for a given SymbolGroup
@@ -132,6 +158,3 @@ class PrintNodes(object):   # pragma: no cover
         """
         for node in self.symbol_group.nodes:
             pn_logger.info(node)
-        
-    
-
