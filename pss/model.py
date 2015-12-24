@@ -97,6 +97,8 @@ class SymbolGroup(object):
     def set_background(color, image):
         """
         Sets the background color of the QImage
+        :param image: QImage which background should be changed
+        :param color: Color to change background to
         """
         sg_logger.info("Setting Background to [%s]", color)
         image.fill(QtGui.QColor(color))
@@ -374,7 +376,8 @@ class SymbolGroup(object):
             self.add_relation(real_child, real_parent)
             self.update_tree(current_tree, real_child)
 
-    def update_tree(self, current_tree, real_child):
+    @staticmethod
+    def update_tree(current_tree, real_child):
         """
         Adds new child to the current tree and removes it from the nodes list
         :param current_tree: Already created tree
@@ -382,7 +385,8 @@ class SymbolGroup(object):
         """
         current_tree.append(real_child)
 
-    def add_relation(self, real_child, real_parent):
+    @staticmethod
+    def add_relation(real_child, real_parent):
         """
         Adding the child to the parent and vice versa
         :param real_child: Child-Node to add
@@ -456,6 +460,10 @@ class Node(object):
         self.children.append(child)
 
     def set_parent(self, parent):
+        """
+        Setter for the Parent-Node
+        :param parent: A Node, which should be the parent of the current node
+        """
         self.parent = parent
 
     def __str__(self):

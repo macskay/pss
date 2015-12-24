@@ -51,10 +51,11 @@ class ImagePlot(object):  # pragma: no cover
     @staticmethod
     def setup_subplot(ax, array, title):
         """
-        This fills up the subplots
         :param ax: Empty subplot for the original image or the skeletonized image
         :param array: The array to fill up the subplot
         :param title: Title of the subplot
+
+        This fills up the subplots
         """
         ax.axis('on')
         ax.set_xlim([0, array.shape[1]])
@@ -125,13 +126,20 @@ class ImagePlot(object):  # pragma: no cover
     def plot_root_node(ax, root_node):
         """
         Highlights the root node, which is the node closest to the center of mass
-        :param ax: Subplot to draw the center of mass into
+        :param ax: Subplot to draw the root node into
         :param root_node: Root-Node to highlight
         """
         if root_node is not None:
             ax.plot(root_node.position.item(1), root_node.position.item(0), "go", markersize=NODESIZE)
 
-    def plot_edge(self, ax, parent, child):
+    @staticmethod
+    def plot_edge(ax, parent, child):
+        """
+        This plots edge between parent-child relation
+        :param ax: Subplot to draw the edge into
+        :param parent: Parent of the relation
+        :param child: Child of the Relation
+        """
         ax.plot([parent.position[1], child.position[1]], [parent.position[0], child.position[0]], "b-")
         ax.plot(child.position.item(1), child.position.item(0), "y.", markersize=NODESIZE)
 

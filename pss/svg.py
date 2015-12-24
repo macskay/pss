@@ -14,7 +14,7 @@ svg_logger = getLogger("SvgHandler")
 
 class SvgHandler(object):
     """
-    This class opens and manages a given svg file.
+    This class opens and manages a given svg file. Make sure the display-methods are commented out for Nosetests.
     """
     def __init__(self, path, infix=""):
         """
@@ -25,10 +25,10 @@ class SvgHandler(object):
         svg_logger.info("SVG-Handler started")
         self.handle_file_not_existing(path)
         self.names, self.svg_symbol_groups = self.load_svg(infix, path)
-        # self.symbol_groups = self.create_symbol_groups()
 
-        # These need to be commented when pushing, to make the tests pass
+        # self.symbol_groups = self.create_symbol_groups()
         # self.display_symbol_groups()
+
         self.symbol_groups = self.create_single_symbol_group(0)
         # self.display_single_symbol_group()
 
