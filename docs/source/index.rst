@@ -6,8 +6,19 @@
 Part-structured Spotting for Cuneiform tablets
 ==============================================
 
-API Documentation
------------------
+Model-Module
+-------------
 
-.. automodule:: pss
+.. automodule:: pss.model
+   :members:
+
+SVG-Module
+----------
+
+.. automodule:: pss.svg
+   :members:
+
+GUI-Module
+----------
+.. automodule:: pss.gui
    :members:
