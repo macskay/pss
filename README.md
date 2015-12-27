@@ -7,4 +7,4 @@
 
 
 API Documentation:
-[![Documentation Status](https://readthedocs.org/projects/pss/badge/?version=latest)](http://pss.readthedocs.org/en/latest/?badge=latest)
+[![Documentation Status](https://readthedocs.org/projects/pss/badge/?version=latest)](http://pss.readthedocs.org/en/latest/pss.html#submodules)
