@@ -3,10 +3,10 @@ from copy import deepcopy
 from functools import reduce  # pylint:disable=redefined-builtin
 
 from PyQt4 import QtGui
-from numpy import zeros, array, delete, insert, c_, mean, inf
+from numpy import zeros, array, delete, insert, c_, mean, inf, invert, ndarray, add, roll
 from skimage.feature import corner_harris
 from skimage.feature import corner_peaks
-from skimage.morphology import skeletonize
+from skimage.morphology import skeletonize, medial_axis
 from math import sqrt
 
 from logging import getLogger
@@ -47,6 +47,7 @@ class SymbolGroup(object):
         self.original_array = self.convert_qimage_to_ndarray()
 
         self.skeleton_array = self.create_skeleton(name)
+
         self.enlarged_skeleton = self.enlarge_skeleton()
         self.corner_nodes = self.find_corners_and_junctions()
         self.true_list = self.create_true_list()
@@ -57,7 +58,11 @@ class SymbolGroup(object):
 
         self.nodes = self.add_remaining_nodes()
         self.root_node = self.find_root_node()
-        # self.build_up_tree()
+
+        self.build_up_tree()
+
+        self.inverted_array = invert(ndarray.astype(self.original_array, dtype=bool))
+        self.distance_transform = medial_axis(self.inverted_array, return_distance=True)[1]
 
     def create_bounding_box(self):
         """

@@ -30,7 +30,7 @@ class SvgHandler(object):
         # self.display_symbol_groups()
 
         self.symbol_groups = self.create_single_symbol_group(0)
-        # self.display_single_symbol_group()
+        self.display_single_symbol_group()
 
     @staticmethod
     def handle_file_not_existing(path):

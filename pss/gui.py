@@ -2,7 +2,7 @@
 from logging import getLogger
 
 from matplotlib.pyplot import subplots, cm
-from numpy import empty
+from numpy import empty, nanmax, nanmin
 
 gui_logger = getLogger("SymbolGroupDisplay")
 
@@ -10,7 +10,7 @@ SPACE = .02
 POSITION = .98
 FIG_POS = (3.5, 5.)
 ROWS = 1
-COLUMNS = 3
+COLUMNS = 1
 FONTSIZE = 20
 NODESIZE = 15
 
@@ -21,18 +21,33 @@ class ImagePlot(object):  # pragma: no cover
     """
 
     def __init__(self, symbol_group):
-        ax1, ax2, ax3 = self.setup_figure(symbol_group.name)
-        self.setup_subplot(ax1, symbol_group.original_array, "original")
-        self.setup_subplot(ax2, symbol_group.skeleton_array, "skeleton", )
+        self.create_original_image_figure(symbol_group)
+        self.create_skeleton_figure(symbol_group)
+        self.create_distance_transform_figure(symbol_group)
+        self.create_tree_figure(symbol_group)
 
-        skeleton_empty = empty(shape=symbol_group.skeleton_array.shape, dtype=bool)
-        self.setup_subplot(ax3, skeleton_empty, "tree")
+    def create_distance_transform_figure(self, symbol_group):
+        ax = self.setup_figure(symbol_group.name)
+        self.setup_plot(ax, symbol_group.original_array, "distance transform (single node)")
+        dt_min, dt_max = nanmin(symbol_group.distance_transform), nanmax(symbol_group.distance_transform)
+        self.draw_distance_transform(ax, symbol_group.distance_transform, dt_min, dt_max)
 
-        root = symbol_group.root_node
+    def create_skeleton_figure(self, symbol_group):
+        ax = self.setup_figure(symbol_group.name)
+        self.setup_plot(ax, symbol_group.original_array, "skeleton")
+        self.draw_skeleton_image(ax, symbol_group.skeleton_array, symbol_group)
+
+    def create_original_image_figure(self, symbol_group):
+        ax = self.setup_figure(symbol_group.name)
+        self.setup_plot(ax, symbol_group.original_array, "original")
+        self.draw_array(ax, symbol_group.original_array)
+
+    def create_tree_figure(self, symbol_group):
+        ax = self.setup_figure(symbol_group.name)
+        self.setup_plot(ax, symbol_group.original_array, "original")
+        root_node = symbol_group.root_node
         center_of_mass = symbol_group.center_of_mass
-        self.draw_array(ax1, symbol_group.original_array)
-        self.draw_skeleton_image(ax2, symbol_group.skeleton_array, symbol_group)
-        self.draw_tree_image(ax3, skeleton_empty, root, center_of_mass)
+        self.draw_tree_image(ax, symbol_group.original_array, root_node, center_of_mass)
 
     @staticmethod
     def setup_figure(name):
@@ -41,15 +56,15 @@ class ImagePlot(object):  # pragma: no cover
         :param name: The name to set the windows title
         :return: The two empty subplots for the original image and the skeletonized one
         """
-        fig, (ax1, ax2, ax3) = subplots(ROWS, COLUMNS, figsize=FIG_POS, sharex=True, sharey=True,
+        fig, ax = subplots(ROWS, COLUMNS, figsize=FIG_POS, sharex=True, sharey=True,
                                         subplot_kw={'adjustable': 'box-forced'})
         fig.canvas.set_window_title("name: [{}]".format(name))
         fig.subplots_adjust(wspace=SPACE, hspace=SPACE, top=POSITION,
                             bottom=SPACE, left=SPACE, right=POSITION)
-        return ax1, ax2, ax3
+        return ax
 
     @staticmethod
-    def setup_subplot(ax, array, title):
+    def setup_plot(ax, array, title):
         """
         :param ax: Empty subplot for the original image or the skeletonized image
         :param array: The array to fill up the subplot
@@ -142,6 +157,9 @@ class ImagePlot(object):  # pragma: no cover
         """
         ax.plot([parent.position[1], child.position[1]], [parent.position[0], child.position[0]], "b-")
         ax.plot(child.position.item(1), child.position.item(0), "y.", markersize=NODESIZE)
+
+    def draw_distance_transform(self, ax1, distance_transform, vmin, vmax):
+        ax1.imshow(distance_transform, cmap=cm.jet, vmin=vmin, vmax=vmax)
 
 
 pn_logger = getLogger("PrintNodes")
