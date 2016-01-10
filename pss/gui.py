@@ -8,7 +8,7 @@ gui_logger = getLogger("SymbolGroupDisplay")
 
 SPACE = .02
 POSITION = .98
-FIG_POS = (3.5, 5.)
+FIG_POS = (16, 9)
 ROWS = 1
 COLUMNS = 1
 FONTSIZE = 20
@@ -21,16 +21,16 @@ class ImagePlot(object):  # pragma: no cover
     """
 
     def __init__(self, symbol_group):
-        self.create_original_image_figure(symbol_group)
-        self.create_skeleton_figure(symbol_group)
-        self.create_distance_transform_figure(symbol_group)
-        self.create_tree_figure(symbol_group)
+        # self.create_original_image_figure(symbol_group)
+        # self.create_skeleton_figure(symbol_group)
+        self.create_distance_transform_figure(symbol_group.name, symbol_group.sum_dt, "distance transform sum")
+        # self.create_tree_figure(symbol_group)
 
-    def create_distance_transform_figure(self, symbol_group):
-        ax = self.setup_figure(symbol_group.name)
-        self.setup_plot(ax, symbol_group.original_array, "distance transform (single node)")
-        dt_min, dt_max = nanmin(symbol_group.distance_transform), nanmax(symbol_group.distance_transform)
-        self.draw_distance_transform(ax, symbol_group.distance_transform, dt_min, dt_max)
+    def create_distance_transform_figure(self, name, dt, title):
+        ax = self.setup_figure(name)
+        self.setup_plot(ax, dt, title)
+        dt_min, dt_max = nanmin(dt), nanmax(dt)
+        self.draw_distance_transform(ax, dt, dt_min, dt_max)
 
     def create_skeleton_figure(self, symbol_group):
         ax = self.setup_figure(symbol_group.name)
@@ -44,10 +44,11 @@ class ImagePlot(object):  # pragma: no cover
 
     def create_tree_figure(self, symbol_group):
         ax = self.setup_figure(symbol_group.name)
-        self.setup_plot(ax, symbol_group.original_array, "original")
+        self.setup_plot(ax, symbol_group.original_array, "tree")
         root_node = symbol_group.root_node
         center_of_mass = symbol_group.center_of_mass
-        self.draw_tree_image(ax, symbol_group.original_array, root_node, center_of_mass)
+        skeleton_empty = empty(shape=symbol_group.skeleton_array.shape, dtype=bool)
+        self.draw_tree_image(ax, skeleton_empty, root_node, center_of_mass)
 
     @staticmethod
     def setup_figure(name):
@@ -94,7 +95,6 @@ class ImagePlot(object):  # pragma: no cover
         :param symbol_group: SymbolGroup which holds all the nodes to draw
         """
         self.draw_array(ax, array)
-        self.plot_nodes(ax, symbol_group.nodes)
 
     def draw_tree_image(self, ax, emptied_array, root_node, center_of_mass):
         """
@@ -104,10 +104,12 @@ class ImagePlot(object):  # pragma: no cover
         :param root_node: Root-Node (is drawn green)
         :param center_of_mass: Center-Of-Mass NOde (is drawn red)
         """
-        self.draw_array(ax, emptied_array)
+        # self.draw_array(ax, emptied_array)
         self.plot_center_of_mass(ax, center_of_mass)
+
         open_list = list()
         open_list.append(root_node)
+
         while len(open_list) > 0:
             current_node = open_list.pop()
             for child in current_node.children:

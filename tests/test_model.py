@@ -2,7 +2,7 @@
 from os.path import join, dirname, abspath
 from unittest import TestCase
 
-from numpy import array
+from numpy import array, zeros
 
 from pss.model import Node, SymbolGroup, HEIGHT, WIDTH
 from pss.svg import SvgHandler
@@ -21,44 +21,49 @@ class SymbolGroupImageTestCase(TestCase):
         self.sgi = SymbolGroup(self.svg_handler.svg_symbol_groups[0], "Name")
 
     def test_when_creating_symbol_group_image_bounding_box_is_not_none(self):
-        self.assertIsNotNone(self.sgi.bounding_box)
+        self.assertIsNotNone(self.sgi.query_bounding_box)
 
     def test_get_width_returns_width_of_image(self):
-        self.assertEqual(self.sgi.get_image_width(), self.sgi.bounding_box.width() * WIDTH)
+        self.assertEqual(self.sgi.get_image_width(), self.sgi.query_bounding_box.width() * WIDTH)
 
     def test_get_height_returns_height_of_image(self):
-        self.assertEqual(self.sgi.get_image_height(), self.sgi.bounding_box.height() * HEIGHT)
+        self.assertEqual(self.sgi.get_image_height(), self.sgi.query_bounding_box.height() * HEIGHT)
 
     def test_when_building_tree_make_sure_parents_are_not_added_as_children(self):
         nodes = self.build_nodes()
-        self.sgi.nodes = nodes
-        self.sgi.root_node = nodes[5]
+        self.sgi.query_nodes = nodes
+        self.sgi.query_root_node = nodes[5]
 
         self.sgi.build_up_tree()
 
         # Children Assertion
-        self.assertEqual(len(self.sgi.nodes[0].children), 0)
-        self.assertEqual(len(self.sgi.nodes[1].children), 2)
-        self.assertEqual(len(self.sgi.nodes[2].children), 1)
-        self.assertEqual(len(self.sgi.nodes[3].children), 0)
-        self.assertEqual(len(self.sgi.nodes[4].children), 1)
-        self.assertEqual(len(self.sgi.nodes[5].children), 2)
-        self.assertEqual(len(self.sgi.nodes[6].children), 2)
-        self.assertEqual(len(self.sgi.nodes[7].children), 0)
-        self.assertEqual(len(self.sgi.nodes[8].children), 1)
-        self.assertEqual(len(self.sgi.nodes[9].children), 0)
+        self.assertEqual(len(self.sgi.query_nodes[0].children), 0)
+        self.assertEqual(len(self.sgi.query_nodes[1].children), 2)
+        self.assertEqual(len(self.sgi.query_nodes[2].children), 1)
+        self.assertEqual(len(self.sgi.query_nodes[3].children), 0)
+        self.assertEqual(len(self.sgi.query_nodes[4].children), 1)
+        self.assertEqual(len(self.sgi.query_nodes[5].children), 2)
+        self.assertEqual(len(self.sgi.query_nodes[6].children), 2)
+        self.assertEqual(len(self.sgi.query_nodes[7].children), 0)
+        self.assertEqual(len(self.sgi.query_nodes[8].children), 1)
+        self.assertEqual(len(self.sgi.query_nodes[9].children), 0)
 
         # Parent Assertion
-        self.assertEqual(self.sgi.nodes[0].parent, nodes[1])
-        self.assertEqual(self.sgi.nodes[1].parent, nodes[4])
-        self.assertEqual(self.sgi.nodes[2].parent, nodes[1])
-        self.assertEqual(self.sgi.nodes[3].parent, nodes[2])
-        self.assertEqual(self.sgi.nodes[4].parent, nodes[5])
-        self.assertIsNone(self.sgi.nodes[5].parent)
-        self.assertEqual(self.sgi.nodes[6].parent, nodes[5])
-        self.assertEqual(self.sgi.nodes[7].parent, nodes[6])
-        self.assertEqual(self.sgi.nodes[8].parent, nodes[6])
-        self.assertEqual(self.sgi.nodes[9].parent, nodes[8])
+        self.assertEqual(self.sgi.query_nodes[0].parent, nodes[1])
+        self.assertEqual(self.sgi.query_nodes[1].parent, nodes[4])
+        self.assertEqual(self.sgi.query_nodes[2].parent, nodes[1])
+        self.assertEqual(self.sgi.query_nodes[3].parent, nodes[2])
+        self.assertEqual(self.sgi.query_nodes[4].parent, nodes[5])
+        self.assertIsNone(self.sgi.query_nodes[5].parent)
+        self.assertEqual(self.sgi.query_nodes[6].parent, nodes[5])
+        self.assertEqual(self.sgi.query_nodes[7].parent, nodes[6])
+        self.assertEqual(self.sgi.query_nodes[8].parent, nodes[6])
+        self.assertEqual(self.sgi.query_nodes[9].parent, nodes[8])
+
+    def test_building_transforms(self):
+        self.sgi.query_original_array = array(zeros(shape=(3, 3), dtype=int))
+        self.sgi.query_original_array[2, 0] = 1
+        self.sgi.calculate_distance_transform_recursively(self.sgi.query_root_node)
 
     def build_nodes(self):
         node_list = list()
@@ -91,10 +96,10 @@ class SymbolGroupImageTestCase(TestCase):
 
 class NodeTestCase(TestCase):
     def setUp(self):
-        self.node = Node(position=[0, 10])
+        self.node = Node(position=[3, 10])
 
     def test_has_position(self):
-        self.assertEqual(self.node.position, [0, 10])
+        self.assertEqual(self.node.position, [3, 10])
 
     def test_has_parent_none_as_default(self):
         self.assertIsNone(self.node.parent)
@@ -110,4 +115,9 @@ class NodeTestCase(TestCase):
         self.assertEqual(1, len(self.node.children))
 
     def test_when_printing_node_return_position_string(self):
-        self.assertEqual("Node-Position: [0, 10]", self.node.__str__())
+        self.assertEqual("Node-Position: [3, 10]", self.node.__str__())
+
+    def test_when_calculating_offset_to_parent_set_offset(self):
+        self.node.set_parent(Node(position=[5, 7]))
+        self.node.calculate_offset()
+        self.assertEqual(self.node.offset, [-2, 3])

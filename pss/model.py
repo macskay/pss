@@ -1,15 +1,15 @@
 # -*- encoding: utf-8 -*-
 from copy import deepcopy
+from datetime import datetime
 from functools import reduce  # pylint:disable=redefined-builtin
+from logging import getLogger
+from math import sqrt
 
 from PyQt4 import QtGui
-from numpy import zeros, array, delete, insert, c_, mean, inf, invert, ndarray, add, roll
+from numpy import zeros, array, delete, insert, c_, mean, inf, invert, ndarray, add
 from skimage.feature import corner_harris
 from skimage.feature import corner_peaks
 from skimage.morphology import skeletonize, medial_axis
-from math import sqrt
-
-from logging import getLogger
 
 sg_logger = getLogger("SymbolGroup")
 
@@ -41,28 +41,76 @@ class SymbolGroup(object):
         self.paths = paths
         self.name = name
 
-        self.bounding_box = self.create_bounding_box()
+        # Query
+        self.query_bounding_box = self.create_bounding_box()
+        self.query_image = self.create_original_image()
+        self.query_original_array = self.convert_qimage_to_ndarray()
+        self.query_skeleton = self.create_skeleton(name)
+        self.query_enlarged_skeleton = self.enlarge_skeleton()
+        self.query_corner_nodes = self.find_corners_and_junctions()
+        self.query_true_list = self.create_true_list()
+        self.query_center_of_mass = self.calculate_center_of_mass()
 
-        self.original_image = self.create_original_image()
-        self.original_array = self.convert_qimage_to_ndarray()
-
-        self.skeleton_array = self.create_skeleton(name)
-
-        self.enlarged_skeleton = self.enlarge_skeleton()
-        self.corner_nodes = self.find_corners_and_junctions()
-        self.true_list = self.create_true_list()
-        self.center_of_mass = self.calculate_center_of_mass()
+        # Tree
+        self.query_root_node = None
+        self.query_nodes = list()
 
         self.open_list = list()
         self.closed_list = list()
 
-        self.nodes = self.add_remaining_nodes()
-        self.root_node = self.find_root_node()
-
+        self.query_nodes = self.add_remaining_nodes()
+        self.query_nodes_backup = deepcopy(self.query_nodes)  # needed for dt height and width
+        self.query_root_node = self.find_root_node()
         self.build_up_tree()
 
-        self.inverted_array = invert(ndarray.astype(self.original_array, dtype=bool))
-        self.distance_transform = medial_axis(self.inverted_array, return_distance=True)[1]
+        # Distance Transform
+        # In here plugin any svg or png or jpg or whatever as ndarray
+        # distanztransformierte des target bilds um node offsets wandern lassen und aufaddieren
+        # self.target_image = None
+        # self.target_original_array = self.query_original_array
+
+        self.height, self.width, self.abs_start = self.calculate_height_and_width_of_distance_transform()
+        self.sum_dt = None
+        self.calculate_distance_transform(self.query_root_node)
+
+    def calculate_distance_transform(self, node):
+        sg_logger.info("Starting to build up Distance Transform")
+        start_time = datetime.now()
+        self.recursively_add_up_all_distance_transforms(node)
+        end_time = datetime.now()
+        sg_logger.info("Finished building up Distance Transform.\n")
+        self.print_time(end_time, start_time)
+
+    def recursively_add_up_all_distance_transforms(self, node):
+        new_sum_dt = self.build_distance_transform_to_parent(node)
+        self.sum_dt = add(self.sum_dt, new_sum_dt) if self.sum_dt is not None else new_sum_dt
+
+        for child in node.children:
+            self.recursively_add_up_all_distance_transforms(child)
+
+    def build_distance_transform_to_parent(self, child):
+        abs_location = child.position.item(0) - self.abs_start[0], child.position.item(1) - self.abs_start[1]
+
+        new_array = zeros((self.height, self.width), dtype=int)
+        new_array[abs_location[0]:abs_location[0] + self.query_original_array.shape[0],
+        abs_location[1]:abs_location[1] + self.query_original_array.shape[1]] = self.query_original_array
+
+        ia = invert(ndarray.astype(new_array, dtype=bool))
+        new_distance_transform = medial_axis(ia, return_distance=True)[1]
+        return new_distance_transform
+
+    def calculate_height_and_width_of_distance_transform(self):
+        sorted_x = sorted(self.query_nodes_backup, key=lambda x: x.position.item(0))
+        sorted_y = sorted(self.query_nodes_backup, key=lambda x: x.position.item(1))
+        smallest_x = sorted_x[0].position.item(0)
+        smallest_y = sorted_y[0].position.item(1)
+        highest_x = sorted_x[-1].position.item(0)
+        highest_y = sorted_y[-1].position.item(1)
+
+        height = highest_x - smallest_x + len(self.query_original_array)
+        width = highest_y - smallest_y + len(self.query_original_array[0])
+
+        return height, width, (smallest_x, smallest_y)
 
     def create_bounding_box(self):
         """
@@ -89,14 +137,14 @@ class SymbolGroup(object):
         Getter for the QImage width
         :return: Width of the Bounding-Box
         """
-        return self.bounding_box.width()*WIDTH
+        return self.query_bounding_box.width() * WIDTH
 
     def get_image_height(self):
         """
         Getter for the QImage height
         :return: Height of the Bounding-Box
         """
-        return self.bounding_box.height()*HEIGHT
+        return self.query_bounding_box.height() * HEIGHT
 
     @staticmethod
     def set_background(color, image):
@@ -132,7 +180,7 @@ class SymbolGroup(object):
         qpainter.setBrush(QtGui.QColor(COLOR_FG))
         qpainter.setPen(QtGui.QColor(COLOR_FG))
         qpainter.scale(HEIGHT, WIDTH)
-        qpainter.translate(-self.bounding_box.topLeft())
+        qpainter.translate(-self.query_bounding_box.topLeft())
         for path in self.paths:
             qpainter.drawPath(path)
         return image
@@ -147,7 +195,7 @@ class SymbolGroup(object):
         array = zeros((m, n))
         for y in range(int(m)):
             for x in range(int(n)):
-                c = QtGui.qGray(self.original_image.pixel(x, y))
+                c = QtGui.qGray(self.query_image.pixel(x, y))
                 array[y, x] = True if c >= COLORED else False
         return array
 
@@ -158,7 +206,7 @@ class SymbolGroup(object):
         :return: Skeletonized Numpy-Array
         """
         sg_logger.info("Skeletonizing QImage with name [%s]", name)
-        return skeletonize(self.original_array)
+        return skeletonize(self.query_original_array)
 
     def enlarge_skeleton(self):
         """
@@ -166,9 +214,9 @@ class SymbolGroup(object):
         a border.
         :return: Numpy-Array, which is a column and row larger on each side.
         """
-        rows = len(self.skeleton_array)
-        cols = len(self.skeleton_array[0])
-        enlarged_array = self.skeleton_array
+        rows = len(self.query_skeleton)
+        cols = len(self.query_skeleton[0])
+        enlarged_array = self.query_skeleton
         enlarged_array = c_[zeros(rows, dtype=bool), enlarged_array, zeros(rows, dtype=bool)]
         enlarged_array = insert(enlarged_array, 0, zeros(cols + 2, dtype=bool), 0)
         enlarged_array = insert(enlarged_array, rows, zeros(cols + 2, dtype=bool), 0)
@@ -180,7 +228,7 @@ class SymbolGroup(object):
         :return: List of all junctions and corners found within the enlarged_skeleton Numpy-Array
         """
         sg_logger.info("Detecting Nodes of skeletonized QImage with name [%s]\n", self.name)
-        skeleton_corners = corner_peaks(corner_harris(self.enlarged_skeleton), min_distance=2)
+        skeleton_corners = corner_peaks(corner_harris(self.query_enlarged_skeleton), min_distance=2)
         nodes = list()
         for corner in skeleton_corners:
             nodes.append(Node(position=corner))
@@ -193,9 +241,9 @@ class SymbolGroup(object):
         :return: A list of 2D-Numpy-Arrays. The 2D-Numpy-Arrays represent the appearance of a "True" within the enlarged_skeleton.
         """
         true_list = list()
-        for i, x in enumerate(self.enlarged_skeleton):
+        for i, x in enumerate(self.query_enlarged_skeleton):
             for j, y in enumerate(x):
-                if y and Node(position=array([i, j])) not in self.corner_nodes:
+                if y and Node(position=array([i, j])) not in self.query_corner_nodes:
                     true_list.append(array([i, j]))
         return true_list
 
@@ -206,7 +254,7 @@ class SymbolGroup(object):
         """
         nodes = list()
         nodes.extend(self.add_nodes_greedily())
-        nodes.extend(self.corner_nodes)
+        nodes.extend(self.query_corner_nodes)
         return nodes
 
     def add_nodes_greedily(self):
@@ -224,7 +272,7 @@ class SymbolGroup(object):
         """
         additional_nodes = list()
 
-        for corner in self.corner_nodes:
+        for corner in self.query_corner_nodes:
             self.open_list.append(corner)
             rest_list = list()
 
@@ -274,7 +322,7 @@ class SymbolGroup(object):
         """
         good_neighbors = list()
         bad_neighbors = list()
-        for i, true_position in enumerate(self.true_list):
+        for i, true_position in enumerate(self.query_true_list):
             if self.is_neighbor_too_close(node, true_position):
                 bad_neighbors.append(i)
             elif self.is_neighbor_the_right_distance_away(node, true_position):
@@ -293,7 +341,7 @@ class SymbolGroup(object):
         :return: True if distance is too close
         """
         return node.position[0] + DISTANCE > true_position[0] > node.position[0] - DISTANCE \
-                            and node.position[1] + DISTANCE > true_position[1] > node.position[1] - DISTANCE
+               and node.position[1] + DISTANCE > true_position[1] > node.position[1] - DISTANCE
 
     @staticmethod
     def is_neighbor_the_right_distance_away(node, true_position):
@@ -303,10 +351,20 @@ class SymbolGroup(object):
         :param true_position: Position of potential neighbor
         :return: True if distance is just right to be seen as a "Good neighbor"
         """
-        return (node.position[0] + DISTANCE == true_position[0] and node.position[1] + DISTANCE >= true_position[1] >= node.position[1] - DISTANCE) \
-                      or (node.position[0] - DISTANCE == true_position[0] and node.position[1] + DISTANCE >= true_position[1] >= node.position[1] - DISTANCE) \
-                      or (node.position[1] + DISTANCE == true_position[1] and node.position[0] + DISTANCE >= true_position[0] >= node.position[0] - DISTANCE) \
-                      or (node.position[1] - DISTANCE == true_position[1] and node.position[0] + DISTANCE >= true_position[0] >= node.position[0] - DISTANCE)
+        return (node.position[0] + DISTANCE == true_position[0] and node.position[1] + DISTANCE >= true_position[1] >=
+                node.position[1] - DISTANCE) \
+               or (
+                   node.position[0] - DISTANCE == true_position[0] and node.position[1] + DISTANCE >= true_position[
+                       1] >=
+                   node.position[1] - DISTANCE) \
+               or (
+                   node.position[1] + DISTANCE == true_position[1] and node.position[0] + DISTANCE >= true_position[
+                       0] >=
+                   node.position[0] - DISTANCE) \
+               or (
+                   node.position[1] - DISTANCE == true_position[1] and node.position[0] + DISTANCE >= true_position[
+                       0] >=
+                   node.position[0] - DISTANCE)
 
     def is_node_completely_unknown(self, new_node):
         """
@@ -314,7 +372,7 @@ class SymbolGroup(object):
         :param new_node: Node to be checked
         :return: True if completely unknown (not in self.closed_list and not in self.corner_nodes)
         """
-        return new_node not in self.closed_list and new_node not in self.corner_nodes
+        return new_node not in self.closed_list and new_node not in self.query_corner_nodes
 
     def delete_bad_neighbors_from_true_list(self, bad_neighbors):
         """
@@ -323,14 +381,14 @@ class SymbolGroup(object):
         :param bad_neighbors: List of "Bad neighbors", which should get deleted out of the true_list
         """
         for item in reversed(bad_neighbors):
-            self.true_list = delete(self.true_list, item, 0)
+            self.query_true_list = delete(self.query_true_list, item, 0)
 
     def calculate_center_of_mass(self):
         """
         Calculates the center of mass by using the arithmetic mean of all node positions
         :return: The arithmetic mean of all node positions
         """
-        return Node(position=mean(self.true_list, axis=0, dtype=int))
+        return Node(position=mean(self.query_true_list, axis=0, dtype=int))
 
     def find_root_node(self):
         """
@@ -339,8 +397,8 @@ class SymbolGroup(object):
         """
         closest_node = None
         closest_distance = float("inf")
-        for node in self.nodes:
-            current_distance = self.get_euclidean_distance(node, self.center_of_mass)
+        for node in self.query_nodes:
+            current_distance = self.get_euclidean_distance(node, self.query_center_of_mass)
             if current_distance < closest_distance:
                 closest_node = node
                 closest_distance = current_distance
@@ -370,10 +428,19 @@ class SymbolGroup(object):
         """
         Builds up the tree structure starting from the root node.
         """
-        current_tree = list()
-        current_tree.append(self.root_node)
+        sg_logger.info("Starting to build up tree...")
+        start_time = datetime.now()
+        self.creating_all_relations_for_tree()
+        end_time = datetime.now()
+        self.print_time(end_time, start_time)
+        sg_logger.info("Finished building up tree...\n")
 
-        while not self.current_tree_equals_nodes_list(current_tree):
+    def creating_all_relations_for_tree(self):
+        current_tree = list()
+        current_tree.append(self.query_root_node)
+        self.query_nodes.remove(self.query_root_node)
+
+        while self.query_nodes:
             real_child, real_parent = self.find_closest_node(current_tree)
             if real_parent is None:  # pragma: no cover
                 break
@@ -390,8 +457,7 @@ class SymbolGroup(object):
         """
         current_tree.append(real_child)
 
-    @staticmethod
-    def add_relation(real_child, real_parent):
+    def add_relation(self, real_child, real_parent):
         """
         Adding the child to the parent and vice versa
         :param real_child: Child-Node to add
@@ -399,6 +465,8 @@ class SymbolGroup(object):
         """
         real_parent.add_child(real_child)
         real_child.set_parent(real_parent)
+        real_child.calculate_offset()
+        self.query_nodes.remove(real_child)
 
     def find_closest_node(self, current_tree):
         """
@@ -406,36 +474,34 @@ class SymbolGroup(object):
         :param current_tree: Already created tree
         :return: Child-Node to add to the tree and Parent-Node, where child should get added
         """
-        sg_logger.info(str(len(current_tree)) + ", " + str(len(self.nodes)))
         closest_distance = float(inf)
         real_parent = None
         real_child = None
-        for potential_child in self.nodes:
-            if potential_child not in current_tree:
-                for potential_source in current_tree:
-                    if potential_child != potential_source: # pragma: no cover
+
+        for potential_child in self.query_nodes:
+            for potential_source in current_tree:
+                if potential_child != potential_source:  # pragma: no cover
+                    if abs(potential_child.position.item(0) - potential_source.position.item(0)) <= closest_distance \
+                            or abs(potential_child.position.item(1) - potential_source.position.item(
+                                    1)) <= closest_distance:
                         current_distance = self.get_euclidean_distance(potential_child, potential_source)
-                        if current_distance < closest_distance: # pragma: no cover
+                        if current_distance < closest_distance:  # pragma: no cover
                             closest_distance = current_distance
                             real_child = potential_child
                             real_parent = potential_source
         return real_child, real_parent
 
-    def current_tree_equals_nodes_list(self, current_tree):
+    @staticmethod
+    def print_time(end_time, start_time):
         """
-        Checks if all nodes of the nodes list are in the tree. This is one of the loop conditions within build_up_tree
-        :param current_tree: Tree until this step
-        :return True if every node in the nodes list is also in current tree.
+        This method just prints how long a certain function took
+        :param end_time: Timestamp taken after finished building the tree
+        :param start_time: Timestamp taken before started building the tree
         """
-        global_equal = False
-        for node in self.nodes:
-            local_equal = False
-            for tree_node in current_tree:
-                if node == tree_node:
-                    local_equal = True
-                    break
-            global_equal = local_equal
-        return len(current_tree) == len(self.nodes) and global_equal
+        delta_time = end_time - start_time
+        tuple_divmod = divmod(delta_time.total_seconds(), 60)
+        delta_seconds = tuple_divmod[0] * 60 + int(tuple_divmod[1])
+        sg_logger.info("Finishing took %d seconds", delta_seconds)
 
 
 class Node(object):
@@ -453,8 +519,8 @@ class Node(object):
         """
         self.children = list()
         self.parent = parent
-        self.position = [0, 0] if position is None else position
-        self.offset = [0, 0] if offset is None else offset
+        self.position = array([0, 0], dtype=int) if position is None else position
+        self.offset = array([0, 0], dtype=int) if offset is None else offset
         self.index = None
 
     def add_child(self, child):
@@ -471,6 +537,12 @@ class Node(object):
         """
         self.parent = parent
 
+    def calculate_offset(self):
+        offset = list()
+        for i, axis in enumerate(self.position):
+            offset.append(axis - self.parent.position[i])
+        self.offset = array(offset, dtype=int)
+
     def __str__(self):
         """
         :return: Node-Position
@@ -483,4 +555,6 @@ class Node(object):
         :param other: Other Node to check for equality
         :return: True, if position is equal - False, else
         """
+        if other is None:
+            return False
         return (self.position == other.position).all()
