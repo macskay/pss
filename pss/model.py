@@ -1,3 +1,8 @@
+"""
+This module is the core module of this application. It defines a SymbolGroup as the query object and builds
+up a parent-child tree by using the query image, skeletonizing it down to one pixel and placing nodes over the skeleton
+The nodes within the tree are represented by the custom class Node.
+"""
 # -*- encoding: utf-8 -*-
 from copy import deepcopy
 from datetime import datetime
@@ -21,15 +26,27 @@ COLOR_FG = "White"
 DISTANCE = 4
 
 
-class SymbolGroup(object):
+def print_time(end_time, start_time):
+    """
+    This method just prints how long a certain function took
+    :param end_time: Timestamp taken after finished building the tree
+    :param start_time: Timestamp taken before started building the tree
+    """
+    delta_time = end_time - start_time
+    tuple_divmod = divmod(delta_time.total_seconds(), 60)
+    delta_seconds = tuple_divmod[0] * 60 + int(tuple_divmod[1])
+    sg_logger.info("Finishing took %d seconds", delta_seconds)
+
+
+class Query(object):
     """
     This class represents one symbol group as defined in the given svg.
     It uses these svg-paths to create a QImage using QPainterPaths.
     This "original_image" is converted to a Numpy-array to get skeletonized
-    by skimage. The array holding the skeltonized version of the QImage
+    by skimage. The array holding the skeletonized version of the QImage
     is then used to find joints and corners, also using skimage.
     These vectors are used to create the first nodes representing
-    the initial symbol group paths given by ther svg.
+    the initial symbol group paths given by their svg.
     """
 
     def __init__(self, paths, name):  # pylint:disable=super-on-old-class
@@ -37,80 +54,31 @@ class SymbolGroup(object):
         :param paths: The group of symbols to represent as QImage
         :param name: This is the name of the symbol group as set in the svg
         """
-        sg_logger.info("Setup SymbolGroupImage with name [%s]", name)
+        sg_logger.info("Setup Query with name [%s]", name)
         self.paths = paths
         self.name = name
 
         # Query
-        self.query_bounding_box = self.create_bounding_box()
-        self.query_image = self.create_original_image()
-        self.query_original_array = self.convert_qimage_to_ndarray()
-        self.query_skeleton = self.create_skeleton(name)
-        self.query_enlarged_skeleton = self.enlarge_skeleton()
-        self.query_corner_nodes = self.find_corners_and_junctions()
-        self.query_true_list = self.create_true_list()
-        self.query_center_of_mass = self.calculate_center_of_mass()
+        self.bounding_box = self.create_bounding_box()
+        self.image = self.create_original_image()
+        self.original_array = self.convert_qimage_to_ndarray()
+        self.skeleton = self.create_skeleton(name)
+        self.enlarged_skeleton = self.enlarge_skeleton()
+        self.corner_nodes = self.find_corners_and_junctions()
+        self.true_list = self.create_true_list()
+        self.center_of_mass = self.calculate_center_of_mass()
 
         # Tree
-        self.query_root_node = None
-        self.query_nodes = list()
+        self.root_node = None
+        self.nodes = list()
 
         self.open_list = list()
         self.closed_list = list()
 
-        self.query_nodes = self.add_remaining_nodes()
-        self.query_nodes_backup = deepcopy(self.query_nodes)  # needed for dt height and width
-        self.query_root_node = self.find_root_node()
+        self.nodes = self.add_remaining_nodes()
+        self.nodes_backup = deepcopy(self.nodes)  # needed for dt height and width
+        self.root_node = self.find_root_node()
         self.build_up_tree()
-
-        # Distance Transform
-        # In here plugin any svg or png or jpg or whatever as ndarray
-        # distanztransformierte des target bilds um node offsets wandern lassen und aufaddieren
-        # self.target_image = None
-        # self.target_original_array = self.query_original_array
-
-        self.height, self.width, self.abs_start = self.calculate_height_and_width_of_distance_transform()
-        self.sum_dt = None
-        self.calculate_distance_transform(self.query_root_node)
-
-    def calculate_distance_transform(self, node):
-        sg_logger.info("Starting to build up Distance Transform")
-        start_time = datetime.now()
-        self.recursively_add_up_all_distance_transforms(node)
-        end_time = datetime.now()
-        sg_logger.info("Finished building up Distance Transform.\n")
-        self.print_time(end_time, start_time)
-
-    def recursively_add_up_all_distance_transforms(self, node):
-        new_sum_dt = self.build_distance_transform_to_parent(node)
-        self.sum_dt = add(self.sum_dt, new_sum_dt) if self.sum_dt is not None else new_sum_dt
-
-        for child in node.children:
-            self.recursively_add_up_all_distance_transforms(child)
-
-    def build_distance_transform_to_parent(self, child):
-        abs_location = child.position.item(0) - self.abs_start[0], child.position.item(1) - self.abs_start[1]
-
-        new_array = zeros((self.height, self.width), dtype=int)
-        new_array[abs_location[0]:abs_location[0] + self.query_original_array.shape[0],
-        abs_location[1]:abs_location[1] + self.query_original_array.shape[1]] = self.query_original_array
-
-        ia = invert(ndarray.astype(new_array, dtype=bool))
-        new_distance_transform = medial_axis(ia, return_distance=True)[1]
-        return new_distance_transform
-
-    def calculate_height_and_width_of_distance_transform(self):
-        sorted_x = sorted(self.query_nodes_backup, key=lambda x: x.position.item(0))
-        sorted_y = sorted(self.query_nodes_backup, key=lambda x: x.position.item(1))
-        smallest_x = sorted_x[0].position.item(0)
-        smallest_y = sorted_y[0].position.item(1)
-        highest_x = sorted_x[-1].position.item(0)
-        highest_y = sorted_y[-1].position.item(1)
-
-        height = highest_x - smallest_x + len(self.query_original_array)
-        width = highest_y - smallest_y + len(self.query_original_array[0])
-
-        return height, width, (smallest_x, smallest_y)
 
     def create_bounding_box(self):
         """
@@ -124,7 +92,8 @@ class SymbolGroup(object):
 
     def create_original_image(self):
         """
-        Creates a QImage and sets its background to COLOR_BG. After that the QImage is tried to get filled with the paths
+        Creates a QImage and sets its background to COLOR_BG.
+        After that the QImage is tried to get filled with the paths
         :return: QImage created out of QPainterPaths, which were given to the constructor
         """
         image = QtGui.QImage(self.get_image_width(), self.get_image_height(), QtGui.QImage.Format_RGB32)
@@ -137,14 +106,14 @@ class SymbolGroup(object):
         Getter for the QImage width
         :return: Width of the Bounding-Box
         """
-        return self.query_bounding_box.width() * WIDTH
+        return self.bounding_box.width() * WIDTH
 
     def get_image_height(self):
         """
         Getter for the QImage height
         :return: Height of the Bounding-Box
         """
-        return self.query_bounding_box.height() * HEIGHT
+        return self.bounding_box.height() * HEIGHT
 
     @staticmethod
     def set_background(color, image):
@@ -180,7 +149,7 @@ class SymbolGroup(object):
         qpainter.setBrush(QtGui.QColor(COLOR_FG))
         qpainter.setPen(QtGui.QColor(COLOR_FG))
         qpainter.scale(HEIGHT, WIDTH)
-        qpainter.translate(-self.query_bounding_box.topLeft())
+        qpainter.translate(-self.bounding_box.topLeft())
         for path in self.paths:
             qpainter.drawPath(path)
         return image
@@ -192,12 +161,13 @@ class SymbolGroup(object):
         """
         sg_logger.info("Converting QImage to NumPy-Array")
         m, n = self.get_image_height(), self.get_image_width()
-        array = zeros((m, n))
+        image_array = zeros((m, n))
         for y in range(int(m)):
             for x in range(int(n)):
-                c = QtGui.qGray(self.query_image.pixel(x, y))
-                array[y, x] = True if c >= COLORED else False
-        return array
+                # noinspection PyArgumentList
+                c = QtGui.qGray(self.image.pixel(x, y))
+                image_array[y, x] = True if c >= COLORED else False
+        return image_array
 
     def create_skeleton(self, name):
         """
@@ -206,7 +176,7 @@ class SymbolGroup(object):
         :return: Skeletonized Numpy-Array
         """
         sg_logger.info("Skeletonizing QImage with name [%s]", name)
-        return skeletonize(self.query_original_array)
+        return skeletonize(self.original_array)
 
     def enlarge_skeleton(self):
         """
@@ -214,9 +184,9 @@ class SymbolGroup(object):
         a border.
         :return: Numpy-Array, which is a column and row larger on each side.
         """
-        rows = len(self.query_skeleton)
-        cols = len(self.query_skeleton[0])
-        enlarged_array = self.query_skeleton
+        rows = len(self.skeleton)
+        cols = len(self.skeleton[0])
+        enlarged_array = self.skeleton
         enlarged_array = c_[zeros(rows, dtype=bool), enlarged_array, zeros(rows, dtype=bool)]
         enlarged_array = insert(enlarged_array, 0, zeros(cols + 2, dtype=bool), 0)
         enlarged_array = insert(enlarged_array, rows, zeros(cols + 2, dtype=bool), 0)
@@ -228,7 +198,7 @@ class SymbolGroup(object):
         :return: List of all junctions and corners found within the enlarged_skeleton Numpy-Array
         """
         sg_logger.info("Detecting Nodes of skeletonized QImage with name [%s]\n", self.name)
-        skeleton_corners = corner_peaks(corner_harris(self.query_enlarged_skeleton), min_distance=2)
+        skeleton_corners = corner_peaks(corner_harris(self.enlarged_skeleton), min_distance=2)
         nodes = list()
         for corner in skeleton_corners:
             nodes.append(Node(position=corner))
@@ -238,12 +208,12 @@ class SymbolGroup(object):
         """
         Creates a List, which holds all indices of a "True"-appearance within the enlarged_skeleton.
         Only Non-Corner-/Non-Junction-Nodes are added to this list.
-        :return: A list of 2D-Numpy-Arrays. The 2D-Numpy-Arrays represent the appearance of a "True" within the enlarged_skeleton.
+        :return: A list of 2D-Numpy-Arrays. The Arrays represent the appearance of a "True" in the enlarged_skeleton.
         """
         true_list = list()
-        for i, x in enumerate(self.query_enlarged_skeleton):
+        for i, x in enumerate(self.enlarged_skeleton):
             for j, y in enumerate(x):
-                if y and Node(position=array([i, j])) not in self.query_corner_nodes:
+                if y and Node(position=array([i, j])) not in self.corner_nodes:
                     true_list.append(array([i, j]))
         return true_list
 
@@ -254,7 +224,7 @@ class SymbolGroup(object):
         """
         nodes = list()
         nodes.extend(self.add_nodes_greedily())
-        nodes.extend(self.query_corner_nodes)
+        nodes.extend(self.corner_nodes)
         return nodes
 
     def add_nodes_greedily(self):
@@ -272,7 +242,7 @@ class SymbolGroup(object):
         """
         additional_nodes = list()
 
-        for corner in self.query_corner_nodes:
+        for corner in self.corner_nodes:
             self.open_list.append(corner)
             rest_list = list()
 
@@ -322,7 +292,7 @@ class SymbolGroup(object):
         """
         good_neighbors = list()
         bad_neighbors = list()
-        for i, true_position in enumerate(self.query_true_list):
+        for i, true_position in enumerate(self.true_list):
             if self.is_neighbor_too_close(node, true_position):
                 bad_neighbors.append(i)
             elif self.is_neighbor_the_right_distance_away(node, true_position):
@@ -372,7 +342,7 @@ class SymbolGroup(object):
         :param new_node: Node to be checked
         :return: True if completely unknown (not in self.closed_list and not in self.corner_nodes)
         """
-        return new_node not in self.closed_list and new_node not in self.query_corner_nodes
+        return new_node not in self.closed_list and new_node not in self.corner_nodes
 
     def delete_bad_neighbors_from_true_list(self, bad_neighbors):
         """
@@ -381,14 +351,14 @@ class SymbolGroup(object):
         :param bad_neighbors: List of "Bad neighbors", which should get deleted out of the true_list
         """
         for item in reversed(bad_neighbors):
-            self.query_true_list = delete(self.query_true_list, item, 0)
+            self.true_list = delete(self.true_list, item, 0)
 
     def calculate_center_of_mass(self):
         """
         Calculates the center of mass by using the arithmetic mean of all node positions
         :return: The arithmetic mean of all node positions
         """
-        return Node(position=mean(self.query_true_list, axis=0, dtype=int))
+        return Node(position=mean(self.true_list, axis=0, dtype=int))
 
     def find_root_node(self):
         """
@@ -397,8 +367,8 @@ class SymbolGroup(object):
         """
         closest_node = None
         closest_distance = float("inf")
-        for node in self.query_nodes:
-            current_distance = self.get_euclidean_distance(node, self.query_center_of_mass)
+        for node in self.nodes:
+            current_distance = self.get_euclidean_distance(node, self.center_of_mass)
             if current_distance < closest_distance:
                 closest_node = node
                 closest_distance = current_distance
@@ -432,15 +402,18 @@ class SymbolGroup(object):
         start_time = datetime.now()
         self.creating_all_relations_for_tree()
         end_time = datetime.now()
-        self.print_time(end_time, start_time)
+        print_time(end_time, start_time)
         sg_logger.info("Finished building up tree...\n")
 
     def creating_all_relations_for_tree(self):
+        """
+        This starts the creation of all relations for the nodes starting from the root node.
+        """
         current_tree = list()
-        current_tree.append(self.query_root_node)
-        self.query_nodes.remove(self.query_root_node)
+        current_tree.append(self.root_node)
+        self.nodes.remove(self.root_node)
 
-        while self.query_nodes:
+        while self.nodes:
             real_child, real_parent = self.find_closest_node(current_tree)
             if real_parent is None:  # pragma: no cover
                 break
@@ -466,7 +439,7 @@ class SymbolGroup(object):
         real_parent.add_child(real_child)
         real_child.set_parent(real_parent)
         real_child.calculate_offset()
-        self.query_nodes.remove(real_child)
+        self.nodes.remove(real_child)
 
     def find_closest_node(self, current_tree):
         """
@@ -478,7 +451,7 @@ class SymbolGroup(object):
         real_parent = None
         real_child = None
 
-        for potential_child in self.query_nodes:
+        for potential_child in self.nodes:
             for potential_source in current_tree:
                 if potential_child != potential_source:  # pragma: no cover
                     if abs(potential_child.position.item(0) - potential_source.position.item(0)) <= closest_distance \
@@ -491,23 +464,84 @@ class SymbolGroup(object):
                             real_parent = potential_source
         return real_child, real_parent
 
-    @staticmethod
-    def print_time(end_time, start_time):
+
+class TargetDistanceTransform(object):
+    def __init__(self, query):
+        pass
+        # Distance Transform
+        # In here plugin any svg or png or jpg or whatever as numpy array
+        # move distance transform of target according to the nodes offsets and sum them up
+        # self.target_image = None
+        # self.target_original_array = self.query_original_array
+        self.query = query
+
+        self.height, self.width, self.abs_start = self.calculate_height_and_width_of_distance_transform()
+        self.sum_dt = None
+        self.calculate_distance_transform()
+
+    def calculate_distance_transform(self):
         """
-        This method just prints how long a certain function took
-        :param end_time: Timestamp taken after finished building the tree
-        :param start_time: Timestamp taken before started building the tree
+        This starts the calculation of the all over distance transform and energy minimization.
         """
-        delta_time = end_time - start_time
-        tuple_divmod = divmod(delta_time.total_seconds(), 60)
-        delta_seconds = tuple_divmod[0] * 60 + int(tuple_divmod[1])
-        sg_logger.info("Finishing took %d seconds", delta_seconds)
+        sg_logger.info("Starting to build up Distance Transform")
+        start_time = datetime.now()
+        self.recursively_add_up_all_distance_transforms(self.query.root_node)
+        end_time = datetime.now()
+        print_time(end_time, start_time)
+        sg_logger.info("Finished building up Distance Transform.\n")
+
+    def recursively_add_up_all_distance_transforms(self, node):
+        """
+        Iterates over all nodes and their potential children adding up all distance transform created on the run.
+        :param node: current node to add to the total distance transform
+        """
+        new_sum_dt = self.build_distance_transform_to_parent(node)
+        self.sum_dt = add(self.sum_dt, new_sum_dt) if self.sum_dt is not None else new_sum_dt
+
+        for child in node.children:
+            self.recursively_add_up_all_distance_transforms(child)
+
+    def build_distance_transform_to_parent(self, child):
+        """
+        Calculates the sum of the current total distance transform and a new distance transform by the child's
+        position
+        :param child: Child to calculate the new distance transform for
+        :return: Added up distance transform from sum_distance_transform and newest child distance transform
+        """
+        abs_location = child.position.item(0) - self.abs_start[0], child.position.item(1) - self.abs_start[1]
+
+        new_array = zeros((self.height, self.width), dtype=int)
+        new_array[abs_location[0]:abs_location[0] + self.query.original_array.shape[0],
+        abs_location[1]:abs_location[1] + self.query.original_array.shape[1]] = self.query.original_array
+
+        ia = invert(ndarray.astype(new_array, dtype=bool))
+        new_distance_transform = medial_axis(ia, return_distance=True)[1]
+        return new_distance_transform
+
+    def calculate_height_and_width_of_distance_transform(self):
+        """
+        Calculates the maximum dimensions needed for adding up all distance transforms
+        :return: the height, the width and the absolute starting point (root does not have to be and will
+                 very likely not be the most top-left pixel, since it's the center of mass)
+        """
+        sorted_x = sorted(self.query.nodes_backup, key=lambda x: x.position.item(0))
+        sorted_y = sorted(self.query.nodes_backup, key=lambda x: x.position.item(1))
+        smallest_x = sorted_x[0].position.item(0)
+        smallest_y = sorted_y[0].position.item(1)
+        highest_x = sorted_x[-1].position.item(0)
+        highest_y = sorted_y[-1].position.item(1)
+
+        height = highest_x - smallest_x + len(self.query.original_array)
+        width = highest_y - smallest_y + len(self.query.original_array[0])
+
+        return height, width, (smallest_x, smallest_y)
 
 
 class Node(object):
     """
     This class represents a node, defined by Howe et. al.
-    It contains the reference to a parent-node and a list of its children-nodes, as well as the 2d-representation of that node.
+    It contains the reference to a parent-node and a list of its children-nodes,
+    as well as the 2d-representation of that node.
     Additionally an offset is stored within the node. This shows the offset relative to its parent-node
     """
 
@@ -538,6 +572,10 @@ class Node(object):
         self.parent = parent
 
     def calculate_offset(self):
+        """
+        This calculates the offset from the parent_node. The offset itself is to be read from the parent_node's
+        location. eg. an offset of (1, 1) means the child is (1, 1) from the parents point of view.
+        """
         offset = list()
         for i, axis in enumerate(self.position):
             offset.append(axis - self.parent.position[i])

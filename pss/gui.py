@@ -1,8 +1,8 @@
 # -*- encoding: utf-8 -*-
 from logging import getLogger
 
-from matplotlib.pyplot import subplots, cm
-from numpy import empty, nanmax, nanmin
+from matplotlib.pyplot import subplots, cm, show
+from numpy import nanmax, nanmin
 
 gui_logger = getLogger("SymbolGroupDisplay")
 
@@ -15,68 +15,105 @@ FONTSIZE = 20
 NODESIZE = 15
 
 
-class ImagePlot(object):  # pragma: no cover
+def setup_figure(name):
     """
-    This class is responsible for plotting the QImage.
+    This sets up the plot-figures, respectively the window.
+    :param name: The name to set the windows title
+    :return: The two empty subplots for the original image and the skeletonized one
+    """
+    fig, ax = subplots(ROWS, COLUMNS, figsize=FIG_POS, sharex=True, sharey=True,
+                       subplot_kw={'adjustable': 'box-forced'})
+    fig.canvas.set_window_title("name: [{}]".format(name))
+    fig.subplots_adjust(wspace=SPACE, hspace=SPACE, top=POSITION,
+                        bottom=SPACE, left=SPACE, right=POSITION)
+    return ax
+
+
+def setup_plot(ax, array, title):
+    """
+    :param ax: Empty subplot for the original image or the skeletonized image
+    :param array: The array to fill up the subplot
+    :param title: Title of the subplot
+
+    This fills up the subplots
+    """
+    ax.axis('on')
+    ax.set_xlim([0, array.shape[1]])
+    ax.set_ylim([array.shape[0], 0])
+    ax.set_title(title, fontsize=FONTSIZE)
+
+
+class GUIHandler(object):
+    """
+    This class starts up all the gui wanted.
+
     """
 
-    def __init__(self, symbol_group):
-        # self.create_original_image_figure(symbol_group)
-        # self.create_skeleton_figure(symbol_group)
-        self.create_distance_transform_figure(symbol_group.name, symbol_group.sum_dt, "distance transform sum")
-        # self.create_tree_figure(symbol_group)
+    def __init__(self):
+        gui_logger.info("GUIHandler started")
+
+    @staticmethod
+    def display_query(query):  # pragma: no cover
+        """
+        Plots the query entered in different forms
+        :param query: The query image to plot
+        """
+        QueryPlot(query)
+
+    @staticmethod
+    def display_distance_transform(target):
+        """
+        Plots the summed up distance transform for the target image
+        :param target: TargetDistanceTransform-object, which holds summed up distance transform
+        """
+        DistanceTransformPlot(target)
+
+    @staticmethod
+    def show():
+        show()
+
+
+class DistanceTransformPlot(object):
+    def __init__(self, target):
+        self.create_distance_transform_figure("Target", target.sum_dt, "Distance Transform")
 
     def create_distance_transform_figure(self, name, dt, title):
-        ax = self.setup_figure(name)
-        self.setup_plot(ax, dt, title)
+        ax = setup_figure(name)
+        setup_plot(ax, dt, title)
         dt_min, dt_max = nanmin(dt), nanmax(dt)
         self.draw_distance_transform(ax, dt, dt_min, dt_max)
 
-    def create_skeleton_figure(self, symbol_group):
-        ax = self.setup_figure(symbol_group.name)
-        self.setup_plot(ax, symbol_group.original_array, "skeleton")
-        self.draw_skeleton_image(ax, symbol_group.skeleton_array, symbol_group)
-
-    def create_original_image_figure(self, symbol_group):
-        ax = self.setup_figure(symbol_group.name)
-        self.setup_plot(ax, symbol_group.original_array, "original")
-        self.draw_array(ax, symbol_group.original_array)
-
-    def create_tree_figure(self, symbol_group):
-        ax = self.setup_figure(symbol_group.name)
-        self.setup_plot(ax, symbol_group.original_array, "tree")
-        root_node = symbol_group.root_node
-        center_of_mass = symbol_group.center_of_mass
-        skeleton_empty = empty(shape=symbol_group.skeleton_array.shape, dtype=bool)
-        self.draw_tree_image(ax, skeleton_empty, root_node, center_of_mass)
-
     @staticmethod
-    def setup_figure(name):
-        """
-        This sets up the plot-figures, respectively the window.
-        :param name: The name to set the windows title
-        :return: The two empty subplots for the original image and the skeletonized one
-        """
-        fig, ax = subplots(ROWS, COLUMNS, figsize=FIG_POS, sharex=True, sharey=True,
-                                        subplot_kw={'adjustable': 'box-forced'})
-        fig.canvas.set_window_title("name: [{}]".format(name))
-        fig.subplots_adjust(wspace=SPACE, hspace=SPACE, top=POSITION,
-                            bottom=SPACE, left=SPACE, right=POSITION)
-        return ax
+    def draw_distance_transform(ax, dt, vmin, vmax):
+        ax.imshow(dt, cmap=cm.jet, vmin=vmin, vmax=vmax)
 
-    @staticmethod
-    def setup_plot(ax, array, title):
-        """
-        :param ax: Empty subplot for the original image or the skeletonized image
-        :param array: The array to fill up the subplot
-        :param title: Title of the subplot
 
-        This fills up the subplots
-        """
-        ax.axis('on')
-        ax.set_xlim([0, array.shape[1]])
-        ax.set_ylim([array.shape[0], 0])
-        ax.set_title(title, fontsize=FONTSIZE)
+class QueryPlot(object):  # pragma: no cover
+    """
+    This class is responsible for plotting the Query.
+    """
+
+    def __init__(self, query):
+        self.create_original_image_figure(query)
+        self.create_skeleton_figure(query)
+        self.create_tree_figure(query)
+
+    def create_skeleton_figure(self, query):
+        ax = setup_figure(query.name)
+        setup_plot(ax, query.original_array, "skeleton")
+        self.draw_skeleton_image(ax, query.skeleton)
+
+    def create_original_image_figure(self, query):
+        ax = setup_figure(query.name)
+        setup_plot(ax, query.original_array, "original")
+        self.draw_array(ax, query.original_array)
+
+    def create_tree_figure(self, query):
+        ax = setup_figure(query.name)
+        setup_plot(ax, query.original_array, "tree")
+        root_node = query.root_node
+        center_of_mass = query.center_of_mass
+        self.draw_tree_image(ax, root_node, center_of_mass)
 
     @staticmethod
     def draw_array(ax, array):
@@ -87,24 +124,21 @@ class ImagePlot(object):  # pragma: no cover
         """
         ax.imshow(array, cmap=cm.gray)
 
-    def draw_skeleton_image(self, ax, array, symbol_group):
+    def draw_skeleton_image(self, ax, array):
         """
         Draws skeletonized version of the original array
         :param ax: AxisSubplot to draw on
         :param array: Skeletonized-Array to draw onto AxisSubplot
-        :param symbol_group: SymbolGroup which holds all the nodes to draw
         """
         self.draw_array(ax, array)
 
-    def draw_tree_image(self, ax, emptied_array, root_node, center_of_mass):
+    def draw_tree_image(self, ax, root_node, center_of_mass):
         """
         Draws tree
         :param ax: AxisSubplot to draw on
-        :param emptied_array: Background for Tree-Image
         :param root_node: Root-Node (is drawn green)
-        :param center_of_mass: Center-Of-Mass NOde (is drawn red)
+        :param center_of_mass: Center-Of-Mass Node (is drawn red)
         """
-        # self.draw_array(ax, emptied_array)
         self.plot_center_of_mass(ax, center_of_mass)
 
         open_list = list()
@@ -160,7 +194,8 @@ class ImagePlot(object):  # pragma: no cover
         ax.plot([parent.position[1], child.position[1]], [parent.position[0], child.position[0]], "b-")
         ax.plot(child.position.item(1), child.position.item(0), "y.", markersize=NODESIZE)
 
-    def draw_distance_transform(self, ax1, distance_transform, vmin, vmax):
+    @staticmethod
+    def draw_distance_transform(ax1, distance_transform, vmin, vmax):
         ax1.imshow(distance_transform, cmap=cm.jet, vmin=vmin, vmax=vmax)
 
 
@@ -174,7 +209,7 @@ class PrintNodes(object):  # pragma: no cover
 
     def __init__(self, symbol_group):
         """
-        Inititialized the PrintNodes-object for a given SymbolGroup
+        Initialized the PrintNodes-object for a given SymbolGroup
         :param symbol_group: SymbolGroup, which contains the Nodes to print into the log
         """
         self.symbol_group = symbol_group
