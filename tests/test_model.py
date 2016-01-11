@@ -4,8 +4,8 @@ from unittest import TestCase
 
 from numpy import array
 
-from pss.model import Node, Query, HEIGHT, WIDTH
-from pss.svg import SvgHandler
+from pss.model import Node, Query, QUERY_HEIGHT, QUERY_WIDTH
+from pss.svg import QuerySVG
 
 FILE_LOCATION = dirname(abspath(__file__))
 
@@ -23,17 +23,17 @@ def assert_equal_matrix(a, b):
 class SymbolGroupImageTestCase(TestCase):
     def setUp(self):
         valid_path = join(FILE_LOCATION, "..", "resources", "test_query.svg")
-        self.svg_handler = SvgHandler(valid_path)
+        self.svg_handler = QuerySVG(valid_path)
         self.sgi = Query(self.svg_handler.svg_symbol_groups[0], "Name")
 
     def test_when_creating_symbol_group_image_bounding_box_is_not_none(self):
         self.assertIsNotNone(self.sgi.bounding_box)
 
     def test_get_width_returns_width_of_image(self):
-        self.assertEqual(self.sgi.get_image_width(), self.sgi.bounding_box.width() * WIDTH)
+        self.assertEqual(self.sgi.get_image_width(), self.sgi.bounding_box.width() * QUERY_WIDTH)
 
     def test_get_height_returns_height_of_image(self):
-        self.assertEqual(self.sgi.get_image_height(), self.sgi.bounding_box.height() * HEIGHT)
+        self.assertEqual(self.sgi.get_image_height(), self.sgi.bounding_box.height() * QUERY_HEIGHT)
 
     def test_when_building_tree_make_sure_parents_are_not_added_as_children(self):
         nodes = self.build_nodes()

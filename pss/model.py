@@ -11,6 +11,7 @@ from logging import getLogger
 from math import sqrt
 
 from PyQt4 import QtGui
+from PyQt4.QtGui import QPainter
 from numpy import zeros, array, delete, insert, c_, mean, inf, invert, ndarray, add
 from skimage.feature import corner_harris
 from skimage.feature import corner_peaks
@@ -18,12 +19,33 @@ from skimage.morphology import skeletonize, medial_axis
 
 sg_logger = getLogger("SymbolGroup")
 
-WIDTH = 15
-HEIGHT = 15
-COLORED = 127
+QUERY_WIDTH = 5
+QUERY_HEIGHT = 5
+COLORED = 255
 COLOR_BG = "Black"
 COLOR_FG = "White"
 DISTANCE = 4
+TARGET_WIDTH = 3000
+TARGET_HEIGHT = 3000
+
+
+def convert_qimage_to_ndarray(height, width, image):  # pragma: no cover
+    """
+    Converts a given QImage into a Numpy-Array
+    :param image:
+    :param width:
+    :param height:
+    :return: Boolean Numpy-Array representing the QImage. "True" = Foreground, "False" = Background
+    """
+    sg_logger.info("Converting QImage to NumPy-Array")
+    m, n = height, width
+    image_array = zeros((m, n))
+    for y in range(int(m)):
+        for x in range(int(n)):
+            # noinspection PyArgumentList
+            c = QtGui.qGray(image.pixel(x, y))
+            image_array[y, x] = True if c >= COLORED else False
+    return image_array
 
 
 def print_time(end_time, start_time):
@@ -36,6 +58,44 @@ def print_time(end_time, start_time):
     tuple_divmod = divmod(delta_time.total_seconds(), 60)
     delta_seconds = tuple_divmod[0] * 60 + int(tuple_divmod[1])
     sg_logger.info("Finishing took %d seconds", delta_seconds)
+
+
+def set_background(color, image):
+    """
+    Sets the background color of the QImage
+    :param image: QImage which background should be changed
+    :param color: Color to change background to
+    """
+    sg_logger.info("Setting Background to [%s]", color)
+    image.fill(QtGui.QColor(color))
+
+
+def create_skeleton(name, original_array):
+    """
+    Skeletonizes a given Numpy-Array to a 1px width. See skimage-documentation for skeletonize
+    :param name: Name of the QImage (For Logging purposes)
+    :return: Skeletonized Numpy-Array
+    """
+    sg_logger.info("Skeletonizing QImage with name [%s]", name)
+    return skeletonize(original_array)
+
+
+class Target(object):
+    def __init__(self, renderer):
+        self.image = self.create_image(renderer)
+        self.original_array = convert_qimage_to_ndarray(TARGET_HEIGHT, TARGET_WIDTH, self.image)
+        self.inverted_array = invert(ndarray.astype(self.original_array, dtype=bool))
+
+    @staticmethod
+    def create_image(renderer):
+        image = QtGui.QImage(TARGET_WIDTH, TARGET_WIDTH, QtGui.QImage.Format_ARGB32)
+        set_background(COLOR_FG, image)
+
+        qpainter = QtGui.QPainter(image)
+        qpainter.setRenderHint(QPainter.SmoothPixmapTransform)
+        renderer.render(qpainter)
+
+        return image
 
 
 class Query(object):
@@ -61,8 +121,8 @@ class Query(object):
         # Query
         self.bounding_box = self.create_bounding_box()
         self.image = self.create_original_image()
-        self.original_array = self.convert_qimage_to_ndarray()
-        self.skeleton = self.create_skeleton(name)
+        self.original_array = convert_qimage_to_ndarray(self.get_image_height(), self.get_image_width(), self.image)
+        self.skeleton = create_skeleton(name, self.original_array)
         self.enlarged_skeleton = self.enlarge_skeleton()
         self.corner_nodes = self.find_corners_and_junctions()
         self.true_list = self.create_true_list()
@@ -97,7 +157,7 @@ class Query(object):
         :return: QImage created out of QPainterPaths, which were given to the constructor
         """
         image = QtGui.QImage(self.get_image_width(), self.get_image_height(), QtGui.QImage.Format_RGB32)
-        self.set_background(COLOR_BG, image)
+        set_background(COLOR_BG, image)
         image = self.try_to_fill_image_with_paths(image)
         return image
 
@@ -106,24 +166,14 @@ class Query(object):
         Getter for the QImage width
         :return: Width of the Bounding-Box
         """
-        return self.bounding_box.width() * WIDTH
+        return self.bounding_box.width() * QUERY_WIDTH
 
     def get_image_height(self):
         """
         Getter for the QImage height
         :return: Height of the Bounding-Box
         """
-        return self.bounding_box.height() * HEIGHT
-
-    @staticmethod
-    def set_background(color, image):
-        """
-        Sets the background color of the QImage
-        :param image: QImage which background should be changed
-        :param color: Color to change background to
-        """
-        sg_logger.info("Setting Background to [%s]", color)
-        image.fill(QtGui.QColor(color))
+        return self.bounding_box.height() * QUERY_HEIGHT
 
     def try_to_fill_image_with_paths(self, image):
         """
@@ -148,35 +198,11 @@ class Query(object):
         sg_logger.info("Brushing Paths onto QImage")
         qpainter.setBrush(QtGui.QColor(COLOR_FG))
         qpainter.setPen(QtGui.QColor(COLOR_FG))
-        qpainter.scale(HEIGHT, WIDTH)
+        qpainter.scale(QUERY_HEIGHT, QUERY_WIDTH)
         qpainter.translate(-self.bounding_box.topLeft())
         for path in self.paths:
             qpainter.drawPath(path)
         return image
-
-    def convert_qimage_to_ndarray(self):  # pragma: no cover
-        """
-        Converts a given QImage into a Numpy-Array
-        :return: Boolean Numpy-Array representing the QImage. "True" = Foreground, "False" = Background
-        """
-        sg_logger.info("Converting QImage to NumPy-Array")
-        m, n = self.get_image_height(), self.get_image_width()
-        image_array = zeros((m, n))
-        for y in range(int(m)):
-            for x in range(int(n)):
-                # noinspection PyArgumentList
-                c = QtGui.qGray(self.image.pixel(x, y))
-                image_array[y, x] = True if c >= COLORED else False
-        return image_array
-
-    def create_skeleton(self, name):
-        """
-        Skeletonizes a given Numpy-Array to a 1px width. See skimage-documentation for skeletonize
-        :param name: Name of the QImage (For Logging purposes)
-        :return: Skeletonized Numpy-Array
-        """
-        sg_logger.info("Skeletonizing QImage with name [%s]", name)
-        return skeletonize(self.original_array)
 
     def enlarge_skeleton(self):
         """
@@ -465,17 +491,13 @@ class Query(object):
         return real_child, real_parent
 
 
-class TargetDistanceTransform(object):
-    def __init__(self, query):
+class DistanceTransform(object):
+    def __init__(self, query, target):
         pass
-        # Distance Transform
-        # In here plugin any svg or png or jpg or whatever as numpy array
-        # move distance transform of target according to the nodes offsets and sum them up
-        # self.target_image = None
-        # self.target_original_array = self.query_original_array
         self.query = query
-
+        self.target = target
         self.height, self.width, self.abs_start = self.calculate_height_and_width_of_distance_transform()
+
         self.sum_dt = None
         self.calculate_distance_transform()
 
@@ -511,8 +533,8 @@ class TargetDistanceTransform(object):
         abs_location = child.position.item(0) - self.abs_start[0], child.position.item(1) - self.abs_start[1]
 
         new_array = zeros((self.height, self.width), dtype=int)
-        new_array[abs_location[0]:abs_location[0] + self.query.original_array.shape[0],
-        abs_location[1]:abs_location[1] + self.query.original_array.shape[1]] = self.query.original_array
+        new_array[abs_location[0]:abs_location[0] + self.target.original_array.shape[0],
+        abs_location[1]:abs_location[1] + self.target.original_array.shape[1]] = self.target.inverted_array
 
         ia = invert(ndarray.astype(new_array, dtype=bool))
         new_distance_transform = medial_axis(ia, return_distance=True)[1]
@@ -531,8 +553,8 @@ class TargetDistanceTransform(object):
         highest_x = sorted_x[-1].position.item(0)
         highest_y = sorted_y[-1].position.item(1)
 
-        height = highest_x - smallest_x + len(self.query.original_array)
-        width = highest_y - smallest_y + len(self.query.original_array[0])
+        height = highest_x - smallest_x + len(self.target.inverted_array)
+        width = highest_y - smallest_y + len(self.target.inverted_array[0])
 
         return height, width, (smallest_x, smallest_y)
 

@@ -3,35 +3,44 @@
 from logging import getLogger
 from os.path import isfile
 
+from PyQt4.QtSvg import QSvgRenderer
+
 from external.elka_svg import parse
 
 svg_logger = getLogger("SvgHandler")
 
 
-class SvgHandler(object):
+def handle_file_not_existing(path):
+    """
+    Checks whether the given file is existing
+    :param path: Path of file to check for existence
+    :raises: FileNotFoundError if path not found
+    """
+    if not isfile(path):
+        svg_logger.error("Path to SVG-File invalid!")
+        raise FileNotFoundError  # noqa
+
+
+class TargetSVG(object):
+    def __init__(self, path):
+        handle_file_not_existing(path)
+        self.renderer = QSvgRenderer(path)
+
+
+class QuerySVG(object):
     """
     This class opens and manages a given svg file. Make sure the display-methods are commented out for Nosetests.
     """
-    def __init__(self, path, infix=""):
+
+    def __init__(self, path, infix=''):
         """
         :param path: Path to the SVG-file (required)
         :param infix: Infix to look for in svg-file (default: "")
         :raise FileNotFoundError: This is raised, when an invalid svg file is passed.
         """
         svg_logger.info("SVG-Handler started")
-        self.handle_file_not_existing(path)
+        handle_file_not_existing(path)
         self.names, self.svg_symbol_groups = self.load_svg(infix, path)
-
-    @staticmethod
-    def handle_file_not_existing(path):
-        """
-        Checks whether the given file is existing
-        :param path: Path of file to check for existence
-        :raises: FileNotFoundError if path not found
-        """
-        if not isfile(path):
-            svg_logger.error("Path to SVG-File invalid!")
-            raise FileNotFoundError  # noqa
 
     @staticmethod
     def load_svg(infix, path):

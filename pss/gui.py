@@ -12,7 +12,7 @@ FIG_POS = (16, 9)
 ROWS = 1
 COLUMNS = 1
 FONTSIZE = 20
-NODESIZE = 15
+NODESIZE = 10
 
 
 def setup_figure(name):
@@ -43,6 +43,15 @@ def setup_plot(ax, array, title):
     ax.set_title(title, fontsize=FONTSIZE)
 
 
+def draw_array(ax, array):
+    """
+    Fills the AxisSubplot with the array to draw
+    :param ax: AxisSubplot to draw on
+    :param array: Array to draw onto AxisSubplot
+    """
+    ax.imshow(array, cmap=cm.gray)
+
+
 class GUIHandler(object):
     """
     This class starts up all the gui wanted.
@@ -61,6 +70,10 @@ class GUIHandler(object):
         QueryPlot(query)
 
     @staticmethod
+    def display_target(target):
+        TargetPlot(target)
+
+    @staticmethod
     def display_distance_transform(target):
         """
         Plots the summed up distance transform for the target image
@@ -73,15 +86,29 @@ class GUIHandler(object):
         show()
 
 
+class TargetPlot(object):
+    def __init__(self, target):
+        self.create_target_figure("Target", target.original_array, "Target")
+
+    def create_target_figure(self, name, original_array, title):
+        ax = setup_figure(name)
+        setup_plot(ax, original_array, title)
+        self.draw_target_image(ax, original_array)
+
+    @staticmethod
+    def draw_target_image(ax, target):
+        draw_array(ax, target)
+
+
 class DistanceTransformPlot(object):
     def __init__(self, target):
-        self.create_distance_transform_figure("Target", target.sum_dt, "Distance Transform")
+        self.create_distance_transform_figure("DT", target.sum_dt, "Distance Transform")
 
     def create_distance_transform_figure(self, name, dt, title):
         ax = setup_figure(name)
         setup_plot(ax, dt, title)
         dt_min, dt_max = nanmin(dt), nanmax(dt)
-        self.draw_distance_transform(ax, dt, dt_min, dt_max)
+        self.draw_distance_transform(ax, dt, dt_min, (dt_max + dt_min) / 40)
 
     @staticmethod
     def draw_distance_transform(ax, dt, vmin, vmax):
@@ -106,7 +133,7 @@ class QueryPlot(object):  # pragma: no cover
     def create_original_image_figure(self, query):
         ax = setup_figure(query.name)
         setup_plot(ax, query.original_array, "original")
-        self.draw_array(ax, query.original_array)
+        draw_array(ax, query.original_array)
 
     def create_tree_figure(self, query):
         ax = setup_figure(query.name)
@@ -115,22 +142,13 @@ class QueryPlot(object):  # pragma: no cover
         center_of_mass = query.center_of_mass
         self.draw_tree_image(ax, root_node, center_of_mass)
 
-    @staticmethod
-    def draw_array(ax, array):
-        """
-        Fills the AxisSubplot with the array to draw
-        :param ax: AxisSubplot to draw on
-        :param array: Array to draw onto AxisSubplot
-        """
-        ax.imshow(array, cmap=cm.gray)
-
     def draw_skeleton_image(self, ax, array):
         """
         Draws skeletonized version of the original array
         :param ax: AxisSubplot to draw on
         :param array: Skeletonized-Array to draw onto AxisSubplot
         """
-        self.draw_array(ax, array)
+        draw_array(ax, array)
 
     def draw_tree_image(self, ax, root_node, center_of_mass):
         """
@@ -193,10 +211,6 @@ class QueryPlot(object):  # pragma: no cover
         """
         ax.plot([parent.position[1], child.position[1]], [parent.position[0], child.position[0]], "b-")
         ax.plot(child.position.item(1), child.position.item(0), "y.", markersize=NODESIZE)
-
-    @staticmethod
-    def draw_distance_transform(ax1, distance_transform, vmin, vmax):
-        ax1.imshow(distance_transform, cmap=cm.jet, vmin=vmin, vmax=vmax)
 
 
 pn_logger = getLogger("PrintNodes")
