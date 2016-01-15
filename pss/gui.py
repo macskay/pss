@@ -13,6 +13,7 @@ ROWS = 1
 COLUMNS = 1
 FONTSIZE = 20
 NODESIZE = 10
+DIVISOR = 12
 
 
 def setup_figure(name):
@@ -108,7 +109,7 @@ class DistanceTransformPlot(object):
         ax = setup_figure(name)
         setup_plot(ax, dt, title)
         dt_min, dt_max = nanmin(dt), nanmax(dt)
-        self.draw_distance_transform(ax, dt, dt_min, (dt_max + dt_min) / 40)
+        self.draw_distance_transform(ax, dt, dt_min, (dt_max + dt_min) / DIVISOR)
 
     @staticmethod
     def draw_distance_transform(ax, dt, vmin, vmax):
