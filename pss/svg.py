@@ -21,7 +21,7 @@ def handle_file_not_existing(path):
         raise FileNotFoundError  # noqa
 
 
-class TargetSVG(object):
+class TargetSvg(object):
     """
     This class opens and manages a given svg file as the target image.
     """
@@ -35,7 +35,7 @@ class TargetSVG(object):
         self.renderer = QSvgRenderer(path)
 
 
-class QuerySVG(object):
+class QuerySvg(object):
     """
     This class opens and manages as the query image.
     """
