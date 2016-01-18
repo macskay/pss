@@ -13,7 +13,7 @@ from math import sqrt
 from PyQt4 import QtGui
 from PyQt4.QtGui import QPainter
 from numpy import zeros, array, delete, insert, c_, mean, inf, invert, ndarray, add, sqrt as rt
-from qimage2ndarray import recarray_view
+from qimage2ndarray import recarray_view, imread
 from scipy.ndimage.morphology import distance_transform_edt
 from skimage.feature import corner_harris
 from skimage.feature import corner_peaks
@@ -40,20 +40,26 @@ class Query(object):
     the initial symbol group paths given by their svg.
     """
 
-    def __init__(self, paths, name):  # pylint:disable=super-on-old-class
+    def __init__(self, query, index=0, png=False):  # pylint:disable=super-on-old-class
         """
         :param paths: The group of symbols to represent as QImage
         :param name: This is the name of the symbol group as set in the svg
         """
-        sg_logger.info("Setup Query with name [%s]", name)
-        self.paths = paths
-        self.name = name
+        if not png:
+            sg_logger.info("Setup SVG-Query with name [%s]", query.names[index])
+            self.paths = query.svg_symbol_groups[index]
+            self.name = query.names[index]
 
-        # Query
-        self.bounding_box = self.create_bounding_box()
-        self.image = self.create_original_image()
+            # Query
+            self.bounding_box = self.create_bounding_box()
+            self.image = self.create_original_image()
+        else:
+            self.image = query.image
+            test = imread(query.path, masked=True)
+            self.name = "PNG-Image"
+
         self.original_array = convert_qimage_to_ndarray(self.image)
-        self.skeleton = create_skeleton(name, self.original_array)
+        self.skeleton = create_skeleton(self.name, self.original_array)
         self.enlarged_skeleton = self.enlarge_skeleton()
         self.corner_nodes = self.find_corners_and_junctions()
         self.true_list = self.create_true_list()
@@ -70,6 +76,7 @@ class Query(object):
         self.nodes_backup = deepcopy(self.nodes)  # needed for dt height and width
         self.root_node = self.find_root_node()
         self.build_up_tree()
+
 
     def create_bounding_box(self):
         """

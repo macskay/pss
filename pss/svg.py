@@ -3,6 +3,8 @@
 from logging import getLogger
 from os.path import isfile
 
+import sys
+from PyQt4.QtGui import QImage, QApplication, QPixmap, QLabel
 from PyQt4.QtSvg import QSvgRenderer
 
 from external.elka_svg import parse
@@ -65,3 +67,9 @@ class QuerySVG(object):
         :return: The number of Paths within that SymbolGroup
         """
         return len(symbol_group)
+
+
+class QueryPNG(object):
+    def __init__(self, path):
+        self.image = QImage(path, "0xAARRGGBB")
+        self.path = path
