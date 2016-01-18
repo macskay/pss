@@ -465,7 +465,7 @@ class Node(object):
         :param other: Other Node to check for equality
         :return: True, if position is equal - False, else
         """
-        if other is None:
+        if other is None:  # pragma: no cover
             return False
         return (self.position == other.position).all()
 
@@ -489,11 +489,9 @@ class Target(object):
 
         return image
 
-    def create_bounding_box(self):
-        pass
 
-
-class DistanceTransform(object):
+# TODO: Tests for DistanceTransform will be added eventually
+class DistanceTransform(object):  # pragma: no cover
     def __init__(self, query, target):
         pass
         self.query = query
@@ -572,7 +570,8 @@ def convert_qimage_to_ndarray(image):  # pragma: no cover
     return recarray_view(image).red >= 255
 
 
-def print_time(end_time, start_time):
+# TODO: Add tests
+def print_time(end_time, start_time):  # pragma: no cover
     """
     This method just prints how long a certain function took
     :param end_time: Timestamp taken after finished building the tree
@@ -584,7 +583,7 @@ def print_time(end_time, start_time):
     sg_logger.info("Finishing took %d seconds", delta_seconds)
 
 
-def set_background(color, image):
+def set_background(color, image):  # pragma: no cover
     """
     Sets the background color of the QImage
     :param image: QImage which background should be changed
@@ -594,7 +593,7 @@ def set_background(color, image):
     image.fill(QtGui.QColor(color))
 
 
-def create_skeleton(name, original_array):
+def create_skeleton(name, original_array):  # pragma: no cover
     """
     Skeletonizes a given Numpy-Array to a 1px width. See skimage-documentation for skeletonize
     :param original_array:

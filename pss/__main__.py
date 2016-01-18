@@ -31,10 +31,10 @@ def main():
     distance_transform = DistanceTransform(query, target)
 
     gui_handler = GUIHandler()
-    gui_handler.display_query(query)
-    gui_handler.display_target(target)
-    gui_handler.display_distance_transform(distance_transform)
-    gui_handler.show()
+    # gui_handler.display_query(query)
+    # gui_handler.display_target(target)
+    # gui_handler.display_distance_transform(distance_transform)
+    # gui_handler.show()
 
 if __name__ == "__main__":
     main()
