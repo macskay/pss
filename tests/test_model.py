@@ -4,8 +4,9 @@ from unittest import TestCase
 
 from numpy import array
 
+from pss.binimg import QueryBin, TargetBin
 from pss.model import Node, Query, Target
-from pss.svg import QuerySVG, TargetSVG
+from pss.svg import QuerySvg, TargetSvg
 
 FILE_LOCATION = dirname(abspath(__file__))
 
@@ -23,8 +24,13 @@ def assert_equal_matrix(a, b):
 class SymbolGroupImageTestCase(TestCase):
     def setUp(self):
         valid_path = join(FILE_LOCATION, "..", "resources", "test_query.svg")
-        self.svg_handler = QuerySVG(valid_path)
-        self.sgi = Query(self.svg_handler.svg_symbol_groups[0], "Name")
+        self.svg_query = QuerySvg(valid_path)
+        self.sgi = Query(self.svg_query)
+
+    def test_can_setup_with_png(self):
+        valid_path = join(FILE_LOCATION, "..", "resources", "test_query.png")
+        svg_query = QueryBin(valid_path)
+        sgi = Query(svg_query, bin=True)
 
     def test_when_creating_symbol_group_image_bounding_box_is_not_none(self):
         self.assertIsNotNone(self.sgi.bounding_box)
@@ -123,6 +129,10 @@ class NodeTestCase(TestCase):
 
 
 class TargetTestCase(TestCase):
-    def test_can_setup(self):
-        svg_target = TargetSVG(join(FILE_LOCATION, "..", "resources", "test_target.svg"))
-        self.tgt = Target(svg_target.renderer)
+    def test_can_setup_with_svg(self):
+        svg_target = TargetSvg(join(FILE_LOCATION, "..", "resources", "test_target.svg"))
+        Target(svg_target)
+
+    def test_can_setup_with_binary_imag(self):
+        png_target = TargetBin(join(FILE_LOCATION, "..", "resources", "test_target.png"))
+        Target(png_target, bin=True)

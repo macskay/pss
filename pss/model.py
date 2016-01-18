@@ -21,8 +21,6 @@ from skimage.morphology import skeletonize
 
 sg_logger = getLogger("SymbolGroup")
 
-WIDTH = 5
-HEIGHT = 5
 COLORED = 255
 COLOR_BG = "Black"
 COLOR_FG = "White"
@@ -31,7 +29,9 @@ DISTANCE = 3
 
 class Query(object):
     """
-    This class represents one symbol group as defined in the given svg.
+    This class represents one symbol group as defined in the given svg
+    or the already rasterzized QImage if QueryPng is used.
+    When using QuerySvg:
     It uses these svg-paths to create a QImage using QPainterPaths.
     This "original_image" is converted to a Numpy-array to get skeletonized
     by skimage. The array holding the skeletonized version of the QImage
@@ -40,20 +40,31 @@ class Query(object):
     the initial symbol group paths given by their svg.
     """
 
-    def __init__(self, paths, name):  # pylint:disable=super-on-old-class
+    def __init__(self, query, index=0, bin=False, scale=1):  # pylint:disable=super-on-old-class
         """
-        :param paths: The group of symbols to represent as QImage
-        :param name: This is the name of the symbol group as set in the svg
+        This class takes a queries QImage and takes care of building up the tree-model
+        :param query: Object of class QueryBin or QuerySvg
+        :param index: This is only valid for QuerySvg and determines which symbol_group of the list of detected
+                      symbol_group should be used
+        :param bin: Boolean value which determines, if the input was an svg-file or if the query is already rasterized
+        :param scale: Multiplier for the scale
         """
-        sg_logger.info("Setup Query with name [%s]", name)
-        self.paths = paths
-        self.name = name
+        self.width, self.height = scale, scale
+        if not bin:
+            sg_logger.info("Setup SVG-Query with name [%s]", query.names[index])
+            self.paths = query.svg_symbol_groups[index]
+            self.name = query.names[index]
 
-        # Query
-        self.bounding_box = self.create_bounding_box()
-        self.image = self.create_original_image()
-        self.original_array = convert_qimage_to_ndarray(self.image)
-        self.skeleton = create_skeleton(name, self.original_array)
+            # Query
+            self.bounding_box = self.create_bounding_box()
+            self.image = self.create_original_image()
+            self.original_array = convert_qimage_to_ndarray(self.image)
+        else:
+            self.image = query.image
+            self.original_array = recarray_view(query.image).alpha > 0
+            self.name = "PNG-Image"
+
+        self.skeleton = create_skeleton(self.name, self.original_array)
         self.enlarged_skeleton = self.enlarge_skeleton()
         self.corner_nodes = self.find_corners_and_junctions()
         self.true_list = self.create_true_list()
@@ -87,7 +98,7 @@ class Query(object):
         After that the QImage is tried to get filled with the paths
         :return: QImage created out of QPainterPaths, which were given to the constructor
         """
-        image = QtGui.QImage(self.bounding_box.width() * WIDTH, self.bounding_box.height() * HEIGHT,
+        image = QtGui.QImage(self.bounding_box.width() * self.width, self.bounding_box.height() * self.height,
                              QtGui.QImage.Format_ARGB32)
         set_background(COLOR_BG, image)
         image = self.try_to_fill_image_with_paths(image)
@@ -116,7 +127,7 @@ class Query(object):
         sg_logger.info("Brushing Paths onto QImage")
         qpainter.setBrush(QtGui.QColor(COLOR_FG))
         qpainter.setPen(QtGui.QColor(COLOR_FG))
-        qpainter.scale(HEIGHT, WIDTH)
+        qpainter.scale(self.height, self.width)
         qpainter.translate(-self.bounding_box.topLeft())
         for path in self.paths:
             qpainter.drawPath(path)
@@ -471,15 +482,39 @@ class Node(object):
 
 
 class Target(object):
+    """
+    This class represents the target image, which is usually the tablet to scan.
+    It is responsible for rasterizing a given svg to a QImage and converting this QImage to
+    a valid ndarray, which can be used by skimage, scipy and matplotlib.
+    In case TargetBin was used to load in the target-image the conversion to a QImage is not needed,
+    since TargetBin already holds a QImage with the image loaded into it. In that case this step
+    is skipped and only the conversion to a valid ndarray is done.
+    """
     # noinspection PyCallByClass,PyTypeChecker
-    def __init__(self, renderer):
-        self.bounding_box = renderer.viewBox()
-        self.image = self.create_image(renderer)
-        self.original_array = convert_qimage_to_ndarray(self.image)
+    def __init__(self, target, bin=False, scale=1):
+        """
+        This class takes a queries QImage and takes care of building up the tree-model
+        :param target: Object of class TargetBin or TargetSvg
+        :param bin: Boolean value which determines, if the input was an svg-file or if the query is already rasterized
+        :param scale: Multiplier for the scale
+        """
+        self.width, self.height = scale, scale
+        if not bin:
+            self.bounding_box = target.renderer.viewBox()
+            self.image = self.create_image(target.renderer)
+            self.original_array = convert_qimage_to_ndarray(self.image)
+        else:
+            self.image = target.image
+            self.original_array = recarray_view(self.image).alpha == 0
         self.inverted_array = invert(ndarray.astype(self.original_array, dtype=bool))
 
     def create_image(self, renderer):
-        image = QtGui.QImage(self.bounding_box.height() * HEIGHT, self.bounding_box.width() * WIDTH,
+        """
+        Uses a QSvgRenderer to return a QImage from it
+        :param renderer: the QSvgRenderer object given by TargetSvg
+        :return: QImage representation of the QSvgRenderer
+        """
+        image = QtGui.QImage(self.bounding_box.height() * self.height, self.bounding_box.width() * self.width,
                              QtGui.QImage.Format_ARGB32)
         set_background(COLOR_FG, image)
 
@@ -492,8 +527,15 @@ class Target(object):
 
 # TODO: Tests for DistanceTransform will be added eventually
 class DistanceTransform(object):  # pragma: no cover
+    """
+    This class calculates the distance transforms for all possible nodes of a query and sums them up to get the
+    energy minimization for a given target.
+    """
     def __init__(self, query, target):
-        pass
+        """
+        :param query: Query-object, which holds the tree-model rest configuration
+        :param target: Target-object, which holds the ndarray-array of the target image
+        """
         self.query = query
         self.target = target
         self.height, self.width, self.abs_start = self.calculate_height_and_width_of_distance_transform()
@@ -545,7 +587,7 @@ class DistanceTransform(object):  # pragma: no cover
         """
         Calculates the maximum dimensions needed for adding up all distance transforms
         :return: the height, the width and the absolute starting point (root does not have to be and will
-                 very likely not be the most top-left pixel, since it's the center of mass)
+        very likely not be the most top-left pixel, since it's the center of mass)
         """
         sorted_x = sorted(self.query.nodes_backup, key=lambda x: x.position.item(0))
         sorted_y = sorted(self.query.nodes_backup, key=lambda x: x.position.item(1))

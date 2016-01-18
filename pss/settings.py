@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 
-from logging import getLogger, INFO, DEBUG, basicConfig
 from argparse import ArgumentParser
+from logging import getLogger, INFO, DEBUG, basicConfig
 
 settings_logger = getLogger('Settings')
 
@@ -13,7 +13,7 @@ class Settings(object):  # pragma: no cover
     """
     def __init__(self):
         self.arg_parser = self.setup_arg_parser()
-        self.setup_arg_options()
+        self.options = self.setup_arg_options()
 
     @staticmethod
     def setup_arg_parser():
@@ -31,7 +31,8 @@ class Settings(object):  # pragma: no cover
         Sets up the arguments to use within this program
         """
         self.add_arguments()
-        ArgumentListener(self.arg_parser)
+        ag = ArgumentListener(self.arg_parser)
+        return ag.options
 
     def add_arguments(self):
         """
@@ -39,6 +40,8 @@ class Settings(object):  # pragma: no cover
         """
         self.arg_parser.add_argument("-v", "--verbose",
                                      help="Activates verbose mode (DEBUG-logging)", action="store_true")
+        self.arg_parser.add_argument("-s", "--scale",
+                                     help="Determines the Scale of the Query and Target (default=1)", type=int)
 
 
 class ArgumentListener(object):  # pragma: no cover
