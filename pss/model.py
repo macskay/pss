@@ -13,7 +13,7 @@ from math import sqrt
 from PyQt4 import QtGui
 from PyQt4.QtGui import QPainter
 from numpy import zeros, array, delete, insert, c_, mean, inf, invert, ndarray, add, sqrt as rt
-from qimage2ndarray import recarray_view, imread
+from qimage2ndarray import recarray_view
 from scipy.ndimage.morphology import distance_transform_edt
 from skimage.feature import corner_harris
 from skimage.feature import corner_peaks
@@ -21,8 +21,6 @@ from skimage.morphology import skeletonize
 
 sg_logger = getLogger("SymbolGroup")
 
-WIDTH = 5
-HEIGHT = 5
 COLORED = 255
 COLOR_BG = "Black"
 COLOR_FG = "White"
@@ -40,11 +38,12 @@ class Query(object):
     the initial symbol group paths given by their svg.
     """
 
-    def __init__(self, query, index=0, png=False):  # pylint:disable=super-on-old-class
+    def __init__(self, query, index=0, png=False, scale=1):  # pylint:disable=super-on-old-class
         """
         :param paths: The group of symbols to represent as QImage
         :param name: This is the name of the symbol group as set in the svg
         """
+        self.width, self.height = scale, scale
         if not png:
             sg_logger.info("Setup SVG-Query with name [%s]", query.names[index])
             self.paths = query.svg_symbol_groups[index]
@@ -53,12 +52,12 @@ class Query(object):
             # Query
             self.bounding_box = self.create_bounding_box()
             self.image = self.create_original_image()
+            self.original_array = convert_qimage_to_ndarray(self.image)
         else:
             self.image = query.image
-            test = imread(query.path, masked=True)
+            self.original_array = recarray_view(query.image).alpha > 0
             self.name = "PNG-Image"
 
-        self.original_array = convert_qimage_to_ndarray(self.image)
         self.skeleton = create_skeleton(self.name, self.original_array)
         self.enlarged_skeleton = self.enlarge_skeleton()
         self.corner_nodes = self.find_corners_and_junctions()
@@ -77,7 +76,6 @@ class Query(object):
         self.root_node = self.find_root_node()
         self.build_up_tree()
 
-
     def create_bounding_box(self):
         """
         Creates the Bounding Box given all the paths given to the constructor
@@ -94,7 +92,7 @@ class Query(object):
         After that the QImage is tried to get filled with the paths
         :return: QImage created out of QPainterPaths, which were given to the constructor
         """
-        image = QtGui.QImage(self.bounding_box.width() * WIDTH, self.bounding_box.height() * HEIGHT,
+        image = QtGui.QImage(self.bounding_box.width() * self.width, self.bounding_box.height() * self.height,
                              QtGui.QImage.Format_ARGB32)
         set_background(COLOR_BG, image)
         image = self.try_to_fill_image_with_paths(image)
@@ -123,7 +121,7 @@ class Query(object):
         sg_logger.info("Brushing Paths onto QImage")
         qpainter.setBrush(QtGui.QColor(COLOR_FG))
         qpainter.setPen(QtGui.QColor(COLOR_FG))
-        qpainter.scale(HEIGHT, WIDTH)
+        qpainter.scale(self.height, self.width)
         qpainter.translate(-self.bounding_box.topLeft())
         for path in self.paths:
             qpainter.drawPath(path)
@@ -479,14 +477,19 @@ class Node(object):
 
 class Target(object):
     # noinspection PyCallByClass,PyTypeChecker
-    def __init__(self, renderer):
-        self.bounding_box = renderer.viewBox()
-        self.image = self.create_image(renderer)
-        self.original_array = convert_qimage_to_ndarray(self.image)
+    def __init__(self, renderer, png=False, scale=1):
+        self.width, self.height = scale, scale
+        if not png:
+            self.bounding_box = renderer.viewBox()
+            self.image = self.create_image(renderer)
+            self.original_array = convert_qimage_to_ndarray(self.image)
+        else:
+            self.image = renderer.image
+            self.original_array = recarray_view(self.image).alpha == 0
         self.inverted_array = invert(ndarray.astype(self.original_array, dtype=bool))
 
     def create_image(self, renderer):
-        image = QtGui.QImage(self.bounding_box.height() * HEIGHT, self.bounding_box.width() * WIDTH,
+        image = QtGui.QImage(self.bounding_box.height() * self.height, self.bounding_box.width() * self.width,
                              QtGui.QImage.Format_ARGB32)
         set_background(COLOR_FG, image)
 
@@ -500,7 +503,6 @@ class Target(object):
 # TODO: Tests for DistanceTransform will be added eventually
 class DistanceTransform(object):  # pragma: no cover
     def __init__(self, query, target):
-        pass
         self.query = query
         self.target = target
         self.height, self.width, self.abs_start = self.calculate_height_and_width_of_distance_transform()
