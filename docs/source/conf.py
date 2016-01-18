@@ -295,5 +295,5 @@ class Mock(MagicMock):
 
 # sys.setrecursionlimit(100000)
 MOCK_MODULES = ['numpy', 'matplotlib', 'PyQt4', 'matplotlib.pyplot', 'PyQt4.QtGui', 'PyQt4.QtSvg', 'qimage2ndarray',
-                'scipy.ndimage.morphology']
+                'scipy.ndimage.morphology', 'skimage']
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
