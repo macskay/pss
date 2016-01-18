@@ -6,7 +6,7 @@ from os.path import dirname, abspath, join
 
 from pss.gui import GUIHandler
 from pss.model import DistanceTransform, Query, Target
-from pss.png import TargetPNG
+from pss.png import TargetBin
 from pss.settings import Settings
 from pss.svg import QuerySVG
 
@@ -28,13 +28,13 @@ def main():
     svg_query = QuerySVG(join(FILE_LOCATION, "..", "resources", "test_query.svg"))
     # svg_target = TargetSVG(join(FILE_LOCATION, "..", "resources", "VAT_09671_Rs_SJakob.svg"))
     query = Query(svg_query, scale=scale)
-    # target = Target(svg_target.renderer, scale=scale)
+    # target = Target(svg_target, scale=scale)
 
     """ Example png Usage"""
-    # png_query = QueryPNG(join(FILE_LOCATION, "..", "resources", "test_query.png"), scale=scale)
-    png_target = TargetPNG(join(FILE_LOCATION, "..", "resources", "VAT_09671_Rs_SJakob.png"), scale=scale)
-    # query = Query(png_query, png=True, scale=scale)
-    target = Target(png_target, png=True, scale=scale)
+    # png_query = QueryBin(join(FILE_LOCATION, "..", "resources", "test_query.png"), scale=scale)
+    png_target = TargetBin(join(FILE_LOCATION, "..", "resources", "VAT_09671_Rs_SJakob.png"), scale=scale)
+    # query = Query(png_query, bin=True, scale=scale)
+    target = Target(png_target, bin=True, scale=scale)
 
     distance_transform = DistanceTransform(query, target)
 

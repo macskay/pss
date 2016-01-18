@@ -22,23 +22,30 @@ def handle_file_not_existing(path):
 
 
 class TargetSVG(object):
+    """
+    This class opens and manages a given svg file as the target image.
+    """
     def __init__(self, path):
+        """
+        :param path: Path to the SVG-file (required)
+        :raise FileNotFoundError: This is raised, when an invalid svg file is passed.
+        """
+        svg_logger.info("Target SVG-Handler started")
         handle_file_not_existing(path)
         self.renderer = QSvgRenderer(path)
 
 
 class QuerySVG(object):
     """
-    This class opens and manages a given svg file. Make sure the display-methods are commented out for Nosetests.
+    This class opens and manages as the query image.
     """
-
     def __init__(self, path, infix=''):
         """
         :param path: Path to the SVG-file (required)
         :param infix: Infix to look for in svg-file (default: "")
         :raise FileNotFoundError: This is raised, when an invalid svg file is passed.
         """
-        svg_logger.info("SVG-Handler started")
+        svg_logger.info("Query SVG-Handler started")
         handle_file_not_existing(path)
         self.names, self.svg_symbol_groups = self.load_svg(infix, path)
 
