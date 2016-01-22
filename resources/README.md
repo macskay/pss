@@ -5,5 +5,3 @@ Testfiles include
  - test_query.png
  - test_target.svg
  - test_target.png
-
-Test
