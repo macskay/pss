@@ -41,7 +41,7 @@ class Settings(object):  # pragma: no cover
         self.arg_parser.add_argument("-v", "--verbose",
                                      help="Activates verbose mode (DEBUG-logging)", action="store_true")
         self.arg_parser.add_argument("-s", "--scale",
-                                     help="Determines the Scale of the Query and Target (default=1)", type=int)
+                                     help="Determines the Scale of the Query and Target (default=1)", type=float)
 
 
 class ArgumentListener(object):  # pragma: no cover

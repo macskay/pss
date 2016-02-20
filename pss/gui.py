@@ -2,7 +2,6 @@
 from logging import getLogger
 
 from matplotlib.pyplot import subplots, cm, show
-from numpy import nanmax, nanmin
 
 gui_logger = getLogger("SymbolGroupDisplay")
 
@@ -13,21 +12,20 @@ ROWS = 1
 COLUMNS = 1
 FONTSIZE = 20
 NODESIZE = 10
-DIVISOR = 12
 
 
-def setup_figure(name):
+def setup_figure(name, rows=ROWS, cols=COLUMNS):
     """
     This sets up the plot-figures, respectively the window.
     :param name: The name to set the windows title
     :return: The two empty subplots for the original image and the skeletonized one
     """
-    fig, ax = subplots(ROWS, COLUMNS, figsize=FIG_POS, sharex=True, sharey=True,
+    fig, ax = subplots(rows, cols, figsize=FIG_POS, sharex=True, sharey=True,
                        subplot_kw={'adjustable': 'box-forced'})
     fig.canvas.set_window_title("name: [{}]".format(name))
     fig.subplots_adjust(wspace=SPACE, hspace=SPACE, top=POSITION,
                         bottom=SPACE, left=SPACE, right=POSITION)
-    return ax
+    return ax, fig
 
 
 def setup_plot(ax, array, title):
@@ -86,13 +84,48 @@ class GUIHandler(object):
     def show():
         show()
 
+    @staticmethod
+    def display_evaluation(eval):
+        EvaluationPlot(eval)
+
+
+class EvaluationPlot(object):
+    def __init__(self, eval):
+        self.create_eval_figure("Evaluation", eval)
+
+    def create_eval_figure(self, name, eval):
+        ax, fig = setup_figure(name)
+        self.draw_distance_transform(ax, eval)
+        self.draw_found_symbols(eval)
+
+    @staticmethod
+    def draw_distance_transform(ax, eval):
+        ax.imshow(eval.dt.sum_dt, cmap=cm.jet, vmin=eval.dt.dt_min, vmax=eval.dt.dt_max)
+        ax.plot(eval.minimum[1], eval.minimum[0], 'g.')
+
+    @staticmethod
+    def draw_found_symbols(eval):
+        fig, axes = subplots(4, 5, sharex=True, sharey=True)
+        fig.canvas.set_window_title("name: [{}]".format("Found"))
+        i = 0
+        j = 0
+        for found_symbol in eval.found_symbols:
+            col = i % 5
+            row = j
+            axes[row][col].get_xaxis().set_visible(False)
+            axes[row][col].get_yaxis().set_visible(False)
+            axes[row][col].imshow(found_symbol, cmap=cm.gray)
+            if col == 0 and i != 0:
+                j += 1
+            i += 1
+
 
 class TargetPlot(object):
     def __init__(self, target):
         self.create_target_figure("Target", target.original_array, "Target")
 
     def create_target_figure(self, name, original_array, title):
-        ax = setup_figure(name)
+        ax, fig = setup_figure(name)
         setup_plot(ax, original_array, title)
         self.draw_target_image(ax, original_array)
 
@@ -103,13 +136,12 @@ class TargetPlot(object):
 
 class DistanceTransformPlot(object):
     def __init__(self, target):
-        self.create_distance_transform_figure("DT", target.sum_dt, "Distance Transform")
+        self.create_distance_transform_figure("DT", target, "Distance Transform")
 
-    def create_distance_transform_figure(self, name, dt, title):
-        ax = setup_figure(name)
-        setup_plot(ax, dt, title)
-        dt_min, dt_max = nanmin(dt), nanmax(dt)
-        self.draw_distance_transform(ax, dt, dt_min, (dt_max + dt_min) / DIVISOR)
+    def create_distance_transform_figure(self, name, target, title):
+        ax, fig = setup_figure(name)
+        setup_plot(ax, target.sum_dt, title)
+        self.draw_distance_transform(ax, target.sum_dt, target.dt_min, target.dt_max)
 
     @staticmethod
     def draw_distance_transform(ax, dt, vmin, vmax):
@@ -127,17 +159,17 @@ class QueryPlot(object):  # pragma: no cover
         self.create_tree_figure(query)
 
     def create_skeleton_figure(self, query):
-        ax = setup_figure(query.name)
+        ax, fig = setup_figure(query.name)
         setup_plot(ax, query.original_array, "skeleton")
         self.draw_skeleton_image(ax, query.skeleton)
 
     def create_original_image_figure(self, query):
-        ax = setup_figure(query.name)
+        ax, fig = setup_figure(query.name)
         setup_plot(ax, query.original_array, "original")
         draw_array(ax, query.original_array)
 
     def create_tree_figure(self, query):
-        ax = setup_figure(query.name)
+        ax, fig = setup_figure(query.name)
         setup_plot(ax, query.original_array, "tree")
         root_node = query.root_node
         center_of_mass = query.center_of_mass
@@ -190,7 +222,7 @@ class QueryPlot(object):  # pragma: no cover
         :param center_of_mass: Center of mass to draw to the subplot
         """
         if center_of_mass is not None:
-            ax.plot(center_of_mass.position.item(1), center_of_mass.position.item(0), "r.", markersize=NODESIZE)
+            ax.plot(center_of_mass.position.item(1), center_of_mass.position.item(0), "go", markersize=NODESIZE)
 
     @staticmethod
     def plot_root_node(ax, root_node):

@@ -12,7 +12,7 @@ from math import sqrt
 
 from PyQt4 import QtGui
 from PyQt4.QtGui import QPainter
-from numpy import zeros, array, delete, insert, c_, mean, inf, invert, ndarray, add, sqrt as rt
+from numpy import zeros, array, delete, insert, c_, mean, inf, invert, ndarray, add, sqrt as rt, nanmax, nanmin
 from qimage2ndarray import recarray_view
 from scipy.ndimage.morphology import distance_transform_edt
 from skimage.feature import corner_harris
@@ -25,6 +25,7 @@ COLORED = 255
 COLOR_BG = "Black"
 COLOR_FG = "White"
 DISTANCE = 3
+DIVISOR = 12
 
 
 class Query(object):
@@ -61,7 +62,7 @@ class Query(object):
             self.original_array = convert_qimage_to_ndarray(self.image)
         else:
             self.image = query.image
-            self.original_array = recarray_view(query.image).alpha > 0
+            self.original_array = recarray_view(query.image).red <= 128
             self.name = "PNG-Image"
 
         self.skeleton = create_skeleton(self.name, self.original_array)
@@ -411,7 +412,7 @@ class Query(object):
                 if potential_child != potential_source:  # pragma: no cover
                     if abs(potential_child.position.item(0) - potential_source.position.item(0)) <= closest_distance \
                             or abs(potential_child.position.item(1) - potential_source.position.item(
-                                    1)) <= closest_distance:
+                                1)) <= closest_distance:
                         current_distance = self.get_euclidean_distance(potential_child, potential_source)
                         if current_distance < closest_distance:  # pragma: no cover
                             closest_distance = current_distance
@@ -490,6 +491,7 @@ class Target(object):
     since TargetBin already holds a QImage with the image loaded into it. In that case this step
     is skipped and only the conversion to a valid ndarray is done.
     """
+
     # noinspection PyCallByClass,PyTypeChecker
     def __init__(self, target, bin=False, scale=1):
         """
@@ -505,7 +507,7 @@ class Target(object):
             self.original_array = convert_qimage_to_ndarray(self.image)
         else:
             self.image = target.image
-            self.original_array = recarray_view(self.image).alpha == 0
+            self.original_array = recarray_view(self.image).red >= 150
         self.inverted_array = invert(ndarray.astype(self.original_array, dtype=bool))
 
     def create_image(self, renderer):
@@ -531,6 +533,7 @@ class DistanceTransform(object):  # pragma: no cover
     This class calculates the distance transforms for all possible nodes of a query and sums them up to get the
     energy minimization for a given target.
     """
+
     def __init__(self, query, target):
         """
         :param query: Query-object, which holds the tree-model rest configuration
@@ -538,11 +541,17 @@ class DistanceTransform(object):  # pragma: no cover
         """
         self.query = query
         self.target = target
-        self.height, self.width, self.abs_start = self.calculate_height_and_width_of_distance_transform()
+        self.height, self.width, self.abs_start, self.real_query_height, \
+        self.real_query_width = self.calculate_height_and_width_of_distance_transform()
 
         self.sum_dt = None
         self.calculate_distance_transform()
         self.sum_dt = rt(self.sum_dt)
+        self.sum_dt = self.sum_dt[self.real_query_height // 2:-self.real_query_height // 2,
+                      self.real_query_width // 2:-self.real_query_width // 2]
+
+        self.dt_min = nanmin(self.sum_dt)
+        self.dt_max = nanmax(self.sum_dt) // 12
 
     def calculate_distance_transform(self):
         """
@@ -599,7 +608,7 @@ class DistanceTransform(object):  # pragma: no cover
         height = highest_x - smallest_x + len(self.target.inverted_array)
         width = highest_y - smallest_y + len(self.target.inverted_array[0])
 
-        return height, width, (smallest_x, smallest_y)
+        return height, width, (smallest_x, smallest_y), highest_x - smallest_x, highest_y - smallest_y
 
 
 def convert_qimage_to_ndarray(image):  # pragma: no cover
@@ -609,7 +618,7 @@ def convert_qimage_to_ndarray(image):  # pragma: no cover
     :return: Boolean Numpy-Array representing the QImage. "True" = Foreground, "False" = Background
     """
     sg_logger.info("Converting QImage to NumPy-Array")
-    return recarray_view(image).red >= 255
+    return recarray_view(image).red >= 128
 
 
 # TODO: Add tests

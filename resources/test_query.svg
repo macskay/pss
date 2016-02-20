@@ -13,8 +13,8 @@
    height="1052.3622047"
    id="svg200907"
    version="1.1"
-   inkscape:version="0.48.4 r9939"
-   sodipodi:docname="query.svg">
+   inkscape:version="0.91 r13725"
+   sodipodi:docname="test_query.svg">
   <defs
      id="defs200909" />
   <sodipodi:namedview
@@ -22,7 +22,7 @@
      pagecolor="#ffffff"
      bordercolor="#666666"
      borderopacity="1.0"
-     inkscape:pageopacity="0.0"
+     inkscape:pageopacity="1"
      inkscape:pageshadow="2"
      inkscape:zoom="3.959798"
      inkscape:cx="442.22995"
@@ -30,11 +30,11 @@
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
-     inkscape:window-width="483"
-     inkscape:window-height="404"
-     inkscape:window-x="469"
-     inkscape:window-y="226"
-     inkscape:window-maximized="0" />
+     inkscape:window-width="1920"
+     inkscape:window-height="1052"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1" />
   <metadata
      id="metadata200912">
     <rdf:RDF>
@@ -43,7 +43,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -52,7 +52,9 @@
      inkscape:groupmode="layer"
      id="layer1">
     <g
-       id="g3034">
+       id="g3034"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90">
       <title
          id="title3088">Query</title>
       <g

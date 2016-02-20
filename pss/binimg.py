@@ -44,3 +44,13 @@ class TargetBin(object):
         handle_file_not_existing(path)
         im = QImage(path, "0xAARRGGBB")
         self.image = im.scaled(im.size() * scale)
+
+        """
+        app = QApplication(sys.argv)
+        pm = QPixmap(self.image)
+        lbl = QLabel()
+        lbl.setPixmap(pm)
+        lbl.show()
+
+        sys.exit(app.exec_())
+        """

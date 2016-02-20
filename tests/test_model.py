@@ -29,8 +29,8 @@ class SymbolGroupImageTestCase(TestCase):
 
     def test_can_setup_with_png(self):
         valid_path = join(FILE_LOCATION, "..", "resources", "test_query.png")
-        svg_query = QueryBin(valid_path)
-        sgi = Query(svg_query, bin=True)
+        png_query = QueryBin(valid_path)
+        sgi = Query(png_query, bin=True)
 
     def test_when_creating_symbol_group_image_bounding_box_is_not_none(self):
         self.assertIsNotNone(self.sgi.bounding_box)
@@ -133,6 +133,6 @@ class TargetTestCase(TestCase):
         svg_target = TargetSvg(join(FILE_LOCATION, "..", "resources", "test_target.svg"))
         Target(svg_target)
 
-    def test_can_setup_with_binary_imag(self):
+    def test_can_setup_with_binary_img(self):
         png_target = TargetBin(join(FILE_LOCATION, "..", "resources", "test_target.png"))
         Target(png_target, bin=True)
