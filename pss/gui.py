@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 from logging import getLogger
+from math import ceil
 
 from matplotlib.pyplot import subplots, cm, show
 
@@ -101,11 +102,14 @@ class EvaluationPlot(object):
     @staticmethod
     def draw_distance_transform(ax, eval):
         ax.imshow(eval.dt.sum_dt, cmap=cm.jet, vmin=eval.dt.dt_min, vmax=eval.dt.dt_max)
-        ax.plot(eval.minimum[1], eval.minimum[0], 'g.')
+        ax.plot(eval.minimum[1], eval.minimum[0], 'ko')
 
     @staticmethod
     def draw_found_symbols(eval):
-        fig, axes = subplots(4, 5, sharex=True, sharey=True)
+        results_number = len(eval.found_symbols)
+        max_rows = ceil(results_number / 5)
+
+        fig, axes = subplots(max_rows, 5, sharex=True, sharey=True)
         fig.canvas.set_window_title("name: [{}]".format("Found"))
         i = 0
         j = 0
@@ -115,7 +119,7 @@ class EvaluationPlot(object):
             axes[row][col].get_xaxis().set_visible(False)
             axes[row][col].get_yaxis().set_visible(False)
             axes[row][col].imshow(found_symbol, cmap=cm.gray)
-            if col == 0 and i != 0:
+            if col == 4:
                 j += 1
             i += 1
 

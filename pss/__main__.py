@@ -20,14 +20,15 @@ def main():
     """
     settings = Settings()
     scale = settings.options.scale
+    limit = settings.options.limit
 
     starting_time = str(datetime.now())
     logger.info("PartStructuredSpotting started at %s", starting_time)
 
     """ Example SVG Usage """
-    svg_query = QuerySvg(join(FILE_LOCATION, "..", "resources", "test_query.svg"))
+    svg_query = QuerySvg(join(FILE_LOCATION, "..", "resources", "grouped_VAT_10321_Vs_SJakob.svg"))
     svg_target = TargetSvg(join(FILE_LOCATION, "..", "resources", "VAT_10321_Vs_SJakob.svg"))
-    query = Query(svg_query, index=0, scale=scale)
+    query = Query(svg_query, index=7, scale=scale)
     target = Target(svg_target, scale=scale)
 
     """ Example png Usage"""
@@ -38,13 +39,13 @@ def main():
 
     distance_transform = DistanceTransform(query, target)
 
-    eval = Evaluation(query, target, distance_transform)
+    evaluation = Evaluation(query, target, distance_transform, limit)
 
     gui_handler = GUIHandler()
     gui_handler.display_query(query)
     gui_handler.display_target(target)
     gui_handler.display_distance_transform(distance_transform)
-    gui_handler.display_evaluation(eval)
+    gui_handler.display_evaluation(evaluation)
 
     gui_handler.show()
 

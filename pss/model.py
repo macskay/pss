@@ -551,7 +551,7 @@ class DistanceTransform(object):  # pragma: no cover
                       self.real_query_width // 2:-self.real_query_width // 2]
 
         self.dt_min = nanmin(self.sum_dt)
-        self.dt_max = nanmax(self.sum_dt) // 12
+        self.dt_max = nanmax(self.sum_dt)
 
     def calculate_distance_transform(self):
         """
