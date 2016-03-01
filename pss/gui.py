@@ -8,7 +8,7 @@ gui_logger = getLogger("SymbolGroupDisplay")
 
 SPACE = .02
 POSITION = .98
-FIG_POS = (16, 9)
+FIG_POS = (5, 5)
 ROWS = 1
 COLUMNS = 1
 FONTSIZE = 20
@@ -26,7 +26,7 @@ def setup_figure(name, rows=ROWS, cols=COLUMNS):
     fig.canvas.set_window_title("name: [{}]".format(name))
     fig.subplots_adjust(wspace=SPACE, hspace=SPACE, top=POSITION,
                         bottom=SPACE, left=SPACE, right=POSITION)
-    return ax, fig
+    return fig, ax
 
 
 def setup_plot(ax, array, title):
@@ -95,7 +95,8 @@ class EvaluationPlot(object):
         self.create_eval_figure("Evaluation", eval)
 
     def create_eval_figure(self, name, eval):
-        ax, fig = setup_figure(name)
+        fig, ax = setup_figure(name)
+        setup_plot(ax, eval.dt.sum_dt, "")
         self.draw_distance_transform(ax, eval)
         self.draw_found_symbols(eval)
 
@@ -129,7 +130,7 @@ class TargetPlot(object):
         self.create_target_figure("Target", target.original_array, "Target")
 
     def create_target_figure(self, name, original_array, title):
-        ax, fig = setup_figure(name)
+        fig, ax = setup_figure(name, 1, 1)
         setup_plot(ax, original_array, title)
         self.draw_target_image(ax, original_array)
 
@@ -143,7 +144,7 @@ class DistanceTransformPlot(object):
         self.create_distance_transform_figure("DT", target, "Distance Transform")
 
     def create_distance_transform_figure(self, name, target, title):
-        ax, fig = setup_figure(name)
+        fig, ax = setup_figure(name)
         setup_plot(ax, target.sum_dt, title)
         self.draw_distance_transform(ax, target.sum_dt, target.dt_min, target.dt_max)
 
@@ -163,17 +164,17 @@ class QueryPlot(object):  # pragma: no cover
         self.create_tree_figure(query)
 
     def create_skeleton_figure(self, query):
-        ax, fig = setup_figure(query.name)
+        fig, ax = setup_figure(query.name)
         setup_plot(ax, query.original_array, "skeleton")
         self.draw_skeleton_image(ax, query.skeleton)
 
     def create_original_image_figure(self, query):
-        ax, fig = setup_figure(query.name)
+        fig, ax = setup_figure(query.name)
         setup_plot(ax, query.original_array, "original")
         draw_array(ax, query.original_array)
 
     def create_tree_figure(self, query):
-        ax, fig = setup_figure(query.name)
+        fig, ax = setup_figure(query.name)
         setup_plot(ax, query.original_array, "tree")
         root_node = query.root_node
         center_of_mass = query.center_of_mass

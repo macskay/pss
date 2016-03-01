@@ -12,12 +12,14 @@ from math import sqrt
 
 from PyQt4 import QtGui
 from PyQt4.QtGui import QPainter
-from numpy import zeros, array, delete, insert, c_, mean, inf, invert, ndarray, add, sqrt as rt, nanmax, nanmin
+from numpy import zeros, array, delete, insert, c_, mean, inf, invert, ndarray, add, sqrt as rt, nanmax, nanmin, full
 from qimage2ndarray import recarray_view
 from scipy.ndimage.morphology import distance_transform_edt
 from skimage.feature import corner_harris
 from skimage.feature import corner_peaks
 from skimage.morphology import skeletonize
+
+from external.generalized_distance_transform import of_image
 
 sg_logger = getLogger("SymbolGroup")
 
@@ -541,74 +543,45 @@ class DistanceTransform(object):  # pragma: no cover
         """
         self.query = query
         self.target = target
-        self.height, self.width, self.abs_start, self.real_query_height, \
-        self.real_query_width = self.calculate_height_and_width_of_distance_transform()
 
-        self.sum_dt = None
-        self.calculate_distance_transform()
-        self.sum_dt = rt(self.sum_dt)
-        self.sum_dt = self.sum_dt[self.real_query_height // 2:-self.real_query_height // 2,
-                      self.real_query_width // 2:-self.real_query_width // 2]
-
+        self.sum_dt = self.calculate_distance_transform()
         self.dt_min = nanmin(self.sum_dt)
         self.dt_max = nanmax(self.sum_dt)
 
     def calculate_distance_transform(self):
-        """
-        This starts the calculation of the all over distance transform and energy minimization.
-        """
-        sg_logger.info("Starting to build up Distance Transform")
-        start_time = datetime.now()
-        self.recursively_add_up_all_distance_transforms(self.query.root_node)
-        end_time = datetime.now()
-        print_time(end_time, start_time)
-        sg_logger.info("Finished building up Distance Transform.\n")
+        root_dt = rt(of_image(self.target.original_array))
+        # root_dt = rt(distance_transform_edt(self.target.original_array))
 
-    def recursively_add_up_all_distance_transforms(self, node):
-        """
-        Iterates over all nodes and their potential children adding up all distance transform created on the run.
-        :param node: current node to add to the total distance transform
-        """
-        new_sum_dt = self.build_distance_transform_to_parent(node)
-        self.sum_dt = add(self.sum_dt, new_sum_dt) if self.sum_dt is not None else new_sum_dt
+        sorted_x = sorted(self.query.nodes_backup, key=lambda x: x.position.item(1))
+        sorted_y = sorted(self.query.nodes_backup, key=lambda x: x.position.item(0))
 
-        for child in node.children:
-            self.recursively_add_up_all_distance_transforms(child)
+        smallest_x, highest_x = sorted_x[0], sorted_x[-1]
+        smallest_y, highest_y = sorted_y[0], sorted_y[-1]
 
-    def build_distance_transform_to_parent(self, child):
-        """
-        Calculates the sum of the current total distance transform and a new distance transform by the child's
-        position
-        :param child: Child to calculate the new distance transform for
-        :return: Added up distance transform from sum_distance_transform and newest child distance transform
-        """
-        abs_location = child.position.item(0) - self.abs_start[0], child.position.item(1) - self.abs_start[1]
+        width = highest_x.position.item(1) - smallest_x.position.item(1) + root_dt.shape[1]
+        height = highest_y.position.item(0) - smallest_y.position.item(0) + root_dt.shape[0]
 
-        new_array = zeros((self.height, self.width), dtype=int)
-        new_array[abs_location[0]:abs_location[0] + self.target.original_array.shape[0],
-        abs_location[1]:abs_location[1] + self.target.original_array.shape[1]] = self.target.inverted_array
+        sum_arrays = list()
 
-        ia = invert(ndarray.astype(new_array, dtype=bool))
-        new_distance_transform = distance_transform_edt(ia)
-        return new_distance_transform
+        for node in self.query.nodes_backup:
+            sum_array = zeros((height, width))
+            node_pos = node.position
+            start_x = node_pos.item(1)-smallest_x.position.item(1)
+            start_y = node_pos.item(0)-smallest_y.position.item(0)
+            sum_array[
+                    start_y:start_y+root_dt.shape[0],
+                    start_x:start_x+root_dt.shape[1]
+                    ] = root_dt
+            sum_arrays.append(sum_array)
 
-    def calculate_height_and_width_of_distance_transform(self):
-        """
-        Calculates the maximum dimensions needed for adding up all distance transforms
-        :return: the height, the width and the absolute starting point (root does not have to be and will
-        very likely not be the most top-left pixel, since it's the center of mass)
-        """
-        sorted_x = sorted(self.query.nodes_backup, key=lambda x: x.position.item(0))
-        sorted_y = sorted(self.query.nodes_backup, key=lambda x: x.position.item(1))
-        smallest_x = sorted_x[0].position.item(0)
-        smallest_y = sorted_y[0].position.item(1)
-        highest_x = sorted_x[-1].position.item(0)
-        highest_y = sorted_y[-1].position.item(1)
+        total_sum = zeros((height, width))
+        for sum_array in sum_arrays:
+            total_sum = add(total_sum, sum_array)
 
-        height = highest_x - smallest_x + len(self.target.inverted_array)
-        width = highest_y - smallest_y + len(self.target.inverted_array[0])
+        total_sum[:, root_dt.shape[1]:] = nanmax(total_sum)
+        total_sum[root_dt.shape[0]:, :] = nanmax(total_sum)
 
-        return height, width, (smallest_x, smallest_y), highest_x - smallest_x, highest_y - smallest_y
+        return total_sum[self.query.original_array.shape[0]:, self.query.original_array.shape[1]:]
 
 
 def convert_qimage_to_ndarray(image):  # pragma: no cover

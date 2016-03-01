@@ -24,13 +24,12 @@ class Evaluation(object):
     def extract_found_symbols(self):
         found_symbols = list()
 
-        width, height = self.query.original_array.shape
+        height, width = self.query.original_array.shape
 
-        for (i, j) in zip(*self.minimum):
-            begin_bbox_x = i - self.query.root_node.position[0]
-            begin_bbox_y = j - self.query.root_node.position[1]
-            box = self.target.original_array[begin_bbox_x:begin_bbox_x + height * 1.1,
-                  begin_bbox_y:begin_bbox_y + height * 1.1]
+        for (y, x) in zip(*self.minimum):
+            begin_bbox_x = x - self.query.root_node.position[0]
+            begin_bbox_y = y - self.query.root_node.position[1]
+            box = self.target.original_array[begin_bbox_y:begin_bbox_y + height, begin_bbox_x:begin_bbox_x + width]
             found_symbols.append(box)
 
         return found_symbols
