@@ -549,8 +549,8 @@ class DistanceTransform(object):  # pragma: no cover
         self.dt_max = nanmax(self.sum_dt)
 
     def calculate_distance_transform(self):
-        root_dt = rt(of_image(self.target.original_array))
-        # root_dt = rt(distance_transform_edt(self.target.original_array))
+        # root_dt = rt(of_image(self.target.original_array))
+        root_dt = rt(distance_transform_edt(self.target.original_array))
 
         sorted_x = sorted(self.query.nodes_backup, key=lambda x: x.position.item(1))
         sorted_y = sorted(self.query.nodes_backup, key=lambda x: x.position.item(0))
@@ -574,14 +574,14 @@ class DistanceTransform(object):  # pragma: no cover
                     ] = root_dt
             sum_arrays.append(sum_array)
 
-        total_sum = zeros((height, width))
+        total_sum = full((height, width), 2**32)
         for sum_array in sum_arrays:
             total_sum = add(total_sum, sum_array)
 
-        total_sum[:, root_dt.shape[1]:] = nanmax(total_sum)
-        total_sum[root_dt.shape[0]:, :] = nanmax(total_sum)
+        # total_sum[:, root_dt.shape[1]:] = nanmax(total_sum) # ganze spalte, ab zeile
+        # total_sum[root_dt.shape[0]:, :] = nanmax(total_sum) # ab spalte, ganze zeile
 
-        return total_sum[self.query.original_array.shape[0]:, self.query.original_array.shape[1]:]
+        return total_sum
 
 
 def convert_qimage_to_ndarray(image):  # pragma: no cover
