@@ -552,6 +552,7 @@ class DistanceTransform(object):  # pragma: no cover
         # root_dt = rt(of_image(self.target.original_array))
         root_dt = rt(distance_transform_edt(self.target.original_array))
 
+        """
         sorted_x = sorted(self.query.nodes_backup, key=lambda x: x.position.item(1))
         sorted_y = sorted(self.query.nodes_backup, key=lambda x: x.position.item(0))
 
@@ -582,6 +583,37 @@ class DistanceTransform(object):  # pragma: no cover
         # total_sum[root_dt.shape[0]:, :] = nanmax(total_sum) # ab spalte, ganze zeile
 
         return total_sum
+        """
+
+        parent = self.query.root_node
+        child = parent.children[0]
+
+        query_shape = self.query.original_array.shape
+
+        height = root_dt[0]+2*query_shape[0]
+        width = root_dt[1]+2*query_shape[1]
+
+        initial_dt = full((height, width), 2**32)
+        initial_dt[query_shape[0]:-query_shape[0], query_shape[1]:-query_shape[1]] = root_dt
+
+        sum_dt = initial_dt # for root the sum is just the dt itself, since there is no parent to add up with
+
+
+        # child bottom right
+        sum_dt[child.offset.item(0):, child.offset.item(1):] += initial_dt[:child.offset.item(0), :child.offset.item(1)]
+        # child top left
+        # sum_dt[:child.offset.item(0), :child.offset.item(1)] += initial_dt[child.offset.item(0):, child.offset.item(1):]
+        # child top right
+        # sum_dt[:child.offset.item(0), child.offset.item(1):] += initial_dt[child.offset.item(0):, :child.offset.item(1)]
+        # child bottom left
+        # sum_dt[child.offset.item(0):, :child.offset.item(1)] += initial_dt[:child.offset.item(0), child.offset.item(1):]
+
+
+        return sum_dt
+
+
+
+
 
 
 def convert_qimage_to_ndarray(image):  # pragma: no cover
