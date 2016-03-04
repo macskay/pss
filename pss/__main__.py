@@ -28,7 +28,7 @@ def main():
     """ Example SVG Usage """
     svg_query = QuerySvg(join(FILE_LOCATION, "..", "resources", "grouped_VAT_10321_Vs_SJakob.svg"))
     svg_target = TargetSvg(join(FILE_LOCATION, "..", "resources", "VAT_10321_Vs_SJakob.svg"))
-    query = Query(svg_query, index=7, scale=scale)
+    query = Query(svg_query, index=20, scale=scale)
     target = Target(svg_target, scale=scale)
 
     """ Example png Usage"""

@@ -12,8 +12,10 @@ class Evaluation(object):
         self.minimum = self.find_local_minima()
         self.found_symbols = self.extract_found_symbols()
 
+        self.precision_recall = self.calculate_precision_recall()
+
     def find_local_minima(self):
-        size = min(self.dt.sum_dt.shape[0], self.dt.sum_dt.shape[1]) / 10
+        size = min(self.dt.sum_dt.shape[1], self.dt.sum_dt.shape[0]) // 100
 
         res = minimum_filter(self.dt.sum_dt, size=size, mode="nearest")
         x, y = nonzero(res == self.dt.sum_dt)
@@ -27,9 +29,12 @@ class Evaluation(object):
         height, width = self.query.original_array.shape
 
         for (y, x) in zip(*self.minimum):
-            begin_bbox_x = x - self.query.root_node.position[0]
-            begin_bbox_y = y - self.query.root_node.position[1]
+            begin_bbox_y = y - self.query.root_node.position[0]
+            begin_bbox_x = x - self.query.root_node.position[1]
             box = self.target.original_array[begin_bbox_y:begin_bbox_y + height, begin_bbox_x:begin_bbox_x + width]
             found_symbols.append(box)
 
         return found_symbols
+
+    def calculate_precision_recall(self):
+        return 0

@@ -12,9 +12,10 @@ from math import sqrt
 
 from PyQt4 import QtGui
 from PyQt4.QtGui import QPainter
-from numpy import zeros, array, delete, insert, c_, mean, inf, invert, ndarray, add, sqrt as rt, nanmax, nanmin, full
+from numpy import zeros, array, delete, insert, c_, mean, inf, invert, ndarray, add, sqrt as rt, nanmax, nanmin, full, \
+    ones
 from qimage2ndarray import recarray_view
-from scipy.ndimage.morphology import distance_transform_edt
+from scipy.ndimage.morphology import distance_transform_edt, distance_transform_cdt
 from skimage.feature import corner_harris
 from skimage.feature import corner_peaks
 from skimage.morphology import skeletonize
@@ -356,6 +357,7 @@ class Query(object):
         """
         Builds up the tree structure starting from the root node.
         """
+
         sg_logger.info("Starting to build up tree...")
         start_time = datetime.now()
         self.creating_all_relations_for_tree()
@@ -549,71 +551,49 @@ class DistanceTransform(object):  # pragma: no cover
         self.dt_max = nanmax(self.sum_dt)
 
     def calculate_distance_transform(self):
-        # root_dt = rt(of_image(self.target.original_array))
-        root_dt = rt(distance_transform_edt(self.target.original_array))
-
-        """
-        sorted_x = sorted(self.query.nodes_backup, key=lambda x: x.position.item(1))
-        sorted_y = sorted(self.query.nodes_backup, key=lambda x: x.position.item(0))
-
-        smallest_x, highest_x = sorted_x[0], sorted_x[-1]
-        smallest_y, highest_y = sorted_y[0], sorted_y[-1]
-
-        width = highest_x.position.item(1) - smallest_x.position.item(1) + root_dt.shape[1]
-        height = highest_y.position.item(0) - smallest_y.position.item(0) + root_dt.shape[0]
-
-        sum_arrays = list()
-
-        for node in self.query.nodes_backup:
-            sum_array = zeros((height, width))
-            node_pos = node.position
-            start_x = node_pos.item(1)-smallest_x.position.item(1)
-            start_y = node_pos.item(0)-smallest_y.position.item(0)
-            sum_array[
-                    start_y:start_y+root_dt.shape[0],
-                    start_x:start_x+root_dt.shape[1]
-                    ] = root_dt
-            sum_arrays.append(sum_array)
-
-        total_sum = full((height, width), 2**32)
-        for sum_array in sum_arrays:
-            total_sum = add(total_sum, sum_array)
-
-        # total_sum[:, root_dt.shape[1]:] = nanmax(total_sum) # ganze spalte, ab zeile
-        # total_sum[root_dt.shape[0]:, :] = nanmax(total_sum) # ab spalte, ganze zeile
-
-        return total_sum
-        """
-
-        parent = self.query.root_node
-        child = parent.children[0]
-
         query_shape = self.query.original_array.shape
 
-        height = root_dt[0]+2*query_shape[0]
-        width = root_dt[1]+2*query_shape[1]
+        height = self.target.original_array.shape[0]+2*query_shape[0]
+        width = self.target.original_array.shape[1]+2*query_shape[1]
 
-        initial_dt = full((height, width), 2**32)
-        initial_dt[query_shape[0]:-query_shape[0], query_shape[1]:-query_shape[1]] = root_dt
+        root_dt = ones((height, width))
+        root_dt[query_shape[0]:-query_shape[0], query_shape[1]:-query_shape[1]] = self.target.original_array
+        root_dt = rt(distance_transform_edt(root_dt))
 
-        sum_dt = initial_dt # for root the sum is just the dt itself, since there is no parent to add up with
+        sum_dt = deepcopy(root_dt)  # for root the sum is just the dt itself, since there is no parent to add up with
+        open_list = list()
+        open_list.append(self.query.root_node)
 
+        while len(open_list) > 0:
+            parent = open_list.pop()
+            for child in parent.children:
+                open_list.append(child)
+                root_offset = array([round(child.position.item(0) - self.query.root_node.position.item(0)),
+                                     round(child.position.item(1) - self.query.root_node.position.item(1))], dtype=int)
 
-        # child bottom right
-        sum_dt[child.offset.item(0):, child.offset.item(1):] += initial_dt[:child.offset.item(0), :child.offset.item(1)]
-        # child top left
-        # sum_dt[:child.offset.item(0), :child.offset.item(1)] += initial_dt[child.offset.item(0):, child.offset.item(1):]
-        # child top right
-        # sum_dt[:child.offset.item(0), child.offset.item(1):] += initial_dt[child.offset.item(0):, :child.offset.item(1)]
-        # child bottom left
-        # sum_dt[child.offset.item(0):, :child.offset.item(1)] += initial_dt[:child.offset.item(0), child.offset.item(1):]
+                y = root_offset.item(0)
+                x = root_offset.item(1)
+                height = sum_dt.shape[0]
+                width = sum_dt.shape[1]
 
+                # child bottom right
+                if y >= 0 and x >= 0:
+                    sum_dt[abs(y):, abs(x):] = \
+                        add(sum_dt[abs(y):, abs(x):], root_dt[:height - abs(y), :width - abs(x)])
+                # child top left
+                elif y <= 0 and x <= 0:
+                    sum_dt[:height - abs(y), :width - abs(x)] = \
+                        add(sum_dt[:height - abs(y), :width - abs(x)], root_dt[abs(y):, abs(x):])
+                # child bottom left
+                elif y >= 0 >= x:
+                    sum_dt[:height - abs(y), abs(x):] = \
+                        add(sum_dt[:height - abs(y), abs(x):], root_dt[abs(y):, :width - abs(x)])
+                # child top left
+                elif y <= 0 <= x:
+                    sum_dt[abs(y):, :width - abs(x)] = \
+                        add(sum_dt[abs(y):, :width - abs(x)], root_dt[:height - abs(y), abs(x):])
 
-        return sum_dt
-
-
-
-
+        return sum_dt[query_shape[0]:-query_shape[0], query_shape[1]:-query_shape[1]]
 
 
 def convert_qimage_to_ndarray(image):  # pragma: no cover

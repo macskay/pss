@@ -96,13 +96,13 @@ class EvaluationPlot(object):
 
     def create_eval_figure(self, name, eval):
         fig, ax = setup_figure(name)
-        setup_plot(ax, eval.dt.sum_dt, "")
+        setup_plot(ax, eval.dt.sum_dt, name)
         self.draw_distance_transform(ax, eval)
         self.draw_found_symbols(eval)
 
     @staticmethod
     def draw_distance_transform(ax, eval):
-        ax.imshow(eval.dt.sum_dt, cmap=cm.jet, vmin=eval.dt.dt_min, vmax=eval.dt.dt_max)
+        ax.imshow(eval.dt.sum_dt, cmap=cm.jet, vmin=eval.dt.dt_min, vmax=eval.dt.dt_max//4)
         ax.plot(eval.minimum[1], eval.minimum[0], 'ko')
 
     @staticmethod
@@ -141,7 +141,7 @@ class TargetPlot(object):
 
 class DistanceTransformPlot(object):
     def __init__(self, target):
-        self.create_distance_transform_figure("DT", target, "Distance Transform")
+        self.create_distance_transform_figure("DT", target, "Distance Transform (Single Node)")
 
     def create_distance_transform_figure(self, name, target, title):
         fig, ax = setup_figure(name)
