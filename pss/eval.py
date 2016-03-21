@@ -3,7 +3,7 @@ from scipy.ndimage import minimum_filter
 
 
 class Evaluation(object):
-    def __init__(self, query, target, dt, limit):
+    def __init__(self, query, target, dt, limit, scale=1):
         self.query = query
         self.target = target
         self.dt = dt
@@ -15,7 +15,7 @@ class Evaluation(object):
         self.precision_recall = self.calculate_precision_recall()
 
     def find_local_minima(self):
-        size = min(self.dt.sum_dt.shape[1], self.dt.sum_dt.shape[0]) // 100
+        size = min(self.dt.sum_dt.shape[1], self.dt.sum_dt.shape[0]) // 10
 
         res = minimum_filter(self.dt.sum_dt, size=size, mode="nearest")
         x, y = nonzero(res == self.dt.sum_dt)
@@ -32,7 +32,7 @@ class Evaluation(object):
             begin_bbox_y = y - self.query.root_node.position[0]
             begin_bbox_x = x - self.query.root_node.position[1]
             box = self.target.original_array[begin_bbox_y:begin_bbox_y + height, begin_bbox_x:begin_bbox_x + width]
-            found_symbols.append(box)
+            found_symbols.append((box, self.dt.sum_dt[y, x]))
 
         return found_symbols
 

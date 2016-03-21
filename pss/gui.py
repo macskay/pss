@@ -2,7 +2,9 @@
 from logging import getLogger
 from math import ceil
 
+from matplotlib.patches import Rectangle
 from matplotlib.pyplot import subplots, cm, show
+from numpy import min, max
 
 gui_logger = getLogger("SymbolGroupDisplay")
 
@@ -74,12 +76,12 @@ class GUIHandler(object):
         TargetPlot(target)
 
     @staticmethod
-    def display_distance_transform(target):
+    def display_distance_transform(dt):
         """
         Plots the summed up distance transform for the target image
-        :param target: TargetDistanceTransform-object, which holds summed up distance transform
+        :param dt: TargetDistanceTransform-object, which holds summed up distance transform
         """
-        DistanceTransformPlot(target)
+        DistanceTransformPlot(dt)
 
     @staticmethod
     def show():
@@ -98,31 +100,48 @@ class EvaluationPlot(object):
         fig, ax = setup_figure(name)
         setup_plot(ax, eval.dt.sum_dt, name)
         self.draw_distance_transform(ax, eval)
+        #self.draw_target_image(ax, eval.target.original_array)
+        self.draw_minima(ax, eval)
         self.draw_found_symbols(eval)
+
+    def draw_minima(self, ax, eval):
+        shape = eval.found_symbols[0][0].shape
+
+        ax.plot(eval.minimum[1], eval.minimum[0], 'r.')
+
+
+        for (i, j) in zip(*eval.minimum):
+            x = j - eval.query.root_node.position.item(1)
+            y = i - eval.query.root_node.position.item(0)
+            ax.add_patch(Rectangle((x, y), shape[1], shape[0], fill=None, ec="red"))
 
     @staticmethod
     def draw_distance_transform(ax, eval):
-        ax.imshow(eval.dt.sum_dt, cmap=cm.jet, vmin=eval.dt.dt_min, vmax=eval.dt.dt_max//4)
-        ax.plot(eval.minimum[1], eval.minimum[0], 'ko')
+        ax.imshow(eval.dt.sum_dt, cmap=cm.jet, vmin=min(eval.dt.sum_dt), vmax=max(eval.dt.sum_dt))
 
     @staticmethod
     def draw_found_symbols(eval):
         results_number = len(eval.found_symbols)
         max_rows = ceil(results_number / 5)
 
-        fig, axes = subplots(max_rows, 5, sharex=True, sharey=True)
+        fig, axes = subplots(1, results_number, sharex=False, sharey=False)
         fig.canvas.set_window_title("name: [{}]".format("Found"))
+
         i = 0
         j = 0
         for found_symbol in eval.found_symbols:
-            col = i % 5
-            row = j
-            axes[row][col].get_xaxis().set_visible(False)
-            axes[row][col].get_yaxis().set_visible(False)
-            axes[row][col].imshow(found_symbol, cmap=cm.gray)
+            col = i
+            axes[col].set_xlabel("{0:.2f}".format(found_symbol[1]))
+            axes[col].get_xaxis().set_ticks([])
+            axes[col].get_xaxis().set_visible(True)
+            axes[col].get_yaxis().set_visible(False)
+            axes[col].imshow(found_symbol[0], cmap=cm.gray)
             if col == 4:
                 j += 1
             i += 1
+
+    def draw_target_image(self, ax, target):
+        draw_array(ax, target)
 
 
 class TargetPlot(object):
@@ -140,13 +159,13 @@ class TargetPlot(object):
 
 
 class DistanceTransformPlot(object):
-    def __init__(self, target):
-        self.create_distance_transform_figure("DT", target, "Distance Transform (Single Node)")
+    def __init__(self, dt):
+        self.create_distance_transform_figure("DT", dt, "Distance Transform (Single Node)")
 
-    def create_distance_transform_figure(self, name, target, title):
+    def create_distance_transform_figure(self, name, dt, title):
         fig, ax = setup_figure(name)
-        setup_plot(ax, target.sum_dt, title)
-        self.draw_distance_transform(ax, target.sum_dt, target.dt_min, target.dt_max)
+        setup_plot(ax, dt.root_dt, title)
+        self.draw_distance_transform(ax, dt.root_dt, min(dt.root_dt), max(dt.root_dt))
 
     @staticmethod
     def draw_distance_transform(ax, dt, vmin, vmax):
