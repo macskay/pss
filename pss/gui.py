@@ -95,6 +95,8 @@ class GUIHandler(object):
 class EvaluationPlot(object):
     def __init__(self, eval):
         self.create_eval_figure("Evaluation", eval)
+        self.shape = eval.dt.sum_dt.shape
+        self.sum_dt = eval.dt.sum_dt
 
     def create_eval_figure(self, name, eval):
         fig, ax = setup_figure(name)
@@ -103,12 +105,21 @@ class EvaluationPlot(object):
         #self.draw_target_image(ax, eval.target.original_array)
         self.draw_minima(ax, eval)
         self.draw_found_symbols(eval)
+        ax.format_coord = self.format_coord
+
+    def format_coord(self, x, y):
+        col = int(x+0.5)
+        row = int(y+0.5)
+        if col>=0 and col<self.shape[1] and row>=0 and row<self.shape[0]:
+            value = self.sum_dt[row,col]
+            return 'x=%1.4f, y=%1.4f, z=%1.4f'%(x, y, value)
+        else:
+            return 'x=%1.4f, y=%1.4f'%(x, y)
 
     def draw_minima(self, ax, eval):
         shape = eval.found_symbols[0][0].shape
 
         ax.plot(eval.minimum[1], eval.minimum[0], 'r.')
-
 
         for (i, j) in zip(*eval.minimum):
             x = j - eval.query.root_node.position.item(1)

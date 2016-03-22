@@ -35,7 +35,7 @@ def main():
 
     """ Example png Usage"""
     png_query = QueryBin(join(FILE_LOCATION, "..", "resources", "fox.png"), scale=scale)
-    png_target = TargetBin(join(FILE_LOCATION, "..", "resources", "pangrams.png"), scale=scale)
+    png_target = TargetBin(join(FILE_LOCATION, "..", "resources", "pangrams_dot.png"), scale=scale)
     query = Query(png_query, bin=True, scale=scale)
     target = Target(png_target, bin=True, scale=scale)
 

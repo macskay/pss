@@ -9,12 +9,13 @@ from datetime import datetime
 from functools import reduce  # pylint:disable=redefined-builtin
 from logging import getLogger
 from math import sqrt
+from operator import xor
 
 from PyQt4 import QtGui
 from PyQt4.QtGui import QPainter
 from mahotas import distance
 from numpy import zeros, array, delete, insert, c_, mean, inf, invert, ndarray, add, sqrt as rt, nanmax, nanmin, full, \
-    ones
+    ones, copy
 from qimage2ndarray import recarray_view
 from scipy.ndimage.morphology import distance_transform_edt, distance_transform_cdt
 from skimage.feature import corner_harris
@@ -28,7 +29,7 @@ sg_logger = getLogger("SymbolGroup")
 COLORED = 255
 COLOR_BG = "Black"
 COLOR_FG = "White"
-DISTANCE = 1
+DISTANCE = 3
 DIVISOR = 12
 
 
@@ -558,98 +559,47 @@ class DistanceTransform(object):  # pragma: no cover
 
         empty_dt = ones((self.height, self.width))
         empty_dt[query_shape[0]:-query_shape[0], query_shape[1]:-query_shape[1]] = self.target.original_array
-        self.root_dt = rt(distance(empty_dt))
+        self.root_dt = distance(empty_dt)//5
 
         self.add_root_dt_to_nodes(self.query.root_node)
         self.calculate_distance_transform(self.query.root_node)
         self.sum_dt = self.query.root_node.root_dt[query_shape[0]:-query_shape[0], query_shape[1]:-query_shape[1]]
 
-        #self.sum_dt = self.calculate_distance_transform()
-
     def calculate_distance_transform(self, node):
         for child in node.children:
-            # node.root_dt += sum(child)
             y = child.offset[0]
             x = child.offset[1]
-            if y >= 0 and x >= 0:
-                node.root_dt[abs(y):, abs(x):] = \
-                            add(node.root_dt[abs(y):, abs(x):], self.calculate_distance_transform(child))
-            elif y <= 0 and x <= 0:
-                node.root_dt[:self.height - abs(y), :self.width - abs(x)] = \
-                            add(node.root_dt[:self.height - abs(y), :self.width - abs(x)], self.calculate_distance_transform(child))
-            elif y >= 0 >= x:
-                node.root_dt[:self.height - abs(y), abs(x):] = \
-                            add(node.root_dt[:self.height - abs(y), abs(x):], self.calculate_distance_transform(child))
-            elif y <= 0 <= x:
-                node.root_dt[abs(y):, :self.width - abs(x)] = \
-                            add(node.root_dt[abs(y):, :self.width - abs(x)], self.calculate_distance_transform(child))
+
+            if y >= 0 and x > 0:
+                node.root_dt[abs(y):, abs(x):] += self.calculate_distance_transform(child)
+            elif y <= 0 and x < 0:
+                node.root_dt[:self.height - abs(y), :self.width - abs(x)] += self.calculate_distance_transform(child)
+            elif y < 0 <= x:
+                node.root_dt[:self.height - abs(y), abs(x):] += self.calculate_distance_transform(child)
+            elif y > 0 >= x:
+                node.root_dt[abs(y):, :self.width - abs(x)] += self.calculate_distance_transform(child)
+
+        node.root_dt /= 2
 
         if node.offset is not None:
             y = node.offset[0]
             x = node.offset[1]
 
-            if y >= 0 and x >= 0:
+            if y >= 0 and x > 0:
                 return node.root_dt[:self.height - abs(y), :self.width - abs(x)]
-            elif y <= 0 and x <= 0:
+            elif y <= 0 and x < 0:
                 return node.root_dt[abs(y):, abs(x):]
-            elif y >= 0 >= x:
+            elif y < 0 <= x:
                 return node.root_dt[abs(y):, :self.width - abs(x)]
-            elif y <= 0 <= x:
+            elif y > 0 >= x:
                 return node.root_dt[:self.height - abs(y), abs(x):]
-            return node.root_dt
-        else:
-            return node.root_dt
+
+        return node.root_dt
 
     def add_root_dt_to_nodes(self, node):
         for child in node.children:
             self.add_root_dt_to_nodes(child)
-        copy = deepcopy(self.root_dt)
-        node.add_root_dt(copy)
-
-    # def calculate_distance_transform(self):
-    #     query_shape = self.query.original_array.shape
-    #
-    #     height = self.target.original_array.shape[0]+2*query_shape[0]
-    #     width = self.target.original_array.shape[1]+2*query_shape[1]
-    #
-    #     root_dt = ones((height, width))
-    #     root_dt[query_shape[0]:-query_shape[0], query_shape[1]:-query_shape[1]] = self.target.original_array
-    #     root_dt = rt(distance(root_dt))
-    #
-    #     sum_dt = deepcopy(root_dt)  # for root the sum is just the dt itself, since there is no parent to add up with
-    #     open_list = list()
-    #     open_list.append(self.query.root_node)
-    #
-    #     while len(open_list) > 0:
-    #         parent = open_list.pop()
-    #         for child in parent.children:
-    #             open_list.append(child)
-    #             root_offset = array([round(child.position.item(0) - self.query.root_node.position.item(0)),
-    #                                  round(child.position.item(1) - self.query.root_node.position.item(1))], dtype=int)
-    #
-    #             y = root_offset.item(0)
-    #             x = root_offset.item(1)
-    #             height = sum_dt.shape[0]
-    #             width = sum_dt.shape[1]
-    #
-    #             # child bottom right
-    #             if y >= 0 and x >= 0:
-    #                 sum_dt[abs(y):, abs(x):] = \
-    #                     add(sum_dt[abs(y):, abs(x):], root_dt[:height - abs(y), :width - abs(x)])
-    #             # child top left
-    #             elif y <= 0 and x <= 0:
-    #                 sum_dt[:height - abs(y), :width - abs(x)] = \
-    #                     add(sum_dt[:height - abs(y), :width - abs(x)], root_dt[abs(y):, abs(x):])
-    #             # child bottom left
-    #             elif y >= 0 >= x:
-    #                 sum_dt[:height - abs(y), abs(x):] = \
-    #                     add(sum_dt[:height - abs(y), abs(x):], root_dt[abs(y):, :width - abs(x)])
-    #             # child top right
-    #             elif y <= 0 <= x:
-    #                 sum_dt[abs(y):, :width - abs(x)] = \
-    #                     add(sum_dt[abs(y):, :width - abs(x)], root_dt[:height - abs(y), abs(x):])
-    #
-    #     return sum_dt[query_shape[0]:-query_shape[0], query_shape[1]:-query_shape[1]]
+        node.add_root_dt(copy(self.root_dt))
 
 
 def convert_qimage_to_ndarray(image):  # pragma: no cover
