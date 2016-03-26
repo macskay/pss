@@ -4,7 +4,7 @@ from math import ceil
 
 from matplotlib.patches import Rectangle
 from matplotlib.pyplot import subplots, cm, show
-from numpy import min, max
+from numpy import min, max, invert
 
 gui_logger = getLogger("SymbolGroupDisplay")
 
@@ -102,7 +102,7 @@ class EvaluationPlot(object):
         fig, ax = setup_figure(name)
         setup_plot(ax, eval.dt.sum_dt, name)
         self.draw_distance_transform(ax, eval)
-        #self.draw_target_image(ax, eval.target.original_array)
+        # self.draw_target_image(ax, eval.target.original_array)
         self.draw_minima(ax, eval)
         self.draw_found_symbols(eval)
         ax.format_coord = self.format_coord
@@ -110,7 +110,7 @@ class EvaluationPlot(object):
     def format_coord(self, x, y):
         col = int(x+0.5)
         row = int(y+0.5)
-        if col>=0 and col<self.shape[1] and row>=0 and row<self.shape[0]:
+        if 0 <= col < self.shape[1] and 0 <= row < self.shape[0]:
             value = self.sum_dt[row,col]
             return 'x=%1.4f, y=%1.4f, z=%1.4f'%(x, y, value)
         else:
@@ -175,8 +175,8 @@ class DistanceTransformPlot(object):
 
     def create_distance_transform_figure(self, name, dt, title):
         fig, ax = setup_figure(name)
-        setup_plot(ax, dt.root_dt, title)
-        self.draw_distance_transform(ax, dt.root_dt, min(dt.root_dt), max(dt.root_dt))
+        setup_plot(ax, dt.root_dt_normalized, title)
+        self.draw_distance_transform(ax, dt.root_dt_normalized, min(dt.root_dt_normalized), max(dt.root_dt_normalized))
 
     @staticmethod
     def draw_distance_transform(ax, dt, vmin, vmax):
@@ -196,12 +196,12 @@ class QueryPlot(object):  # pragma: no cover
     def create_skeleton_figure(self, query):
         fig, ax = setup_figure(query.name)
         setup_plot(ax, query.original_array, "skeleton")
-        self.draw_skeleton_image(ax, query.skeleton)
+        self.draw_skeleton_image(ax, invert(query.skeleton))
 
     def create_original_image_figure(self, query):
         fig, ax = setup_figure(query.name)
         setup_plot(ax, query.original_array, "original")
-        draw_array(ax, query.original_array)
+        draw_array(ax, invert(query.original_array))
 
     def create_tree_figure(self, query):
         fig, ax = setup_figure(query.name)

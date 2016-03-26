@@ -29,7 +29,7 @@ sg_logger = getLogger("SymbolGroup")
 COLORED = 255
 COLOR_BG = "Black"
 COLOR_FG = "White"
-DISTANCE = 3
+DISTANCE = 1
 DIVISOR = 12
 
 
@@ -559,11 +559,12 @@ class DistanceTransform(object):  # pragma: no cover
 
         empty_dt = ones((self.height, self.width))
         empty_dt[query_shape[0]:-query_shape[0], query_shape[1]:-query_shape[1]] = self.target.original_array
-        self.root_dt = distance(empty_dt)//5
+        self.root_dt = (empty_dt)
 
         self.add_root_dt_to_nodes(self.query.root_node)
         self.calculate_distance_transform(self.query.root_node)
         self.sum_dt = self.query.root_node.root_dt[query_shape[0]:-query_shape[0], query_shape[1]:-query_shape[1]]
+        self.root_dt_normalized = self.root_dt[query_shape[0]:-query_shape[0], query_shape[1]:-query_shape[1]]
 
     def calculate_distance_transform(self, node):
         for child in node.children:
@@ -578,9 +579,7 @@ class DistanceTransform(object):  # pragma: no cover
                 node.root_dt[:self.height - abs(y), abs(x):] += self.calculate_distance_transform(child)
             elif y > 0 >= x:
                 node.root_dt[abs(y):, :self.width - abs(x)] += self.calculate_distance_transform(child)
-
-        node.root_dt /= 2
-
+            #node.root_dt /= 1.5
         if node.offset is not None:
             y = node.offset[0]
             x = node.offset[1]

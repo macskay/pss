@@ -28,16 +28,16 @@ def main():
     logger.info("PartStructuredSpotting started at %s", starting_time)
 
     """ Example SVG Usage """
-    #svg_query = QuerySvg(join(FILE_LOCATION, "..", "resources", "grouped_VAT_10321_Vs_SJakob.svg"))
-    #svg_target = TargetSvg(join(FILE_LOCATION, "..", "resources", "VAT_10321_Vs_SJakob.svg"))
-    #query = Query(svg_query, index=20, scale=scale)
-    #target = Target(svg_target, scale=scale)
+    svg_query = QuerySvg(join(FILE_LOCATION, "..", "resources", "grouped_VAT_10321_Vs_SJakob.svg"))
+    svg_target = TargetSvg(join(FILE_LOCATION, "..", "resources", "test_target.svg"))
+    query = Query(svg_query, index=20, scale=scale)
+    target = Target(svg_target, scale=scale)
 
     """ Example png Usage"""
-    png_query = QueryBin(join(FILE_LOCATION, "..", "resources", "fox.png"), scale=scale)
-    png_target = TargetBin(join(FILE_LOCATION, "..", "resources", "pangrams_dot.png"), scale=scale)
-    query = Query(png_query, bin=True, scale=scale)
-    target = Target(png_target, bin=True, scale=scale)
+    #png_query = QueryBin(join(FILE_LOCATION, "..", "resources", "fox.png"), scale=scale)
+    #png_target = TargetBin(join(FILE_LOCATION, "..", "resources", "pangrams_dot.png"), scale=scale)
+    #query = Query(png_query, bin=True, scale=scale)
+    #target = Target(png_target, bin=True, scale=scale)
 
     distance_transform = DistanceTransform(query, target)
 
