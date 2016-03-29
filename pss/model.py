@@ -22,6 +22,8 @@ from scipy.ndimage.morphology import distance_transform_edt, distance_transform_
 from skimage.feature import corner_harris
 from skimage.feature import corner_peaks
 from skimage.morphology import skeletonize
+from matplotlib import pyplot as plt
+
 
 from external.generalized_distance_transform import of_image
 
@@ -554,37 +556,49 @@ class DistanceTransform(object):  # pragma: no cover
         self.target = target
 
         self.target.original_array = self.target.original_array.astype(float)
-        self.target.original_array[self.target.original_array == 1.0] = 2**15
+        target_copy = deepcopy(self.target.original_array)
+        target_copy[target_copy == 1.0] = 2**15
 
         query_shape = self.query.original_array.shape
         self.height = self.target.original_array.shape[0]+2*query_shape[0]
         self.width = self.target.original_array.shape[1]+2*query_shape[1]
         empty_dt = ones((self.height, self.width))
-        empty_dt[query_shape[0]:-query_shape[0], query_shape[1]:-query_shape[1]] = self.target.original_array
+        empty_dt[query_shape[0]:-query_shape[0], query_shape[1]:-query_shape[1]] = target_copy
 
         self.single_node = distance_transform_edt(empty_dt)**2
 
         sg_logger.info("Starting Calculating Distance Transform")
         node = self.query.root_node
-        self.sum_dt = deepcopy(self.single_node)
-        self.calc(node)
+        self.sum_dt = self.calc(node)
         self.sum_dt = self.sum_dt[query_shape[0]:-query_shape[0], query_shape[1]:-query_shape[1]]
         sg_logger.info("Finished Calculating Distance Transform")
 
+    # vergleich siehe folie 53 slides
     def calc(self, node):
         global translated
-        for child in node.children:
-            self.calc(child)
-        if node.offset is not None:
-            translated = deepcopy(self.sum_dt)
-            offset = roll(translated, node.offset[0], axis=1)
-            offset = roll(offset, node.offset[1], axis=0)
-            translated += offset
-        else:
-            translated = deepcopy(self.single_node)
 
+        # for each child get the gdts
+        child_gdts = list()
+        for child in node.children:
+            gdt_child = self.calc(child)
+            child_gdts.append(gdt_child)
+
+        # after getting all the gdts add them up with a single node to get the sum
+        sum_dt = deepcopy(self.single_node)
+        for child in child_gdts:
+            sum_dt += child
+
+        # translate the sum if necessary
+        if node.offset is not None:
+            offset = roll(sum_dt, node.offset[0], axis=1)
+            offset = roll(offset, node.offset[1], axis=0)
+            translated = sum_dt + offset
+        else:
+            return sum_dt
+
+        # gdt the translated sum and return it to the parent
         gdt = of_image(translated)
-        self.sum_dt = gdt + translated
+        return gdt
 
         # query_shape = self.query.original_array.shape
         #

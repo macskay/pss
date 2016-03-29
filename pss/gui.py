@@ -106,8 +106,8 @@ class EvaluationPlot(object):
         setup_plot(ax, eval.dt.sum_dt, name)
         self.draw_distance_transform(ax, eval)
         # self.draw_target_image(ax, eval.target.original_array)
-        #self.draw_minima(ax, eval)
-        #self.draw_found_symbols(eval, name)
+        self.draw_minima(ax, eval)
+        self.draw_found_symbols(eval, name)
         ax.format_coord = self.format_coord
         fig.savefig(SAVE_PATH + str(self.index) + "/" + name)
 
@@ -145,11 +145,18 @@ class EvaluationPlot(object):
         j = 0
         for found_symbol in eval.found_symbols:
             col = i
-            axes[col].set_xlabel("{0:.2f}".format(found_symbol[1]))
-            axes[col].get_xaxis().set_ticks([])
-            axes[col].get_xaxis().set_visible(True)
-            axes[col].get_yaxis().set_visible(False)
-            axes[col].imshow(found_symbol[0], cmap=cm.gray)
+            if len(found_symbol) > 1:
+                axes[col].set_xlabel("{0:.2f}".format(found_symbol[1]))
+                axes[col].get_xaxis().set_ticks([])
+                axes[col].get_xaxis().set_visible(True)
+                axes[col].get_yaxis().set_visible(False)
+                axes[col].imshow(found_symbol[0], cmap=cm.gray)
+            else:
+                axes.set_xlabel("{0:.2f}".format(found_symbol[1]))
+                axes.get_xaxis().set_ticks([])
+                axes.get_xaxis().set_visible(True)
+                axes.get_yaxis().set_visible(False)
+                axes.imshow(found_symbol[0], cmap=cm.gray)
             if col == 4:
                 j += 1
             i += 1

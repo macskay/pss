@@ -12,8 +12,8 @@ class Evaluation(object):
         self.dt = dt
         self.limit = limit
 
-        #self.minimum = self.find_local_minima()
-        #self.found_symbols = self.extract_found_symbols()
+        self.minimum = self.find_local_minima()
+        self.found_symbols = self.extract_found_symbols()
 
     def find_local_minima(self):
         size = min(self.dt.sum_dt.shape[1], self.dt.sum_dt.shape[0]) // 10
