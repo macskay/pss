@@ -1,5 +1,8 @@
-from numpy import argsort, nonzero
+from numpy import argsort, nonzero, genfromtxt, array
 from scipy.ndimage import minimum_filter
+from sklearn.metrics import precision_recall_curve, precision_score
+from matplotlib import pyplot as plt
+from sklearn.preprocessing import normalize
 
 
 class Evaluation(object):
@@ -9,10 +12,8 @@ class Evaluation(object):
         self.dt = dt
         self.limit = limit
 
-        self.minimum = self.find_local_minima()
-        self.found_symbols = self.extract_found_symbols()
-
-        self.precision_recall = self.calculate_precision_recall()
+        #self.minimum = self.find_local_minima()
+        #self.found_symbols = self.extract_found_symbols()
 
     def find_local_minima(self):
         size = min(self.dt.sum_dt.shape[1], self.dt.sum_dt.shape[0]) // 10
@@ -36,5 +37,20 @@ class Evaluation(object):
 
         return found_symbols
 
+
+class PR(object):
+    def __init__(self, path):
+        self.eva_array = array([1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
+        self.probs_pred = genfromtxt(path + "/normal_eva_33x30.csv", delimiter=';')
+
+        self.calculate_precision_recall()
+
     def calculate_precision_recall(self):
-        return 0
+        p, r, t = precision_recall_curve(self.eva_array, self.probs_pred[0])
+
+        plt.plot(r, p, label="Precision-Recall curve")
+        plt.ylim([0.0, 1.05])
+        plt.xlim([0.0, 1.0])
+        plt.xlabel("Recall")
+        plt.ylabel("Precision")
+        plt.show()

@@ -3,18 +3,19 @@ from logging import getLogger
 from math import ceil
 
 from matplotlib.patches import Rectangle
-from matplotlib.pyplot import subplots, cm, show
-from numpy import min, max, invert
+from matplotlib.pyplot import subplots, cm, show, savefig
+from numpy import min, max, invert, savetxt
 
 gui_logger = getLogger("SymbolGroupDisplay")
 
-SPACE = .02
+SPACE = .05
 POSITION = .98
 FIG_POS = (5, 5)
 ROWS = 1
 COLUMNS = 1
 FONTSIZE = 20
 NODESIZE = 10
+SAVE_PATH = "/home/max/Desktop/eva/"
 
 
 def setup_figure(name, rows=ROWS, cols=COLUMNS):
@@ -64,48 +65,51 @@ class GUIHandler(object):
         gui_logger.info("GUIHandler started")
 
     @staticmethod
-    def display_query(query):  # pragma: no cover
+    def display_query(query, index):  # pragma: no cover
         """
         Plots the query entered in different forms
         :param query: The query image to plot
         """
-        QueryPlot(query)
+        QueryPlot(query, index)
 
     @staticmethod
-    def display_target(target):
-        TargetPlot(target)
+    def display_target(target, index):
+        TargetPlot(target, index)
 
     @staticmethod
-    def display_distance_transform(dt):
+    def display_distance_transform(dt, index):
         """
         Plots the summed up distance transform for the target image
         :param dt: TargetDistanceTransform-object, which holds summed up distance transform
         """
-        DistanceTransformPlot(dt)
+        DistanceTransformPlot(dt, index)
+
+    @staticmethod
+    def display_evaluation(eval, index):
+        EvaluationPlot(eval, index)
 
     @staticmethod
     def show():
         show()
 
-    @staticmethod
-    def display_evaluation(eval):
-        EvaluationPlot(eval)
-
 
 class EvaluationPlot(object):
-    def __init__(self, eval):
-        self.create_eval_figure("Evaluation", eval)
+    def __init__(self, eval, index):
+        self.index = index
+        self.create_eval_figure("evaluation", eval)
         self.shape = eval.dt.sum_dt.shape
         self.sum_dt = eval.dt.sum_dt
 
     def create_eval_figure(self, name, eval):
+        name = name.replace("/", "_")
         fig, ax = setup_figure(name)
         setup_plot(ax, eval.dt.sum_dt, name)
         self.draw_distance_transform(ax, eval)
         # self.draw_target_image(ax, eval.target.original_array)
-        self.draw_minima(ax, eval)
-        self.draw_found_symbols(eval)
+        #self.draw_minima(ax, eval)
+        #self.draw_found_symbols(eval, name)
         ax.format_coord = self.format_coord
+        fig.savefig(SAVE_PATH + str(self.index) + "/" + name)
 
     def format_coord(self, x, y):
         col = int(x+0.5)
@@ -130,8 +134,7 @@ class EvaluationPlot(object):
     def draw_distance_transform(ax, eval):
         ax.imshow(eval.dt.sum_dt, cmap=cm.jet, vmin=min(eval.dt.sum_dt), vmax=max(eval.dt.sum_dt))
 
-    @staticmethod
-    def draw_found_symbols(eval):
+    def draw_found_symbols(self, eval, name):
         results_number = len(eval.found_symbols)
         max_rows = ceil(results_number / 5)
 
@@ -150,19 +153,25 @@ class EvaluationPlot(object):
             if col == 4:
                 j += 1
             i += 1
+        values = [x[1] for x in eval.found_symbols]
+        fig.set_size_inches(15, 5)
+        fig.savefig(SAVE_PATH + str(self.index) + "/found", dpi=300)
+        savetxt(SAVE_PATH + "values/found_value_" + str(self.index) + ".csv", values, newline=";")
 
     def draw_target_image(self, ax, target):
         draw_array(ax, target)
 
 
 class TargetPlot(object):
-    def __init__(self, target):
-        self.create_target_figure("Target", target.original_array, "Target")
+    def __init__(self, target, index):
+        self.index = index
+        self.create_target_figure("target", target.original_array, "Target")
 
     def create_target_figure(self, name, original_array, title):
         fig, ax = setup_figure(name, 1, 1)
         setup_plot(ax, original_array, title)
         self.draw_target_image(ax, original_array)
+        fig.savefig(SAVE_PATH + str(self.index) + "/" + name)
 
     @staticmethod
     def draw_target_image(ax, target):
@@ -170,13 +179,15 @@ class TargetPlot(object):
 
 
 class DistanceTransformPlot(object):
-    def __init__(self, dt):
-        self.create_distance_transform_figure("DT", dt, "Distance Transform (Single Node)")
+    def __init__(self, dt, index):
+        self.index = index
+        self.create_distance_transform_figure("dt_single_node", dt, "Distance Transform (Single Node)")
 
     def create_distance_transform_figure(self, name, dt, title):
         fig, ax = setup_figure(name)
         setup_plot(ax, dt.root_dt_normalized, title)
         self.draw_distance_transform(ax, dt.root_dt_normalized, min(dt.root_dt_normalized), max(dt.root_dt_normalized))
+        fig.savefig(SAVE_PATH + str(self.index) + "/" + name)
 
     @staticmethod
     def draw_distance_transform(ax, dt, vmin, vmax):
@@ -188,27 +199,37 @@ class QueryPlot(object):  # pragma: no cover
     This class is responsible for plotting the Query.
     """
 
-    def __init__(self, query):
+    def __init__(self, query, index):
+        self.index = index
         self.create_original_image_figure(query)
         self.create_skeleton_figure(query)
         self.create_tree_figure(query)
 
     def create_skeleton_figure(self, query):
-        fig, ax = setup_figure(query.name)
+        name = query.name + "_skeleton"
+        name = name.replace("/", "_")
+        fig, ax = setup_figure(name)
         setup_plot(ax, query.original_array, "skeleton")
         self.draw_skeleton_image(ax, invert(query.skeleton))
+        fig.savefig(SAVE_PATH + str(self.index) + "/" + name)
 
     def create_original_image_figure(self, query):
-        fig, ax = setup_figure(query.name)
+        name = query.name + "_original"
+        name = name.replace("/", "_")
+        fig, ax = setup_figure(name)
         setup_plot(ax, query.original_array, "original")
         draw_array(ax, invert(query.original_array))
+        fig.savefig(SAVE_PATH + str(self.index) + "/" + name)
 
     def create_tree_figure(self, query):
-        fig, ax = setup_figure(query.name)
+        name = query.name + "_tree"
+        name = name.replace("/", "_")
+        fig, ax = setup_figure(name)
         setup_plot(ax, query.original_array, "tree")
         root_node = query.root_node
         center_of_mass = query.center_of_mass
         self.draw_tree_image(ax, root_node, center_of_mass)
+        fig.savefig(SAVE_PATH + str(self.index) + "/" + name)
 
     def draw_skeleton_image(self, ax, array):
         """

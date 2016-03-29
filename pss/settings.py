@@ -44,6 +44,9 @@ class Settings(object):  # pragma: no cover
                                      help="Determines the Scale of the Query and Target (default=1)", type=float)
         self.arg_parser.add_argument("-l", "--limit",
                                      help="This gives the top n results (default=10)", type=int)
+        self.arg_parser.add_argument("-i", "--index",
+                                     help="This uses the i-th symbol of the query set", type=int)
+
 
 
 class ArgumentListener(object):  # pragma: no cover

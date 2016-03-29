@@ -10,12 +10,13 @@ from functools import reduce  # pylint:disable=redefined-builtin
 from logging import getLogger
 from math import sqrt
 from operator import xor
+from dt import compute
 
 from PyQt4 import QtGui
 from PyQt4.QtGui import QPainter
 from mahotas import distance
 from numpy import zeros, array, delete, insert, c_, mean, inf, invert, ndarray, add, sqrt as rt, nanmax, nanmin, full, \
-    ones, copy
+    ones, copy, roll
 from qimage2ndarray import recarray_view
 from scipy.ndimage.morphology import distance_transform_edt, distance_transform_cdt
 from skimage.feature import corner_harris
@@ -29,7 +30,7 @@ sg_logger = getLogger("SymbolGroup")
 COLORED = 255
 COLOR_BG = "Black"
 COLOR_FG = "White"
-DISTANCE = 1
+DISTANCE = 3
 DIVISOR = 12
 
 
@@ -552,53 +553,88 @@ class DistanceTransform(object):  # pragma: no cover
         self.query = query
         self.target = target
 
-        query_shape = self.query.original_array.shape
+        self.target.original_array = self.target.original_array.astype(float)
+        self.target.original_array[self.target.original_array == 1.0] = 2**15
 
+        query_shape = self.query.original_array.shape
         self.height = self.target.original_array.shape[0]+2*query_shape[0]
         self.width = self.target.original_array.shape[1]+2*query_shape[1]
-
         empty_dt = ones((self.height, self.width))
         empty_dt[query_shape[0]:-query_shape[0], query_shape[1]:-query_shape[1]] = self.target.original_array
-        self.root_dt = (empty_dt)
 
-        self.add_root_dt_to_nodes(self.query.root_node)
-        self.calculate_distance_transform(self.query.root_node)
-        self.sum_dt = self.query.root_node.root_dt[query_shape[0]:-query_shape[0], query_shape[1]:-query_shape[1]]
-        self.root_dt_normalized = self.root_dt[query_shape[0]:-query_shape[0], query_shape[1]:-query_shape[1]]
+        self.single_node = distance_transform_edt(empty_dt)**2
 
-    def calculate_distance_transform(self, node):
+        sg_logger.info("Starting Calculating Distance Transform")
+        node = self.query.root_node
+        self.sum_dt = deepcopy(self.single_node)
+        self.calc(node)
+        self.sum_dt = self.sum_dt[query_shape[0]:-query_shape[0], query_shape[1]:-query_shape[1]]
+        sg_logger.info("Finished Calculating Distance Transform")
+
+    def calc(self, node):
+        global translated
         for child in node.children:
-            y = child.offset[0]
-            x = child.offset[1]
-
-            if y >= 0 and x > 0:
-                node.root_dt[abs(y):, abs(x):] += self.calculate_distance_transform(child)
-            elif y <= 0 and x < 0:
-                node.root_dt[:self.height - abs(y), :self.width - abs(x)] += self.calculate_distance_transform(child)
-            elif y < 0 <= x:
-                node.root_dt[:self.height - abs(y), abs(x):] += self.calculate_distance_transform(child)
-            elif y > 0 >= x:
-                node.root_dt[abs(y):, :self.width - abs(x)] += self.calculate_distance_transform(child)
-            #node.root_dt /= 1.5
+            self.calc(child)
         if node.offset is not None:
-            y = node.offset[0]
-            x = node.offset[1]
+            translated = deepcopy(self.sum_dt)
+            offset = roll(translated, node.offset[0], axis=1)
+            offset = roll(offset, node.offset[1], axis=0)
+            translated += offset
+        else:
+            translated = deepcopy(self.single_node)
 
-            if y >= 0 and x > 0:
-                return node.root_dt[:self.height - abs(y), :self.width - abs(x)]
-            elif y <= 0 and x < 0:
-                return node.root_dt[abs(y):, abs(x):]
-            elif y < 0 <= x:
-                return node.root_dt[abs(y):, :self.width - abs(x)]
-            elif y > 0 >= x:
-                return node.root_dt[:self.height - abs(y), abs(x):]
+        gdt = of_image(translated)
+        self.sum_dt = gdt + translated
 
-        return node.root_dt
+        # query_shape = self.query.original_array.shape
+        #
+        # self.height = self.target.original_array.shape[0]+2*query_shape[0]
+        # self.width = self.target.original_array.shape[1]+2*query_shape[1]
+        #
+        # empty_dt = ones((self.height, self.width))
+        # empty_dt[query_shape[0]:-query_shape[0], query_shape[1]:-query_shape[1]] = self.target.original_array
+        # self.root_dt = (empty_dt)
+        #
+        # self.add_root_dt_to_nodes(self.query.root_node)
+        # self.calculate_distance_transform(self.query.root_node)
+        # self.sum_dt = self.query.root_node.root_dt[query_shape[0]:-query_shape[0], query_shape[1]:-query_shape[1]]
+        # self.root_dt_normalized = self.root_dt[query_shape[0]:-query_shape[0], query_shape[1]:-query_shape[1]]
 
-    def add_root_dt_to_nodes(self, node):
-        for child in node.children:
-            self.add_root_dt_to_nodes(child)
-        node.add_root_dt(copy(self.root_dt))
+    # def calculate_distance_transform(self, node):
+    #     for child in node.children:
+    #         y = child.offset[0]
+    #         x = child.offset[1]
+    #
+    #         if y >= 0 and x > 0:
+    #             node.root_dt[abs(y):, abs(x):] += self.calculate_distance_transform(child)
+    #         elif y <= 0 and x < 0:
+    #             node.root_dt[:self.height - abs(y), :self.width - abs(x)] += self.calculate_distance_transform(child)
+    #         elif y < 0 <= x:
+    #             node.root_dt[:self.height - abs(y), abs(x):] += self.calculate_distance_transform(child)
+    #         elif y > 0 >= x:
+    #             node.root_dt[abs(y):, :self.width - abs(x)] += self.calculate_distance_transform(child)
+    #         #node.root_dt /= 1.5
+    #     if node.offset is not None:
+    #         y = node.offset[0]
+    #         x = node.offset[1]
+    #
+    #         if y >= 0 and x > 0:
+    #             return node.root_dt[:self.height - abs(y), :self.width - abs(x)]
+    #         elif y <= 0 and x < 0:
+    #             return node.root_dt[abs(y):, abs(x):]
+    #         elif y < 0 <= x:
+    #             return node.root_dt[abs(y):, :self.width - abs(x)]
+    #         elif y > 0 >= x:
+    #             return node.root_dt[:self.height - abs(y), abs(x):]
+    #
+    #     return node.root_dt
+    #
+    # def add_root_dt_to_nodes(self, node):
+    #     for child in node.children:
+    #         self.add_root_dt_to_nodes(child)
+    #     node.add_root_dt(copy(self.root_dt))
+
+
 
 
 def convert_qimage_to_ndarray(image):  # pragma: no cover
