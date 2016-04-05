@@ -13,7 +13,7 @@ def handle_file_not_existing(path):
     :raises: FileNotFoundError if path not found
     """
     if not isfile(path):
-        svg_logger.error("Path to PNG-File invalid!")
+        svg_logger.error("Path to PNG-File invalid! Make sure the file is placed in the resources-folder")
         raise FileNotFoundError  # noqa
 
 
@@ -44,3 +44,13 @@ class TargetBin(object):
         handle_file_not_existing(path)
         im = QImage(path, "0xAARRGGBB")
         self.image = im.scaled(im.size() * scale)
+
+        """
+        app = QApplication(sys.argv)
+        pm = QPixmap(self.image)
+        lbl = QLabel()
+        lbl.setPixmap(pm)
+        lbl.show()
+
+        sys.exit(app.exec_())
+        """

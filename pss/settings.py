@@ -41,7 +41,16 @@ class Settings(object):  # pragma: no cover
         self.arg_parser.add_argument("-v", "--verbose",
                                      help="Activates verbose mode (DEBUG-logging)", action="store_true")
         self.arg_parser.add_argument("-s", "--scale",
-                                     help="Determines the Scale of the Query and Target (default=1)", type=int)
+                                     help="Determines the Scale of the Query and Target (default=1)", type=float)
+        self.arg_parser.add_argument("-l", "--limit",
+                                     help="This gives the top n results (default=10)", type=int)
+        self.arg_parser.add_argument("-i", "--index",
+                                     help="This uses the i-th symbol of the query set " +
+                                          "(Must be given, if the query is an SVG)", type=int)
+        self.arg_parser.add_argument("-q", "--query",
+                                     help="Path to the query file", type=str)
+        self.arg_parser.add_argument("-t", "--target",
+                                     help="Path to the target file", type=str)
 
 
 class ArgumentListener(object):  # pragma: no cover

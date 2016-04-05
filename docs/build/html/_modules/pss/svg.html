@@ -1,0 +1,158 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pss.svg &mdash; Part-Structured Spotting of Cuneiform Characters 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Part-Structured Spotting of Cuneiform Characters 1.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pss.svg</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- encoding: utf-8 -*-</span>
+
+<span class="kn">from</span> <span class="nn">logging</span> <span class="kn">import</span> <span class="n">getLogger</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">isfile</span>
+
+<span class="kn">from</span> <span class="nn">PyQt4.QtSvg</span> <span class="kn">import</span> <span class="n">QSvgRenderer</span>
+
+<span class="kn">from</span> <span class="nn">external.elka_svg</span> <span class="kn">import</span> <span class="n">parse</span>
+
+<span class="n">svg_logger</span> <span class="o">=</span> <span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;SvgHandler&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="handle_file_not_existing"><a class="viewcode-back" href="../../pss.html#pss.svg.handle_file_not_existing">[docs]</a><span class="k">def</span> <span class="nf">handle_file_not_existing</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Checks whether the given file is existing</span>
+<span class="sd">    :param path: Path of file to check for existence</span>
+<span class="sd">    :raises: FileNotFoundError if path not found</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="n">svg_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Path to SVG-File invalid! Make sure the file is placed in the resources-folder&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">FileNotFoundError</span>  <span class="c1"># noqa</span></div>
+
+
+<div class="viewcode-block" id="TargetSvg"><a class="viewcode-back" href="../../pss.html#pss.svg.TargetSvg">[docs]</a><span class="k">class</span> <span class="nc">TargetSvg</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class opens and manages a given svg file as the target image.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param path: Path to the SVG-file (required)</span>
+<span class="sd">        :raise FileNotFoundError: This is raised, when an invalid svg file is passed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">svg_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Target SVG-Handler started&quot;</span><span class="p">)</span>
+        <span class="n">handle_file_not_existing</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">renderer</span> <span class="o">=</span> <span class="n">QSvgRenderer</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="QuerySvg"><a class="viewcode-back" href="../../pss.html#pss.svg.QuerySvg">[docs]</a><span class="k">class</span> <span class="nc">QuerySvg</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class opens and manages as the query image.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">infix</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param path: Path to the SVG-file (required)</span>
+<span class="sd">        :param infix: Infix to look for in svg-file (default: &quot;&quot;)</span>
+<span class="sd">        :raise FileNotFoundError: This is raised, when an invalid svg file is passed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">svg_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Query SVG-Handler started&quot;</span><span class="p">)</span>
+        <span class="n">handle_file_not_existing</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">svg_symbol_groups</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_svg</span><span class="p">(</span><span class="n">infix</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="QuerySvg.load_svg"><a class="viewcode-back" href="../../pss.html#pss.svg.QuerySvg.load_svg">[docs]</a>    <span class="k">def</span> <span class="nf">load_svg</span><span class="p">(</span><span class="n">infix</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Opens an SVG-file</span>
+<span class="sd">        :param infix: This infix is used by the external library elka_svg.py</span>
+<span class="sd">        to check for specific groups within the svg.</span>
+<span class="sd">        :param path: Path, where the SVG file is located</span>
+<span class="sd">        :return: names and lists of QPainterPaths of the SymbolGroups read from the SVG</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">svg_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Opening SVG-File at [</span><span class="si">%s</span><span class="s2">]&quot;</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+        <span class="n">names</span><span class="p">,</span> <span class="n">symbol_groups</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">parse</span><span class="p">(</span><span class="n">infix</span><span class="p">,</span> <span class="n">path</span><span class="p">))</span>
+        <span class="n">svg_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;SVG-File successfully loaded. (</span><span class="si">%d</span><span class="s2"> names, </span><span class="si">%d</span><span class="s2"> symbol-groups)</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+                        <span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">symbol_groups</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">names</span><span class="p">,</span> <span class="n">symbol_groups</span></div>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="QuerySvg.get_symbol_group_size"><a class="viewcode-back" href="../../pss.html#pss.svg.QuerySvg.get_symbol_group_size">[docs]</a>    <span class="k">def</span> <span class="nf">get_symbol_group_size</span><span class="p">(</span><span class="n">symbol_group</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the number of QPainterPaths within a given SymbolGroup</span>
+<span class="sd">        :param symbol_group: The SymbolGroup to find the size of</span>
+<span class="sd">        :return: The number of Paths within that SymbolGroup</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">symbol_group</span><span class="p">)</span></div></div>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Maximilian Klingmann.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

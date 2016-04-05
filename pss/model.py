@@ -9,15 +9,25 @@ from datetime import datetime
 from functools import reduce  # pylint:disable=redefined-builtin
 from logging import getLogger
 from math import sqrt
+from operator import xor
+from dt import compute
+from random import uniform
 
 from PyQt4 import QtGui
-from PyQt4.QtGui import QPainter
-from numpy import zeros, array, delete, insert, c_, mean, inf, invert, ndarray, add, sqrt as rt
+from PyQt4.QtGui import QPainter, QMatrix, QTransform
+from mahotas import distance
+from numpy import zeros, array, delete, insert, c_, mean, inf, invert, ndarray, add, sqrt as rt, nanmax, nanmin, full, \
+    ones, copy, roll
+from numpy.random import rand
 from qimage2ndarray import recarray_view
-from scipy.ndimage.morphology import distance_transform_edt
+from scipy.ndimage.morphology import distance_transform_edt, distance_transform_cdt
 from skimage.feature import corner_harris
 from skimage.feature import corner_peaks
 from skimage.morphology import skeletonize
+from matplotlib import pyplot as plt
+from skimage.util import random_noise
+
+from external.generalized_distance_transform import of_image
 
 sg_logger = getLogger("SymbolGroup")
 
@@ -25,6 +35,7 @@ COLORED = 255
 COLOR_BG = "Black"
 COLOR_FG = "White"
 DISTANCE = 3
+DIVISOR = 12
 
 
 class Query(object):
@@ -61,7 +72,7 @@ class Query(object):
             self.original_array = convert_qimage_to_ndarray(self.image)
         else:
             self.image = query.image
-            self.original_array = recarray_view(query.image).alpha > 0
+            self.original_array = recarray_view(query.image).red <= 195
             self.name = "PNG-Image"
 
         self.skeleton = create_skeleton(self.name, self.original_array)
@@ -353,6 +364,7 @@ class Query(object):
         """
         Builds up the tree structure starting from the root node.
         """
+
         sg_logger.info("Starting to build up tree...")
         start_time = datetime.now()
         self.creating_all_relations_for_tree()
@@ -411,7 +423,7 @@ class Query(object):
                 if potential_child != potential_source:  # pragma: no cover
                     if abs(potential_child.position.item(0) - potential_source.position.item(0)) <= closest_distance \
                             or abs(potential_child.position.item(1) - potential_source.position.item(
-                                    1)) <= closest_distance:
+                                1)) <= closest_distance:
                         current_distance = self.get_euclidean_distance(potential_child, potential_source)
                         if current_distance < closest_distance:  # pragma: no cover
                             closest_distance = current_distance
@@ -437,8 +449,9 @@ class Node(object):
         self.children = list()
         self.parent = parent
         self.position = array([0, 0], dtype=int) if position is None else position
-        self.offset = array([0, 0], dtype=int) if offset is None else offset
+        self.offset = None if offset is None else offset
         self.index = None
+        self.root_dt = None
 
     def add_child(self, child):
         """
@@ -480,6 +493,9 @@ class Node(object):
             return False
         return (self.position == other.position).all()
 
+    def add_root_dt(self, root_dt):
+        self.root_dt = root_dt
+
 
 class Target(object):
     """
@@ -490,6 +506,7 @@ class Target(object):
     since TargetBin already holds a QImage with the image loaded into it. In that case this step
     is skipped and only the conversion to a valid ndarray is done.
     """
+
     # noinspection PyCallByClass,PyTypeChecker
     def __init__(self, target, bin=False, scale=1):
         """
@@ -503,9 +520,12 @@ class Target(object):
             self.bounding_box = target.renderer.viewBox()
             self.image = self.create_image(target.renderer)
             self.original_array = convert_qimage_to_ndarray(self.image)
+
+            self.original_array = random_noise(self.original_array, mode="s&p", amount=0.3)
+
         else:
             self.image = target.image
-            self.original_array = recarray_view(self.image).alpha == 0
+            self.original_array = recarray_view(self.image).red >= 150
         self.inverted_array = invert(ndarray.astype(self.original_array, dtype=bool))
 
     def create_image(self, renderer):
@@ -531,6 +551,7 @@ class DistanceTransform(object):  # pragma: no cover
     This class calculates the distance transforms for all possible nodes of a query and sums them up to get the
     energy minimization for a given target.
     """
+
     def __init__(self, query, target):
         """
         :param query: Query-object, which holds the tree-model rest configuration
@@ -538,68 +559,60 @@ class DistanceTransform(object):  # pragma: no cover
         """
         self.query = query
         self.target = target
-        self.height, self.width, self.abs_start = self.calculate_height_and_width_of_distance_transform()
+        query_shape = self.query.original_array.shape
 
-        self.sum_dt = None
-        self.calculate_distance_transform()
-        self.sum_dt = rt(self.sum_dt)
+        self.height = self.target.original_array.shape[0]+2*query_shape[0]
+        self.width = self.target.original_array.shape[1]+2*query_shape[1]
 
-    def calculate_distance_transform(self):
-        """
-        This starts the calculation of the all over distance transform and energy minimization.
-        """
-        sg_logger.info("Starting to build up Distance Transform")
-        start_time = datetime.now()
-        self.recursively_add_up_all_distance_transforms(self.query.root_node)
-        end_time = datetime.now()
-        print_time(end_time, start_time)
-        sg_logger.info("Finished building up Distance Transform.\n")
+        self.target.original_array = self.target.original_array.astype(float)
+        target_copy = deepcopy(self.target.original_array)
+        target_copy[target_copy == 1.0] = 2**15
 
-    def recursively_add_up_all_distance_transforms(self, node):
-        """
-        Iterates over all nodes and their potential children adding up all distance transform created on the run.
-        :param node: current node to add to the total distance transform
-        """
-        new_sum_dt = self.build_distance_transform_to_parent(node)
-        self.sum_dt = add(self.sum_dt, new_sum_dt) if self.sum_dt is not None else new_sum_dt
+        empty_dt = ones((self.height, self.width))
+        empty_dt[query_shape[0]:-query_shape[0], query_shape[1]:-query_shape[1]] = target_copy
+        self.root_dt = distance(empty_dt)/5
 
+        self.add_root_dt_to_nodes(self.query.root_node)
+        self.calculate_distance_transform(self.query.root_node)
+        self.sum_dt = self.query.root_node.root_dt[query_shape[0]:-query_shape[0], query_shape[1]:-query_shape[1]]
+        self.root_dt_normalized = self.root_dt[query_shape[0]:-query_shape[0], query_shape[1]:-query_shape[1]]
+
+
+
+    def calculate_distance_transform(self, node):
         for child in node.children:
-            self.recursively_add_up_all_distance_transforms(child)
+            y = child.offset[0]
+            x = child.offset[1]
 
-    def build_distance_transform_to_parent(self, child):
-        """
-        Calculates the sum of the current total distance transform and a new distance transform by the child's
-        position
-        :param child: Child to calculate the new distance transform for
-        :return: Added up distance transform from sum_distance_transform and newest child distance transform
-        """
-        abs_location = child.position.item(0) - self.abs_start[0], child.position.item(1) - self.abs_start[1]
+            if y >= 0 and x > 0:
+                node.root_dt[abs(y):, abs(x):] += self.calculate_distance_transform(child)
+            elif y <= 0 and x < 0:
+                node.root_dt[:self.height - abs(y), :self.width - abs(x)] += self.calculate_distance_transform(child)
+            elif y < 0 <= x:
+                node.root_dt[:self.height - abs(y), abs(x):] += self.calculate_distance_transform(child)
+            elif y > 0 >= x:
+                node.root_dt[abs(y):, :self.width - abs(x)] += self.calculate_distance_transform(child)
+            node.root_dt /= 1.5
 
-        new_array = zeros((self.height, self.width), dtype=int)
-        new_array[abs_location[0]:abs_location[0] + self.target.original_array.shape[0],
-        abs_location[1]:abs_location[1] + self.target.original_array.shape[1]] = self.target.inverted_array
+        if node.offset is not None:
+            y = node.offset[0]
+            x = node.offset[1]
 
-        ia = invert(ndarray.astype(new_array, dtype=bool))
-        new_distance_transform = distance_transform_edt(ia)
-        return new_distance_transform
+            if y >= 0 and x > 0:
+                return node.root_dt[:self.height - abs(y), :self.width - abs(x)]
+            elif y <= 0 and x < 0:
+                return node.root_dt[abs(y):, abs(x):]
+            elif y < 0 <= x:
+                return node.root_dt[abs(y):, :self.width - abs(x)]
+            elif y > 0 >= x:
+                return node.root_dt[:self.height - abs(y), abs(x):]
 
-    def calculate_height_and_width_of_distance_transform(self):
-        """
-        Calculates the maximum dimensions needed for adding up all distance transforms
-        :return: the height, the width and the absolute starting point (root does not have to be and will
-        very likely not be the most top-left pixel, since it's the center of mass)
-        """
-        sorted_x = sorted(self.query.nodes_backup, key=lambda x: x.position.item(0))
-        sorted_y = sorted(self.query.nodes_backup, key=lambda x: x.position.item(1))
-        smallest_x = sorted_x[0].position.item(0)
-        smallest_y = sorted_y[0].position.item(1)
-        highest_x = sorted_x[-1].position.item(0)
-        highest_y = sorted_y[-1].position.item(1)
+        return node.root_dt
 
-        height = highest_x - smallest_x + len(self.target.inverted_array)
-        width = highest_y - smallest_y + len(self.target.inverted_array[0])
-
-        return height, width, (smallest_x, smallest_y)
+    def add_root_dt_to_nodes(self, node):
+        for child in node.children:
+            self.add_root_dt_to_nodes(child)
+        node.add_root_dt(copy(self.root_dt))
 
 
 def convert_qimage_to_ndarray(image):  # pragma: no cover
@@ -609,7 +622,7 @@ def convert_qimage_to_ndarray(image):  # pragma: no cover
     :return: Boolean Numpy-Array representing the QImage. "True" = Foreground, "False" = Background
     """
     sg_logger.info("Converting QImage to NumPy-Array")
-    return recarray_view(image).red >= 255
+    return recarray_view(image).red >= 128
 
 
 # TODO: Add tests

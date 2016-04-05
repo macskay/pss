@@ -1,33 +1,35 @@
 # -*- encoding: utf-8 -*-
 from logging import getLogger
+from math import ceil
 
+from matplotlib.patches import Rectangle
 from matplotlib.pyplot import subplots, cm, show
-from numpy import nanmax, nanmin
+from numpy import min, max, invert, savetxt
 
 gui_logger = getLogger("SymbolGroupDisplay")
 
-SPACE = .02
+SPACE = .05
 POSITION = .98
-FIG_POS = (16, 9)
+FIG_POS = (5, 5)
 ROWS = 1
 COLUMNS = 1
 FONTSIZE = 20
 NODESIZE = 10
-DIVISOR = 12
+SAVE_PATH = "./"
 
 
-def setup_figure(name):
+def setup_figure(name, rows=ROWS, cols=COLUMNS):
     """
     This sets up the plot-figures, respectively the window.
     :param name: The name to set the windows title
     :return: The two empty subplots for the original image and the skeletonized one
     """
-    fig, ax = subplots(ROWS, COLUMNS, figsize=FIG_POS, sharex=True, sharey=True,
+    fig, ax = subplots(rows, cols, figsize=FIG_POS, sharex=True, sharey=True,
                        subplot_kw={'adjustable': 'box-forced'})
     fig.canvas.set_window_title("name: [{}]".format(name))
     fig.subplots_adjust(wspace=SPACE, hspace=SPACE, top=POSITION,
                         bottom=SPACE, left=SPACE, right=POSITION)
-    return ax
+    return fig, ax
 
 
 def setup_plot(ax, array, title):
@@ -56,45 +58,141 @@ def draw_array(ax, array):
 class GUIHandler(object):
     """
     This class starts up all the gui wanted.
-
     """
-
     def __init__(self):
         gui_logger.info("GUIHandler started")
 
     @staticmethod
-    def display_query(query):  # pragma: no cover
+    def display_query(query, index):  # pragma: no cover
         """
         Plots the query entered in different forms
         :param query: The query image to plot
         """
-        QueryPlot(query)
+        QueryPlot(query, index)
 
     @staticmethod
-    def display_target(target):
-        TargetPlot(target)
+    def display_target(target, index):
+        TargetPlot(target, index)
 
     @staticmethod
-    def display_distance_transform(target):
+    def display_distance_transform(dt, index):
         """
         Plots the summed up distance transform for the target image
-        :param target: TargetDistanceTransform-object, which holds summed up distance transform
+        :param dt: TargetDistanceTransform-object, which holds summed up distance transform
         """
-        DistanceTransformPlot(target)
+        DistanceTransformPlot(dt, index)
+
+    @staticmethod
+    def display_evaluation(eval, index):
+        """
+        Plots the target image with embedded bounding boxes and a list of the top n results
+        :param eval: Evaluation Object
+        :param index: Index of the query
+        """
+        EvaluationPlot(eval, index)
 
     @staticmethod
     def show():
+        """
+        Fires up the matplotlib method show
+        """
         show()
 
 
+class EvaluationPlot(object):
+    """
+    This plots the Evaluation object
+    """
+    def __init__(self, eval, index):
+        self.index = index
+        self.create_eval_figure("evaluation", eval)
+        self.shape = eval.dt.sum_dt.shape
+        self.sum_dt = eval.dt.sum_dt
+
+    def create_eval_figure(self, name, eval):
+        name = name.replace("/", "_")
+        fig, ax = setup_figure(name)
+        setup_plot(ax, eval.dt.sum_dt, name)
+        # self.draw_distance_transform(ax, eval)
+        self.draw_target_image(ax, eval.target.original_array)
+        self.draw_minima(ax, eval)
+        self.draw_found_symbols(eval, name)
+        ax.format_coord = self.format_coord
+        fig.savefig(SAVE_PATH + str(self.index) + "/" + name, dpi=300)
+
+    def format_coord(self, x, y):
+        """
+        For the distance transforms the displayed info is altered to also show the value of the DT
+        :param x: x of the cell which the mouse points to
+        :param y: y of the cell which the mouse points to
+        """
+        col = int(x+0.5)
+        row = int(y+0.5)
+        if 0 <= col < self.shape[1] and 0 <= row < self.shape[0]:
+            value = self.sum_dt[row,col]
+            return 'x=%1.4f, y=%1.4f, z=%1.4f'%(x, y, value)
+        else:
+            return 'x=%1.4f, y=%1.4f'%(x, y)
+
+    def draw_minima(self, ax, eval):
+        shape = eval.found_symbols[0][0].shape
+
+        ax.plot(eval.minimum[1], eval.minimum[0], 'r.')
+
+        for (i, j) in zip(*eval.minimum):
+            x = j - eval.query.root_node.position.item(1)
+            y = i - eval.query.root_node.position.item(0)
+            ax.add_patch(Rectangle((x, y), shape[1], shape[0], fill=None, ec="red"))
+
+    @staticmethod
+    def draw_distance_transform(ax, eval):
+        ax.imshow(eval.dt.sum_dt, cmap=cm.jet, vmin=min(eval.dt.sum_dt), vmax=max(eval.dt.sum_dt))
+
+    def draw_found_symbols(self, eval, name):
+        results_number = len(eval.found_symbols)
+        max_rows = ceil(results_number / 5)
+
+        fig, axes = subplots(1, results_number, sharex=False, sharey=False)
+        fig.canvas.set_window_title("name: [{}]".format("Found"))
+
+        i = 0
+        j = 0
+        for found_symbol in eval.found_symbols:
+            col = i
+            if len(eval.found_symbols) > 1:
+                axes[col].set_xlabel("{0:.2f}".format(found_symbol[1]))
+                axes[col].get_xaxis().set_ticks([])
+                axes[col].get_xaxis().set_visible(True)
+                axes[col].get_yaxis().set_visible(False)
+                axes[col].imshow(found_symbol[0], cmap=cm.gray)
+            else:
+                axes.set_xlabel("{0:.2f}".format(found_symbol[1]))
+                axes.get_xaxis().set_ticks([])
+                axes.get_xaxis().set_visible(True)
+                axes.get_yaxis().set_visible(False)
+                axes.imshow(found_symbol[0], cmap=cm.gray)
+            if col == 4:
+                j += 1
+            i += 1
+        values = [x[1] for x in eval.found_symbols]
+        fig.set_size_inches(15, 5)
+        fig.savefig(SAVE_PATH + str(self.index) + "/found", dpi=300)
+        savetxt(SAVE_PATH + "values/found_value_" + str(self.index) + ".csv", values, newline=";")
+
+    def draw_target_image(self, ax, target):
+        draw_array(ax, target)
+
+
 class TargetPlot(object):
-    def __init__(self, target):
-        self.create_target_figure("Target", target.original_array, "Target")
+    def __init__(self, target, index):
+        self.index = index
+        self.create_target_figure("target", target.original_array, "Target")
 
     def create_target_figure(self, name, original_array, title):
-        ax = setup_figure(name)
+        fig, ax = setup_figure(name, 1, 1)
         setup_plot(ax, original_array, title)
         self.draw_target_image(ax, original_array)
+        fig.savefig(SAVE_PATH + str(self.index) + "/" + name, dpi=300)
 
     @staticmethod
     def draw_target_image(ax, target):
@@ -102,14 +200,15 @@ class TargetPlot(object):
 
 
 class DistanceTransformPlot(object):
-    def __init__(self, target):
-        self.create_distance_transform_figure("DT", target.sum_dt, "Distance Transform")
+    def __init__(self, dt, index):
+        self.index = index
+        self.create_distance_transform_figure("dt_single_node", dt, "Distance Transform (Single Node)")
 
     def create_distance_transform_figure(self, name, dt, title):
-        ax = setup_figure(name)
-        setup_plot(ax, dt, title)
-        dt_min, dt_max = nanmin(dt), nanmax(dt)
-        self.draw_distance_transform(ax, dt, dt_min, (dt_max + dt_min) / DIVISOR)
+        fig, ax = setup_figure(name)
+        setup_plot(ax, dt.root_dt_normalized, title)
+        self.draw_distance_transform(ax, dt.root_dt_normalized, min(dt.root_dt_normalized), max(dt.root_dt_normalized))
+        fig.savefig(SAVE_PATH + str(self.index) + "/" + name, dpi=300)
 
     @staticmethod
     def draw_distance_transform(ax, dt, vmin, vmax):
@@ -121,27 +220,37 @@ class QueryPlot(object):  # pragma: no cover
     This class is responsible for plotting the Query.
     """
 
-    def __init__(self, query):
+    def __init__(self, query, index):
+        self.index = index
         self.create_original_image_figure(query)
         self.create_skeleton_figure(query)
         self.create_tree_figure(query)
 
     def create_skeleton_figure(self, query):
-        ax = setup_figure(query.name)
+        name = query.name + "_skeleton"
+        name = name.replace("/", "_")
+        fig, ax = setup_figure(name)
         setup_plot(ax, query.original_array, "skeleton")
-        self.draw_skeleton_image(ax, query.skeleton)
+        self.draw_skeleton_image(ax, invert(query.skeleton))
+        fig.savefig(SAVE_PATH + str(self.index) + "/" + name, dpi=300)
 
     def create_original_image_figure(self, query):
-        ax = setup_figure(query.name)
+        name = query.name + "_original"
+        name = name.replace("/", "_")
+        fig, ax = setup_figure(name)
         setup_plot(ax, query.original_array, "original")
-        draw_array(ax, query.original_array)
+        draw_array(ax, invert(query.original_array))
+        fig.savefig(SAVE_PATH + str(self.index) + "/" + name, dpi=300)
 
     def create_tree_figure(self, query):
-        ax = setup_figure(query.name)
+        name = query.name + "_tree"
+        name = name.replace("/", "_")
+        fig, ax = setup_figure(name)
         setup_plot(ax, query.original_array, "tree")
         root_node = query.root_node
         center_of_mass = query.center_of_mass
         self.draw_tree_image(ax, root_node, center_of_mass)
+        fig.savefig(SAVE_PATH + str(self.index) + "/" + name, dpi=300)
 
     def draw_skeleton_image(self, ax, array):
         """
@@ -190,7 +299,7 @@ class QueryPlot(object):  # pragma: no cover
         :param center_of_mass: Center of mass to draw to the subplot
         """
         if center_of_mass is not None:
-            ax.plot(center_of_mass.position.item(1), center_of_mass.position.item(0), "r.", markersize=NODESIZE)
+            ax.plot(center_of_mass.position.item(1), center_of_mass.position.item(0), "go", markersize=NODESIZE)
 
     @staticmethod
     def plot_root_node(ax, root_node):

@@ -1,203 +1,165 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Welcome to Part-Structured Spotting’s documentation! &mdash; Part-Structured Spotting for Cuneiform tablets
-        1.0 documentation</title>
-  
-
-  
-  
-
-  
-
-  
-  
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-
-  
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-
-
-    <link rel="top" title="Part-Structured Spotting for Cuneiform tablets 1.0 documentation" href="#"/>
-    <link rel="next" title="pss package" href="pss.html"/>
-
-
-    <script src="_static/js/modernizr.min.js"></script>
-
-</head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
+    <title>Welcome to Part-Structured Spotting of Cuneiform Characters’s documentation! &mdash; Part-Structured Spotting of Cuneiform Characters 1.0 documentation</title>
     
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-        <div class="wy-side-scroll">
-            <div class="wy-side-nav-search">
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Part-Structured Spotting of Cuneiform Characters 1.0 documentation" href="#" />
+    <link rel="next" title="API Documentation" href="pss.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
+  </head>
+  <body role="document">  
 
-                <a href="#" class="icon icon-home"> Part-Structured Spotting for Cuneiform tablets
-
-
-                </a>
-
-
-                <div class="version">
-                    1.0
-                </div>
-
-
-                <div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="welcome-to-part-structured-spotting-of-cuneiform-characters-s-documentation">
+<h1>Welcome to Part-Structured Spotting of Cuneiform Characters&#8217;s documentation!<a class="headerlink" href="#welcome-to-part-structured-spotting-of-cuneiform-characters-s-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="instructions">
+<h2># Instructions<a class="headerlink" href="#instructions" title="Permalink to this headline">¶</a></h2>
+<p>Query and Target Files need to be placed into the resources folder.
+Be aware that the parameters -t and -q are mandatory.</p>
 </div>
-
-
-            </div>
-
-            <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-
-
-                <ul>
-                    <li class="toctree-l1"><a class="reference internal" href="pss.html">pss package</a></li>
-</ul>
-
-
-            </div>
-      </div>
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="#">Part-Structured Spotting for Cuneiform tablets</a>
-      </nav>
-
-
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-
-
-            <div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="#">Docs</a> &raquo;</li>
-
-      <li>Welcome to Part-Structured Spotting&#8217;s documentation!</li>
-      <li class="wy-breadcrumbs-aside">
-
-
-          <a href="_sources/index.txt" rel="nofollow"> View page source</a>
-
-
-      </li>
-  </ul>
-  <hr/>
+<div class="section" id="parameters">
+<h2># Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h2>
+<table border="1" class="docutils">
+<colgroup>
+<col width="15%" />
+<col width="80%" />
+<col width="5%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Parameter</th>
+<th class="head">Description</th>
+<th class="head">Type</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>&#8220;-v/&#8211;verbose&#8221;</td>
+<td>Activates verbose mode (DEBUG-logging)</td>
+<td>&#8211;</td>
+</tr>
+<tr class="row-odd"><td>&#8220;-s/&#8211;scale&#8221;</td>
+<td>&#8220;Determines the Scale of the Query and Target (default=1)&#8221;</td>
+<td>float</td>
+</tr>
+<tr class="row-even"><td>&#8220;-l/&#8211;limit&#8221;</td>
+<td>&#8220;This gives the top n results (default=10)&#8221;</td>
+<td>int</td>
+</tr>
+<tr class="row-odd"><td>&#8220;-i/&#8211;index&#8221;</td>
+<td>&#8220;This uses the i-th symbol of the query set (Must be given, if the query is an SVG)&#8221;</td>
+<td>int</td>
+</tr>
+<tr class="row-even"><td>&#8220;-q/&#8211;query&#8221;</td>
+<td>&#8220;Path to the query file&#8221;</td>
+<td>str</td>
+</tr>
+<tr class="row-odd"><td>&#8220;-t/&#8211;target&#8221;</td>
+<td>&#8220;Path to the target file&#8221;</td>
+<td>str</td>
+</tr>
+</tbody>
+</table>
 </div>
-            <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-                <div itemprop="articleBody">
-
-                    <div class="section" id="welcome-to-part-structured-spotting-s-documentation">
-                        <h1>Welcome to Part-Structured Spotting&#8217;s documentation!<a class="headerlink"
-                                                                                         href="#welcome-to-part-structured-spotting-s-documentation"
-                                                                                         title="Permalink to this headline">¶</a>
-                        </h1>
+<div class="section" id="api-documentation">
+<h2># API Documentation<a class="headerlink" href="#api-documentation" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="pss.html">pss package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="pss.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pss.html#module-pss.gui">pss.gui module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pss.html#module-pss.model">pss.model module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pss.html">API Documentation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="pss.html#module-pss.svg">pss.svg module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pss.html#module-pss">Module contents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pss.html#module-pss.model">pss.model module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pss.html#module-pss.eval">pss.eval module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pss.html#module-pss.gui">pss.gui module</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
+</div>
 
 
-                </div>
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-
-        <a href="pss.html" class="btn btn-neutral float-right" title="pss package" accesskey="n">Next <span
-                class="fa fa-arrow-circle-right"></span></a>
-      
-      
-    </div>
-  
-
-  <hr/>
-
-  <div role="contentinfo">
-    <p>
-        &copy; Copyright 2016, Maximilian Klingmann.
-
-    </p>
-  </div>
-              Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
-                  href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a
-                  href="https://readthedocs.org">Read the Docs</a>.
-
-</footer>
-
         </div>
       </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Welcome to Part-Structured Spotting of Cuneiform Characters&#8217;s documentation!</a><ul>
+<li><a class="reference internal" href="#instructions"># Instructions</a></li>
+<li><a class="reference internal" href="#parameters"># Parameters</a></li>
+<li><a class="reference internal" href="#api-documentation"># API Documentation</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+      <li>Next: <a href="pss.html" title="next chapter">API Documentation</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Maximilian Klingmann.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+      |
+      <a href="_sources/index.txt"
+          rel="nofollow">Page source</a>
+    </div>
 
-    </section>
+    
 
-  </div>
-  
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION: '1.0',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
-      });
-  </script>
-   
-
-</body>
+    
+  </body>
 </html>

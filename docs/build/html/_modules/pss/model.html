@@ -1,0 +1,742 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pss.model &mdash; Part-Structured Spotting of Cuneiform Characters 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Part-Structured Spotting of Cuneiform Characters 1.0 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pss.model</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module is the core module of this application. It defines a SymbolGroup as the query object and builds</span>
+<span class="sd">up a parent-child tree by using the query image, skeletonizing it down to one pixel and placing nodes over the skeleton</span>
+<span class="sd">The nodes within the tree are represented by the custom class Node.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># -*- encoding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="nb">reduce</span>  <span class="c1"># pylint:disable=redefined-builtin</span>
+<span class="kn">from</span> <span class="nn">logging</span> <span class="kn">import</span> <span class="n">getLogger</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">sqrt</span>
+<span class="kn">from</span> <span class="nn">operator</span> <span class="kn">import</span> <span class="n">xor</span>
+<span class="kn">from</span> <span class="nn">dt</span> <span class="kn">import</span> <span class="n">compute</span>
+<span class="kn">from</span> <span class="nn">random</span> <span class="kn">import</span> <span class="n">uniform</span>
+
+<span class="kn">from</span> <span class="nn">PyQt4</span> <span class="kn">import</span> <span class="n">QtGui</span>
+<span class="kn">from</span> <span class="nn">PyQt4.QtGui</span> <span class="kn">import</span> <span class="n">QPainter</span><span class="p">,</span> <span class="n">QMatrix</span><span class="p">,</span> <span class="n">QTransform</span>
+<span class="kn">from</span> <span class="nn">mahotas</span> <span class="kn">import</span> <span class="n">distance</span>
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">zeros</span><span class="p">,</span> <span class="n">array</span><span class="p">,</span> <span class="n">delete</span><span class="p">,</span> <span class="n">insert</span><span class="p">,</span> <span class="n">c_</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="n">inf</span><span class="p">,</span> <span class="n">invert</span><span class="p">,</span> <span class="n">ndarray</span><span class="p">,</span> <span class="n">add</span><span class="p">,</span> <span class="n">sqrt</span> <span class="k">as</span> <span class="n">rt</span><span class="p">,</span> <span class="n">nanmax</span><span class="p">,</span> <span class="n">nanmin</span><span class="p">,</span> <span class="n">full</span><span class="p">,</span> \
+    <span class="n">ones</span><span class="p">,</span> <span class="n">copy</span><span class="p">,</span> <span class="n">roll</span>
+<span class="kn">from</span> <span class="nn">numpy.random</span> <span class="kn">import</span> <span class="n">rand</span>
+<span class="kn">from</span> <span class="nn">qimage2ndarray</span> <span class="kn">import</span> <span class="n">recarray_view</span>
+<span class="kn">from</span> <span class="nn">scipy.ndimage.morphology</span> <span class="kn">import</span> <span class="n">distance_transform_edt</span><span class="p">,</span> <span class="n">distance_transform_cdt</span>
+<span class="kn">from</span> <span class="nn">skimage.feature</span> <span class="kn">import</span> <span class="n">corner_harris</span>
+<span class="kn">from</span> <span class="nn">skimage.feature</span> <span class="kn">import</span> <span class="n">corner_peaks</span>
+<span class="kn">from</span> <span class="nn">skimage.morphology</span> <span class="kn">import</span> <span class="n">skeletonize</span>
+<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="kn">from</span> <span class="nn">skimage.util</span> <span class="kn">import</span> <span class="n">random_noise</span>
+
+<span class="kn">from</span> <span class="nn">external.generalized_distance_transform</span> <span class="kn">import</span> <span class="n">of_image</span>
+
+<span class="n">sg_logger</span> <span class="o">=</span> <span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;SymbolGroup&quot;</span><span class="p">)</span>
+
+<span class="n">COLORED</span> <span class="o">=</span> <span class="mi">255</span>
+<span class="n">COLOR_BG</span> <span class="o">=</span> <span class="s2">&quot;Black&quot;</span>
+<span class="n">COLOR_FG</span> <span class="o">=</span> <span class="s2">&quot;White&quot;</span>
+<span class="n">DISTANCE</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">DIVISOR</span> <span class="o">=</span> <span class="mi">12</span>
+
+
+<div class="viewcode-block" id="Query"><a class="viewcode-back" href="../../pss.html#pss.model.Query">[docs]</a><span class="k">class</span> <span class="nc">Query</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class represents one symbol group as defined in the given svg</span>
+<span class="sd">    or the already rasterzized QImage if QueryPng is used.</span>
+<span class="sd">    When using QuerySvg:</span>
+<span class="sd">    It uses these svg-paths to create a QImage using QPainterPaths.</span>
+<span class="sd">    This &quot;original_image&quot; is converted to a Numpy-array to get skeletonized</span>
+<span class="sd">    by skimage. The array holding the skeletonized version of the QImage</span>
+<span class="sd">    is then used to find joints and corners, also using skimage.</span>
+<span class="sd">    These vectors are used to create the first nodes representing</span>
+<span class="sd">    the initial symbol group paths given by their svg.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="nb">bin</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>  <span class="c1"># pylint:disable=super-on-old-class</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This class takes a queries QImage and takes care of building up the tree-model</span>
+<span class="sd">        :param query: Object of class QueryBin or QuerySvg</span>
+<span class="sd">        :param index: This is only valid for QuerySvg and determines which symbol_group of the list of detected</span>
+<span class="sd">                      symbol_group should be used</span>
+<span class="sd">        :param bin: Boolean value which determines, if the input was an svg-file or if the query is already rasterized</span>
+<span class="sd">        :param scale: Multiplier for the scale</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="n">scale</span><span class="p">,</span> <span class="n">scale</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">bin</span><span class="p">:</span>
+            <span class="n">sg_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Setup SVG-Query with name [</span><span class="si">%s</span><span class="s2">]&quot;</span><span class="p">,</span> <span class="n">query</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="n">index</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">paths</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">svg_symbol_groups</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">names</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+            <span class="c1"># Query</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bounding_box</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_bounding_box</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_original_image</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">original_array</span> <span class="o">=</span> <span class="n">convert_qimage_to_ndarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">image</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">image</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">original_array</span> <span class="o">=</span> <span class="n">recarray_view</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">image</span><span class="p">)</span><span class="o">.</span><span class="n">red</span> <span class="o">&lt;=</span> <span class="mi">195</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;PNG-Image&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">skeleton</span> <span class="o">=</span> <span class="n">create_skeleton</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">original_array</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">enlarged_skeleton</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">enlarge_skeleton</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">corner_nodes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_corners_and_junctions</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">true_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_true_list</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">center_of_mass</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_center_of_mass</span><span class="p">()</span>
+
+        <span class="c1"># Tree</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root_node</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">open_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">closed_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_remaining_nodes</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes_backup</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">)</span>  <span class="c1"># needed for dt height and width</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root_node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_root_node</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">build_up_tree</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Query.create_bounding_box"><a class="viewcode-back" href="../../pss.html#pss.model.Query.create_bounding_box">[docs]</a>    <span class="k">def</span> <span class="nf">create_bounding_box</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates the Bounding Box given all the paths given to the constructor</span>
+<span class="sd">        :return: Bounding Box that surrounds all paths of this symbol group</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sg_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Setting up Bounding Box&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">reduce</span><span class="p">(</span><span class="k">lambda</span> <span class="n">xs</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">xs</span> <span class="o">|</span> <span class="n">x</span><span class="o">.</span><span class="n">boundingRect</span><span class="p">(),</span>
+                      <span class="bp">self</span><span class="o">.</span><span class="n">paths</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span>
+                      <span class="bp">self</span><span class="o">.</span><span class="n">paths</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">boundingRect</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="Query.create_original_image"><a class="viewcode-back" href="../../pss.html#pss.model.Query.create_original_image">[docs]</a>    <span class="k">def</span> <span class="nf">create_original_image</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a QImage and sets its background to COLOR_BG.</span>
+<span class="sd">        After that the QImage is tried to get filled with the paths</span>
+<span class="sd">        :return: QImage created out of QPainterPaths, which were given to the constructor</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QImage</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bounding_box</span><span class="o">.</span><span class="n">width</span><span class="p">()</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounding_box</span><span class="o">.</span><span class="n">height</span><span class="p">()</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
+                             <span class="n">QtGui</span><span class="o">.</span><span class="n">QImage</span><span class="o">.</span><span class="n">Format_ARGB32</span><span class="p">)</span>
+        <span class="n">set_background</span><span class="p">(</span><span class="n">COLOR_BG</span><span class="p">,</span> <span class="n">image</span><span class="p">)</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">try_to_fill_image_with_paths</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">image</span></div>
+
+<div class="viewcode-block" id="Query.try_to_fill_image_with_paths"><a class="viewcode-back" href="../../pss.html#pss.model.Query.try_to_fill_image_with_paths">[docs]</a>    <span class="k">def</span> <span class="nf">try_to_fill_image_with_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Tries filling up the QImage with QPainterPaths</span>
+<span class="sd">        :param image: The empty QImage</span>
+<span class="sd">        :return: The QImage, filled with QPainterPaths in a binary representation</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">qpainter</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QPainter</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fill_image_with_paths</span><span class="p">(</span><span class="n">qpainter</span><span class="p">,</span> <span class="n">image</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="n">qpainter</span><span class="o">.</span><span class="n">end</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Query.fill_image_with_paths"><a class="viewcode-back" href="../../pss.html#pss.model.Query.fill_image_with_paths">[docs]</a>    <span class="k">def</span> <span class="nf">fill_image_with_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">qpainter</span><span class="p">,</span> <span class="n">image</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fills the QImage with the QPainterPaths</span>
+<span class="sd">        :param qpainter: QPainter to let Qt draw into the QImage</span>
+<span class="sd">        :param image: The empty QImage</span>
+<span class="sd">        :return: The QImage, filled with QPainterPaths in a binary representation</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sg_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Brushing Paths onto QImage&quot;</span><span class="p">)</span>
+        <span class="n">qpainter</span><span class="o">.</span><span class="n">setBrush</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QColor</span><span class="p">(</span><span class="n">COLOR_FG</span><span class="p">))</span>
+        <span class="n">qpainter</span><span class="o">.</span><span class="n">setPen</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QColor</span><span class="p">(</span><span class="n">COLOR_FG</span><span class="p">))</span>
+        <span class="n">qpainter</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">)</span>
+        <span class="n">qpainter</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">bounding_box</span><span class="o">.</span><span class="n">topLeft</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">paths</span><span class="p">:</span>
+            <span class="n">qpainter</span><span class="o">.</span><span class="n">drawPath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">image</span></div>
+
+<div class="viewcode-block" id="Query.enlarge_skeleton"><a class="viewcode-back" href="../../pss.html#pss.model.Query.enlarge_skeleton">[docs]</a>    <span class="k">def</span> <span class="nf">enlarge_skeleton</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds two columns and two rows at the top, bottom, left and right to ensure the neighbor-search doesn&#39;t hit</span>
+<span class="sd">        a border.</span>
+<span class="sd">        :return: Numpy-Array, which is a column and row larger on each side.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">skeleton</span><span class="p">)</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">skeleton</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">enlarged_array</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">skeleton</span>
+        <span class="n">enlarged_array</span> <span class="o">=</span> <span class="n">c_</span><span class="p">[</span><span class="n">zeros</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">),</span> <span class="n">enlarged_array</span><span class="p">,</span> <span class="n">zeros</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)]</span>
+        <span class="n">enlarged_array</span> <span class="o">=</span> <span class="n">insert</span><span class="p">(</span><span class="n">enlarged_array</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">zeros</span><span class="p">(</span><span class="n">cols</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">enlarged_array</span> <span class="o">=</span> <span class="n">insert</span><span class="p">(</span><span class="n">enlarged_array</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">zeros</span><span class="p">(</span><span class="n">cols</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">enlarged_array</span></div>
+
+<div class="viewcode-block" id="Query.find_corners_and_junctions"><a class="viewcode-back" href="../../pss.html#pss.model.Query.find_corners_and_junctions">[docs]</a>    <span class="k">def</span> <span class="nf">find_corners_and_junctions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Finds all junctions and corners of the enlarged_skeleton, which represents a QImage</span>
+<span class="sd">        :return: List of all junctions and corners found within the enlarged_skeleton Numpy-Array</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sg_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Detecting Nodes of skeletonized QImage with name [</span><span class="si">%s</span><span class="s2">]</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">skeleton_corners</span> <span class="o">=</span> <span class="n">corner_peaks</span><span class="p">(</span><span class="n">corner_harris</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">enlarged_skeleton</span><span class="p">),</span> <span class="n">min_distance</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">corner</span> <span class="ow">in</span> <span class="n">skeleton_corners</span><span class="p">:</span>
+            <span class="n">nodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Node</span><span class="p">(</span><span class="n">position</span><span class="o">=</span><span class="n">corner</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">nodes</span></div>
+
+<div class="viewcode-block" id="Query.create_true_list"><a class="viewcode-back" href="../../pss.html#pss.model.Query.create_true_list">[docs]</a>    <span class="k">def</span> <span class="nf">create_true_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a List, which holds all indices of a &quot;True&quot;-appearance within the enlarged_skeleton.</span>
+<span class="sd">        Only Non-Corner-/Non-Junction-Nodes are added to this list.</span>
+<span class="sd">        :return: A list of 2D-Numpy-Arrays. The Arrays represent the appearance of a &quot;True&quot; in the enlarged_skeleton.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">true_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">enlarged_skeleton</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">y</span> <span class="ow">and</span> <span class="n">Node</span><span class="p">(</span><span class="n">position</span><span class="o">=</span><span class="n">array</span><span class="p">([</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]))</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">corner_nodes</span><span class="p">:</span>
+                    <span class="n">true_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">array</span><span class="p">([</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]))</span>
+        <span class="k">return</span> <span class="n">true_list</span></div>
+
+<div class="viewcode-block" id="Query.add_remaining_nodes"><a class="viewcode-back" href="../../pss.html#pss.model.Query.add_remaining_nodes">[docs]</a>    <span class="k">def</span> <span class="nf">add_remaining_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This calls sub-functions to add the remaining nodes between junctions and corners.</span>
+<span class="sd">        :return: The list of all nodes representing the QImage</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="n">nodes</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">add_nodes_greedily</span><span class="p">())</span>
+        <span class="n">nodes</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">corner_nodes</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">nodes</span></div>
+
+<div class="viewcode-block" id="Query.add_nodes_greedily"><a class="viewcode-back" href="../../pss.html#pss.model.Query.add_nodes_greedily">[docs]</a>    <span class="k">def</span> <span class="nf">add_nodes_greedily</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds nodes between junctions and corners greedily.</span>
+<span class="sd">        All corners and junctions are given as starting points.</span>
+<span class="sd">        For each of these a neighborhood of DISTANCE is checked. If &quot;True&quot;&#39;s within the enlarged_skeleton</span>
+<span class="sd">        are found closer than DISTANCE away they get deleted from the true_list. If they are exactly DISTANCE away</span>
+<span class="sd">        they are added to additional_nodes. This is done for every new &quot;good&quot; neighbor found until a corner_node is hit.</span>
+<span class="sd">        If there is more than one &quot;good&quot; neighbors for a given node they get saved into a rest_list.</span>
+<span class="sd">        This leads to a path getting finished before switching to a new path. The node creation therefor first checks</span>
+<span class="sd">        one path until it hits a corner_node. When this happens the algorithm switches to the next path (starting point</span>
+<span class="sd">        in rest_list).</span>
+<span class="sd">        :return: The list of all nodes representing the QImage</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">additional_nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">corner</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">corner_nodes</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">open_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">corner</span><span class="p">)</span>
+            <span class="n">rest_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+
+            <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">still_neighbors_to_check</span><span class="p">(</span><span class="n">rest_list</span><span class="p">):</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_node_more_than_one_neighbor</span><span class="p">():</span>
+                    <span class="n">rest_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_copy_of_open_list_and_clear</span><span class="p">()</span>
+                    <span class="k">continue</span>
+
+                <span class="n">node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">open_list</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">open_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">rest_list</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">closed_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+
+                <span class="n">good_neighbors</span><span class="p">,</span> <span class="n">bad_neighbors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decide_good_or_bad_neighbor</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">delete_bad_neighbors_from_true_list</span><span class="p">(</span><span class="n">bad_neighbors</span><span class="p">)</span>
+                <span class="n">additional_nodes</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">good_neighbors</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">additional_nodes</span></div>
+
+<div class="viewcode-block" id="Query.still_neighbors_to_check"><a class="viewcode-back" href="../../pss.html#pss.model.Query.still_neighbors_to_check">[docs]</a>    <span class="k">def</span> <span class="nf">still_neighbors_to_check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rest_list</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param rest_list: List of other Neighbors found when started to populate from corner_node</span>
+<span class="sd">        :return: True nodes still in open_list or rest_list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">open_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">rest_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="Query.has_node_more_than_one_neighbor"><a class="viewcode-back" href="../../pss.html#pss.model.Query.has_node_more_than_one_neighbor">[docs]</a>    <span class="k">def</span> <span class="nf">has_node_more_than_one_neighbor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks if a node has more than one neighbor</span>
+<span class="sd">        :return: True if more than one neighbor</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">open_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span></div>
+
+<div class="viewcode-block" id="Query.create_copy_of_open_list_and_clear"><a class="viewcode-back" href="../../pss.html#pss.model.Query.create_copy_of_open_list_and_clear">[docs]</a>    <span class="k">def</span> <span class="nf">create_copy_of_open_list_and_clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a copy of the open_list and saves it inside a rest_list. After that the open_list is cleared</span>
+<span class="sd">        :return: A list of all neighbors</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">rest_list</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">open_list</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">open_list</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">rest_list</span></div>
+
+<div class="viewcode-block" id="Query.decide_good_or_bad_neighbor"><a class="viewcode-back" href="../../pss.html#pss.model.Query.decide_good_or_bad_neighbor">[docs]</a>    <span class="k">def</span> <span class="nf">decide_good_or_bad_neighbor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Decides if a neighbor is seen as good neighbor, meaning a new node should be build there or as a bad neighbor,</span>
+<span class="sd">        meaning it should get deleted, since it is too close to existing nodes.</span>
+<span class="sd">        :param node: Current node which neighbors should get checked</span>
+<span class="sd">        :return: List of &quot;Good neighbors&quot; and list of &quot;Bad neighbors&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">good_neighbors</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="n">bad_neighbors</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">true_position</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">true_list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_neighbor_too_close</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">true_position</span><span class="p">):</span>
+                <span class="n">bad_neighbors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_neighbor_the_right_distance_away</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">true_position</span><span class="p">):</span>
+                <span class="n">new_node</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span><span class="n">position</span><span class="o">=</span><span class="n">true_position</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_node_completely_unknown</span><span class="p">(</span><span class="n">new_node</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">open_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_node</span><span class="p">)</span>
+                    <span class="n">good_neighbors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_node</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">good_neighbors</span><span class="p">,</span> <span class="n">bad_neighbors</span></div>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="Query.is_neighbor_too_close"><a class="viewcode-back" href="../../pss.html#pss.model.Query.is_neighbor_too_close">[docs]</a>    <span class="k">def</span> <span class="nf">is_neighbor_too_close</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">true_position</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks if a neighbor is too close to its node (Too close meaning less than DISTANCE away)</span>
+<span class="sd">        :param node: Current node</span>
+<span class="sd">        :param true_position: Position of potential neighbor</span>
+<span class="sd">        :return: True if distance is too close</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">node</span><span class="o">.</span><span class="n">position</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">DISTANCE</span> <span class="o">&gt;</span> <span class="n">true_position</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">node</span><span class="o">.</span><span class="n">position</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">DISTANCE</span> \
+               <span class="ow">and</span> <span class="n">node</span><span class="o">.</span><span class="n">position</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">DISTANCE</span> <span class="o">&gt;</span> <span class="n">true_position</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">node</span><span class="o">.</span><span class="n">position</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">DISTANCE</span></div>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="Query.is_neighbor_the_right_distance_away"><a class="viewcode-back" href="../../pss.html#pss.model.Query.is_neighbor_the_right_distance_away">[docs]</a>    <span class="k">def</span> <span class="nf">is_neighbor_the_right_distance_away</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">true_position</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks if a neighbor is the right distance to be seen as a &quot;Good neighbor&quot;</span>
+<span class="sd">        :param node: Current node</span>
+<span class="sd">        :param true_position: Position of potential neighbor</span>
+<span class="sd">        :return: True if distance is just right to be seen as a &quot;Good neighbor&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">position</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">DISTANCE</span> <span class="o">==</span> <span class="n">true_position</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">and</span> <span class="n">node</span><span class="o">.</span><span class="n">position</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">DISTANCE</span> <span class="o">&gt;=</span> <span class="n">true_position</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span>
+                <span class="n">node</span><span class="o">.</span><span class="n">position</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">DISTANCE</span><span class="p">)</span> \
+               <span class="ow">or</span> <span class="p">(</span>
+                   <span class="n">node</span><span class="o">.</span><span class="n">position</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">DISTANCE</span> <span class="o">==</span> <span class="n">true_position</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">and</span> <span class="n">node</span><span class="o">.</span><span class="n">position</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">DISTANCE</span> <span class="o">&gt;=</span> <span class="n">true_position</span><span class="p">[</span>
+                       <span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span>
+                   <span class="n">node</span><span class="o">.</span><span class="n">position</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">DISTANCE</span><span class="p">)</span> \
+               <span class="ow">or</span> <span class="p">(</span>
+                   <span class="n">node</span><span class="o">.</span><span class="n">position</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">DISTANCE</span> <span class="o">==</span> <span class="n">true_position</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">and</span> <span class="n">node</span><span class="o">.</span><span class="n">position</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">DISTANCE</span> <span class="o">&gt;=</span> <span class="n">true_position</span><span class="p">[</span>
+                       <span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span>
+                   <span class="n">node</span><span class="o">.</span><span class="n">position</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">DISTANCE</span><span class="p">)</span> \
+               <span class="ow">or</span> <span class="p">(</span>
+                   <span class="n">node</span><span class="o">.</span><span class="n">position</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">DISTANCE</span> <span class="o">==</span> <span class="n">true_position</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">and</span> <span class="n">node</span><span class="o">.</span><span class="n">position</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">DISTANCE</span> <span class="o">&gt;=</span> <span class="n">true_position</span><span class="p">[</span>
+                       <span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span>
+                   <span class="n">node</span><span class="o">.</span><span class="n">position</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">DISTANCE</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Query.is_node_completely_unknown"><a class="viewcode-back" href="../../pss.html#pss.model.Query.is_node_completely_unknown">[docs]</a>    <span class="k">def</span> <span class="nf">is_node_completely_unknown</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_node</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Checks if a given node is completely unknown, meaning it is neither in the closed_list nor in the corner_nodes</span>
+<span class="sd">        :param new_node: Node to be checked</span>
+<span class="sd">        :return: True if completely unknown (not in self.closed_list and not in self.corner_nodes)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">new_node</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">closed_list</span> <span class="ow">and</span> <span class="n">new_node</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">corner_nodes</span></div>
+
+<div class="viewcode-block" id="Query.delete_bad_neighbors_from_true_list"><a class="viewcode-back" href="../../pss.html#pss.model.Query.delete_bad_neighbors_from_true_list">[docs]</a>    <span class="k">def</span> <span class="nf">delete_bad_neighbors_from_true_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bad_neighbors</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Deletes bad neighbors from the true_list, so they don&#39;t get checked ever again. They can&#39;t get &quot;Good neighbors&quot;</span>
+<span class="sd">        any longer.</span>
+<span class="sd">        :param bad_neighbors: List of &quot;Bad neighbors&quot;, which should get deleted out of the true_list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">bad_neighbors</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">true_list</span> <span class="o">=</span> <span class="n">delete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">true_list</span><span class="p">,</span> <span class="n">item</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Query.calculate_center_of_mass"><a class="viewcode-back" href="../../pss.html#pss.model.Query.calculate_center_of_mass">[docs]</a>    <span class="k">def</span> <span class="nf">calculate_center_of_mass</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculates the center of mass by using the arithmetic mean of all node positions</span>
+<span class="sd">        :return: The arithmetic mean of all node positions</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">Node</span><span class="p">(</span><span class="n">position</span><span class="o">=</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">true_list</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Query.find_root_node"><a class="viewcode-back" href="../../pss.html#pss.model.Query.find_root_node">[docs]</a>    <span class="k">def</span> <span class="nf">find_root_node</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Finds the closes node to the center of mass</span>
+<span class="sd">        :return: The node closed to the center od mass. This becomes the root node for the upcoming parent-child tree</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">closest_node</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">closest_distance</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
+            <span class="n">current_distance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_euclidean_distance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">center_of_mass</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">current_distance</span> <span class="o">&lt;</span> <span class="n">closest_distance</span><span class="p">:</span>
+                <span class="n">closest_node</span> <span class="o">=</span> <span class="n">node</span>
+                <span class="n">closest_distance</span> <span class="o">=</span> <span class="n">current_distance</span>
+        <span class="k">return</span> <span class="n">closest_node</span></div>
+
+<div class="viewcode-block" id="Query.get_euclidean_distance"><a class="viewcode-back" href="../../pss.html#pss.model.Query.get_euclidean_distance">[docs]</a>    <span class="k">def</span> <span class="nf">get_euclidean_distance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Finds the euclidean distance between two given nodes</span>
+<span class="sd">        :param a: first node</span>
+<span class="sd">        :param b: second node</span>
+<span class="sd">        :return: euclidean distance between node a and node b</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_euclidean_addend</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_euclidean_addend</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span></div>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="Query.get_euclidean_addend"><a class="viewcode-back" href="../../pss.html#pss.model.Query.get_euclidean_addend">[docs]</a>    <span class="k">def</span> <span class="nf">get_euclidean_addend</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculates one addend of the euclidean distance</span>
+<span class="sd">        :param a: first node</span>
+<span class="sd">        :param b: second node</span>
+<span class="sd">        :param i: Index of the axis/dimension</span>
+<span class="sd">        :return: One calculated addend of form (a.pos.item(i) - b.pos.item(i))^2</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">pow</span><span class="p">((</span><span class="n">a</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">item</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">-</span> <span class="n">b</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">item</span><span class="p">(</span><span class="n">i</span><span class="p">)),</span> <span class="mi">2</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Query.build_up_tree"><a class="viewcode-back" href="../../pss.html#pss.model.Query.build_up_tree">[docs]</a>    <span class="k">def</span> <span class="nf">build_up_tree</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Builds up the tree structure starting from the root node.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">sg_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Starting to build up tree...&quot;</span><span class="p">)</span>
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">creating_all_relations_for_tree</span><span class="p">()</span>
+        <span class="n">end_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+        <span class="n">print_time</span><span class="p">(</span><span class="n">end_time</span><span class="p">,</span> <span class="n">start_time</span><span class="p">)</span>
+        <span class="n">sg_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Finished building up tree...</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Query.creating_all_relations_for_tree"><a class="viewcode-back" href="../../pss.html#pss.model.Query.creating_all_relations_for_tree">[docs]</a>    <span class="k">def</span> <span class="nf">creating_all_relations_for_tree</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This starts the creation of all relations for the nodes starting from the root node.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">current_tree</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="n">current_tree</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root_node</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root_node</span><span class="p">)</span>
+
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
+            <span class="n">real_child</span><span class="p">,</span> <span class="n">real_parent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_closest_node</span><span class="p">(</span><span class="n">current_tree</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">real_parent</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                <span class="k">break</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_relation</span><span class="p">(</span><span class="n">real_child</span><span class="p">,</span> <span class="n">real_parent</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update_tree</span><span class="p">(</span><span class="n">current_tree</span><span class="p">,</span> <span class="n">real_child</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="Query.update_tree"><a class="viewcode-back" href="../../pss.html#pss.model.Query.update_tree">[docs]</a>    <span class="k">def</span> <span class="nf">update_tree</span><span class="p">(</span><span class="n">current_tree</span><span class="p">,</span> <span class="n">real_child</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds new child to the current tree and removes it from the nodes list</span>
+<span class="sd">        :param current_tree: Already created tree</span>
+<span class="sd">        :param real_child: Child to add to tree and remove from nodes list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">current_tree</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">real_child</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Query.add_relation"><a class="viewcode-back" href="../../pss.html#pss.model.Query.add_relation">[docs]</a>    <span class="k">def</span> <span class="nf">add_relation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">real_child</span><span class="p">,</span> <span class="n">real_parent</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adding the child to the parent and vice versa</span>
+<span class="sd">        :param real_child: Child-Node to add</span>
+<span class="sd">        :param real_parent: Parent-Node where Child-Node should be added</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">real_parent</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">real_child</span><span class="p">)</span>
+        <span class="n">real_child</span><span class="o">.</span><span class="n">set_parent</span><span class="p">(</span><span class="n">real_parent</span><span class="p">)</span>
+        <span class="n">real_child</span><span class="o">.</span><span class="n">calculate_offset</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">real_child</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Query.find_closest_node"><a class="viewcode-back" href="../../pss.html#pss.model.Query.find_closest_node">[docs]</a>    <span class="k">def</span> <span class="nf">find_closest_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current_tree</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Finds node with closest distance to the already created tree with a greedy approach</span>
+<span class="sd">        :param current_tree: Already created tree</span>
+<span class="sd">        :return: Child-Node to add to the tree and Parent-Node, where child should get added</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">closest_distance</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">inf</span><span class="p">)</span>
+        <span class="n">real_parent</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">real_child</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="k">for</span> <span class="n">potential_child</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">potential_source</span> <span class="ow">in</span> <span class="n">current_tree</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">potential_child</span> <span class="o">!=</span> <span class="n">potential_source</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">potential_child</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">item</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">-</span> <span class="n">potential_source</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">item</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span> <span class="o">&lt;=</span> <span class="n">closest_distance</span> \
+                            <span class="ow">or</span> <span class="nb">abs</span><span class="p">(</span><span class="n">potential_child</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">item</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="n">potential_source</span><span class="o">.</span><span class="n">position</span><span class="o">.</span><span class="n">item</span><span class="p">(</span>
+                                <span class="mi">1</span><span class="p">))</span> <span class="o">&lt;=</span> <span class="n">closest_distance</span><span class="p">:</span>
+                        <span class="n">current_distance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_euclidean_distance</span><span class="p">(</span><span class="n">potential_child</span><span class="p">,</span> <span class="n">potential_source</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">current_distance</span> <span class="o">&lt;</span> <span class="n">closest_distance</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                            <span class="n">closest_distance</span> <span class="o">=</span> <span class="n">current_distance</span>
+                            <span class="n">real_child</span> <span class="o">=</span> <span class="n">potential_child</span>
+                            <span class="n">real_parent</span> <span class="o">=</span> <span class="n">potential_source</span>
+        <span class="k">return</span> <span class="n">real_child</span><span class="p">,</span> <span class="n">real_parent</span></div></div>
+
+
+<div class="viewcode-block" id="Node"><a class="viewcode-back" href="../../pss.html#pss.model.Node">[docs]</a><span class="k">class</span> <span class="nc">Node</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class represents a node, defined by Howe et. al.</span>
+<span class="sd">    It contains the reference to a parent-node and a list of its children-nodes,</span>
+<span class="sd">    as well as the 2d-representation of that node.</span>
+<span class="sd">    Additionally an offset is stored within the node. This shows the offset relative to its parent-node</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param parent: parent-node - None for root (default: None)</span>
+<span class="sd">        :param position: 2d coordinate vector of the image plane (default: [0, 0])</span>
+<span class="sd">        :param offset: relative offset to parent-node, which is set by the rest configuration (default: [0, 0)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">children</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="n">parent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">position</span> <span class="o">=</span> <span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span> <span class="k">if</span> <span class="n">position</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">position</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">offset</span> <span class="o">=</span> <span class="bp">None</span> <span class="k">if</span> <span class="n">offset</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">offset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root_dt</span> <span class="o">=</span> <span class="bp">None</span>
+
+<div class="viewcode-block" id="Node.add_child"><a class="viewcode-back" href="../../pss.html#pss.model.Node.add_child">[docs]</a>    <span class="k">def</span> <span class="nf">add_child</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">child</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds a child to the children list. Added to avoid a breach of the law of demeter.</span>
+<span class="sd">        :param child: The child to add.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">child</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Node.set_parent"><a class="viewcode-back" href="../../pss.html#pss.model.Node.set_parent">[docs]</a>    <span class="k">def</span> <span class="nf">set_parent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Setter for the Parent-Node</span>
+<span class="sd">        :param parent: A Node, which should be the parent of the current node</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="n">parent</span></div>
+
+<div class="viewcode-block" id="Node.calculate_offset"><a class="viewcode-back" href="../../pss.html#pss.model.Node.calculate_offset">[docs]</a>    <span class="k">def</span> <span class="nf">calculate_offset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This calculates the offset from the parent_node. The offset itself is to be read from the parent_node&#39;s</span>
+<span class="sd">        location. eg. an offset of (1, 1) means the child is (1, 1) from the parents point of view.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">axis</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">position</span><span class="p">):</span>
+            <span class="n">offset</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">axis</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">position</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">offset</span> <span class="o">=</span> <span class="n">array</span><span class="p">(</span><span class="n">offset</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :return: Node-Position</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;Node-Position: {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">position</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Two nodes are equal, if their position is equal</span>
+<span class="sd">        :param other: Other Node to check for equality</span>
+<span class="sd">        :return: True, if position is equal - False, else</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">other</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">position</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">position</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Node.add_root_dt"><a class="viewcode-back" href="../../pss.html#pss.model.Node.add_root_dt">[docs]</a>    <span class="k">def</span> <span class="nf">add_root_dt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">root_dt</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root_dt</span> <span class="o">=</span> <span class="n">root_dt</span></div></div>
+
+
+<div class="viewcode-block" id="Target"><a class="viewcode-back" href="../../pss.html#pss.model.Target">[docs]</a><span class="k">class</span> <span class="nc">Target</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class represents the target image, which is usually the tablet to scan.</span>
+<span class="sd">    It is responsible for rasterizing a given svg to a QImage and converting this QImage to</span>
+<span class="sd">    a valid ndarray, which can be used by skimage, scipy and matplotlib.</span>
+<span class="sd">    In case TargetBin was used to load in the target-image the conversion to a QImage is not needed,</span>
+<span class="sd">    since TargetBin already holds a QImage with the image loaded into it. In that case this step</span>
+<span class="sd">    is skipped and only the conversion to a valid ndarray is done.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># noinspection PyCallByClass,PyTypeChecker</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="nb">bin</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This class takes a queries QImage and takes care of building up the tree-model</span>
+<span class="sd">        :param target: Object of class TargetBin or TargetSvg</span>
+<span class="sd">        :param bin: Boolean value which determines, if the input was an svg-file or if the query is already rasterized</span>
+<span class="sd">        :param scale: Multiplier for the scale</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="n">scale</span><span class="p">,</span> <span class="n">scale</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">bin</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bounding_box</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">renderer</span><span class="o">.</span><span class="n">viewBox</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_image</span><span class="p">(</span><span class="n">target</span><span class="o">.</span><span class="n">renderer</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">original_array</span> <span class="o">=</span> <span class="n">convert_qimage_to_ndarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">original_array</span> <span class="o">=</span> <span class="n">random_noise</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">original_array</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;s&amp;p&quot;</span><span class="p">,</span> <span class="n">amount</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">image</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">image</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">original_array</span> <span class="o">=</span> <span class="n">recarray_view</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">image</span><span class="p">)</span><span class="o">.</span><span class="n">red</span> <span class="o">&gt;=</span> <span class="mi">150</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inverted_array</span> <span class="o">=</span> <span class="n">invert</span><span class="p">(</span><span class="n">ndarray</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">original_array</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">))</span>
+
+<div class="viewcode-block" id="Target.create_image"><a class="viewcode-back" href="../../pss.html#pss.model.Target.create_image">[docs]</a>    <span class="k">def</span> <span class="nf">create_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">renderer</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Uses a QSvgRenderer to return a QImage from it</span>
+<span class="sd">        :param renderer: the QSvgRenderer object given by TargetSvg</span>
+<span class="sd">        :return: QImage representation of the QSvgRenderer</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QImage</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bounding_box</span><span class="o">.</span><span class="n">height</span><span class="p">()</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounding_box</span><span class="o">.</span><span class="n">width</span><span class="p">()</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
+                             <span class="n">QtGui</span><span class="o">.</span><span class="n">QImage</span><span class="o">.</span><span class="n">Format_ARGB32</span><span class="p">)</span>
+        <span class="n">set_background</span><span class="p">(</span><span class="n">COLOR_FG</span><span class="p">,</span> <span class="n">image</span><span class="p">)</span>
+
+        <span class="n">qpainter</span> <span class="o">=</span> <span class="n">QtGui</span><span class="o">.</span><span class="n">QPainter</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+        <span class="n">qpainter</span><span class="o">.</span><span class="n">setRenderHint</span><span class="p">(</span><span class="n">QPainter</span><span class="o">.</span><span class="n">SmoothPixmapTransform</span><span class="p">)</span>
+        <span class="n">renderer</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">qpainter</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">image</span></div></div>
+
+
+<span class="c1"># TODO: Tests for DistanceTransform will be added eventually</span>
+<div class="viewcode-block" id="DistanceTransform"><a class="viewcode-back" href="../../pss.html#pss.model.DistanceTransform">[docs]</a><span class="k">class</span> <span class="nc">DistanceTransform</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class calculates the distance transforms for all possible nodes of a query and sums them up to get the</span>
+<span class="sd">    energy minimization for a given target.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">target</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param query: Query-object, which holds the tree-model rest configuration</span>
+<span class="sd">        :param target: Target-object, which holds the ndarray-array of the target image</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">query</span> <span class="o">=</span> <span class="n">query</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target</span> <span class="o">=</span> <span class="n">target</span>
+        <span class="n">query_shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">original_array</span><span class="o">.</span><span class="n">shape</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">original_array</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">query_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">original_array</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">query_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">original_array</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">original_array</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">target_copy</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">original_array</span><span class="p">)</span>
+        <span class="n">target_copy</span><span class="p">[</span><span class="n">target_copy</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span><span class="o">**</span><span class="mi">15</span>
+
+        <span class="n">empty_dt</span> <span class="o">=</span> <span class="n">ones</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">height</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">width</span><span class="p">))</span>
+        <span class="n">empty_dt</span><span class="p">[</span><span class="n">query_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="o">-</span><span class="n">query_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">query_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span><span class="o">-</span><span class="n">query_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">target_copy</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root_dt</span> <span class="o">=</span> <span class="n">distance</span><span class="p">(</span><span class="n">empty_dt</span><span class="p">)</span><span class="o">/</span><span class="mi">5</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_root_dt_to_nodes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">root_node</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">calculate_distance_transform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">root_node</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sum_dt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">root_node</span><span class="o">.</span><span class="n">root_dt</span><span class="p">[</span><span class="n">query_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="o">-</span><span class="n">query_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">query_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span><span class="o">-</span><span class="n">query_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root_dt_normalized</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">root_dt</span><span class="p">[</span><span class="n">query_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span><span class="o">-</span><span class="n">query_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">query_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span><span class="o">-</span><span class="n">query_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+
+
+
+<div class="viewcode-block" id="DistanceTransform.calculate_distance_transform"><a class="viewcode-back" href="../../pss.html#pss.model.DistanceTransform.calculate_distance_transform">[docs]</a>    <span class="k">def</span> <span class="nf">calculate_distance_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">offset</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">child</span><span class="o">.</span><span class="n">offset</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">y</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">node</span><span class="o">.</span><span class="n">root_dt</span><span class="p">[</span><span class="nb">abs</span><span class="p">(</span><span class="n">y</span><span class="p">):,</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="p">):]</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_distance_transform</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">node</span><span class="o">.</span><span class="n">root_dt</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">-</span> <span class="nb">abs</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">-</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)]</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_distance_transform</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">y</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">x</span><span class="p">:</span>
+                <span class="n">node</span><span class="o">.</span><span class="n">root_dt</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">-</span> <span class="nb">abs</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="p">):]</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_distance_transform</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">y</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="o">&gt;=</span> <span class="n">x</span><span class="p">:</span>
+                <span class="n">node</span><span class="o">.</span><span class="n">root_dt</span><span class="p">[</span><span class="nb">abs</span><span class="p">(</span><span class="n">y</span><span class="p">):,</span> <span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">-</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)]</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_distance_transform</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
+            <span class="n">node</span><span class="o">.</span><span class="n">root_dt</span> <span class="o">/=</span> <span class="mf">1.5</span>
+
+        <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">offset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">offset</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">offset</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">y</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">node</span><span class="o">.</span><span class="n">root_dt</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">-</span> <span class="nb">abs</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">-</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)]</span>
+            <span class="k">elif</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">node</span><span class="o">.</span><span class="n">root_dt</span><span class="p">[</span><span class="nb">abs</span><span class="p">(</span><span class="n">y</span><span class="p">):,</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="p">):]</span>
+            <span class="k">elif</span> <span class="n">y</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">x</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">node</span><span class="o">.</span><span class="n">root_dt</span><span class="p">[</span><span class="nb">abs</span><span class="p">(</span><span class="n">y</span><span class="p">):,</span> <span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">width</span> <span class="o">-</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)]</span>
+            <span class="k">elif</span> <span class="n">y</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="o">&gt;=</span> <span class="n">x</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">node</span><span class="o">.</span><span class="n">root_dt</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">height</span> <span class="o">-</span> <span class="nb">abs</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="p">):]</span>
+
+        <span class="k">return</span> <span class="n">node</span><span class="o">.</span><span class="n">root_dt</span></div>
+
+<div class="viewcode-block" id="DistanceTransform.add_root_dt_to_nodes"><a class="viewcode-back" href="../../pss.html#pss.model.DistanceTransform.add_root_dt_to_nodes">[docs]</a>    <span class="k">def</span> <span class="nf">add_root_dt_to_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_root_dt_to_nodes</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
+        <span class="n">node</span><span class="o">.</span><span class="n">add_root_dt</span><span class="p">(</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root_dt</span><span class="p">))</span></div></div>
+
+
+<div class="viewcode-block" id="convert_qimage_to_ndarray"><a class="viewcode-back" href="../../pss.html#pss.model.convert_qimage_to_ndarray">[docs]</a><span class="k">def</span> <span class="nf">convert_qimage_to_ndarray</span><span class="p">(</span><span class="n">image</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Converts a given QImage into a Numpy-Array</span>
+<span class="sd">    :param image:</span>
+<span class="sd">    :return: Boolean Numpy-Array representing the QImage. &quot;True&quot; = Foreground, &quot;False&quot; = Background</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sg_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Converting QImage to NumPy-Array&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">recarray_view</span><span class="p">(</span><span class="n">image</span><span class="p">)</span><span class="o">.</span><span class="n">red</span> <span class="o">&gt;=</span> <span class="mi">128</span></div>
+
+
+<span class="c1"># TODO: Add tests</span>
+<div class="viewcode-block" id="print_time"><a class="viewcode-back" href="../../pss.html#pss.model.print_time">[docs]</a><span class="k">def</span> <span class="nf">print_time</span><span class="p">(</span><span class="n">end_time</span><span class="p">,</span> <span class="n">start_time</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This method just prints how long a certain function took</span>
+<span class="sd">    :param end_time: Timestamp taken after finished building the tree</span>
+<span class="sd">    :param start_time: Timestamp taken before started building the tree</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">delta_time</span> <span class="o">=</span> <span class="n">end_time</span> <span class="o">-</span> <span class="n">start_time</span>
+    <span class="n">tuple_divmod</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="n">delta_time</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">(),</span> <span class="mi">60</span><span class="p">)</span>
+    <span class="n">delta_seconds</span> <span class="o">=</span> <span class="n">tuple_divmod</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">tuple_divmod</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">sg_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Finishing took </span><span class="si">%d</span><span class="s2"> seconds&quot;</span><span class="p">,</span> <span class="n">delta_seconds</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="set_background"><a class="viewcode-back" href="../../pss.html#pss.model.set_background">[docs]</a><span class="k">def</span> <span class="nf">set_background</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="n">image</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sets the background color of the QImage</span>
+<span class="sd">    :param image: QImage which background should be changed</span>
+<span class="sd">    :param color: Color to change background to</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sg_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Setting Background to [</span><span class="si">%s</span><span class="s2">]&quot;</span><span class="p">,</span> <span class="n">color</span><span class="p">)</span>
+    <span class="n">image</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">QtGui</span><span class="o">.</span><span class="n">QColor</span><span class="p">(</span><span class="n">color</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="create_skeleton"><a class="viewcode-back" href="../../pss.html#pss.model.create_skeleton">[docs]</a><span class="k">def</span> <span class="nf">create_skeleton</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">original_array</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Skeletonizes a given Numpy-Array to a 1px width. See skimage-documentation for skeletonize</span>
+<span class="sd">    :param original_array:</span>
+<span class="sd">    :param name: Name of the QImage (For Logging purposes)</span>
+<span class="sd">    :return: Skeletonized Numpy-Array</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sg_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Skeletonizing QImage with name [</span><span class="si">%s</span><span class="s2">]&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">skeletonize</span><span class="p">(</span><span class="n">original_array</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Maximilian Klingmann.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

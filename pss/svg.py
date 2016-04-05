@@ -17,7 +17,7 @@ def handle_file_not_existing(path):
     :raises: FileNotFoundError if path not found
     """
     if not isfile(path):
-        svg_logger.error("Path to SVG-File invalid!")
+        svg_logger.error("Path to SVG-File invalid! Make sure the file is placed in the resources-folder")
         raise FileNotFoundError  # noqa
 
 
