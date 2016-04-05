@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Part-Structured Spotting documentation build configuration file, created by
-# sphinx-quickstart on Mon Jan 18 19:52:56 2016.
+# Part-Structured Spotting of Cuneiform Characters documentation build configuration file, created by
+# sphinx-quickstart on Tue Apr  5 09:36:17 2016.
 #
 # This file is execfile()d with the current directory set to its
 # containing dir.
@@ -13,14 +13,14 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import os
 import sys
+import os
 from unittest.mock import MagicMock
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.insert(0, os.path.abspath('../../'))
+#sys.path.insert(0, os.path.abspath('.'))
 
 # -- General configuration ------------------------------------------------
 
@@ -32,8 +32,9 @@ sys.path.insert(0, os.path.abspath('../../'))
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinx.ext.doctest',
-    'sphinx.ext.pngmath'
+    'sphinx.ext.intersphinx',
+    'sphinx.ext.imgmath',
+    'sphinx.ext.viewcode',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -51,7 +52,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'Part-Structured Spotting for Cuneiform tablets'
+project = 'Part-Structured Spotting of Cuneiform Characters'
 copyright = '2016, Maximilian Klingmann'
 author = 'Maximilian Klingmann'
 
@@ -79,6 +80,7 @@ language = None
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
+# This patterns also effect to html_static_path and html_extra_path
 exclude_patterns = []
 
 # The reST default role (used for this markup: `text`) to use for all
@@ -113,7 +115,7 @@ todo_include_todos = False
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'sphinx_rtd_theme'
+html_theme = 'alabaster'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -123,9 +125,9 @@ html_theme = 'sphinx_rtd_theme'
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []
 
-# The name for this set of Sphinx documents.  If None, it defaults to
-# "<project> v<release> documentation".
-#html_title = None
+# The name for this set of Sphinx documents.
+# "<project> v<release> documentation" by default.
+#html_title = 'Part-Structured Spotting of Cuneiform Characters v1.0'
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 #html_short_title = None
@@ -134,8 +136,8 @@ html_theme = 'sphinx_rtd_theme'
 # of the sidebar.
 #html_logo = None
 
-# The name of an image file (within the static path) to use as favicon of the
-# docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
+# The name of an image file (relative to this directory) to use as a favicon of
+# the docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
 #html_favicon = None
 
@@ -149,9 +151,10 @@ html_static_path = ['_static']
 # directly to the root of the documentation.
 #html_extra_path = []
 
-# If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
-# using the given strftime format.
-#html_last_updated_fmt = '%b %d, %Y'
+# If not None, a 'Last updated on:' timestamp is inserted at every page
+# bottom, using the given strftime format.
+# The empty string is equivalent to '%b %d, %Y'.
+#html_last_updated_fmt = None
 
 # If true, SmartyPants will be used to convert quotes and dashes to
 # typographically correct entities.
@@ -193,11 +196,12 @@ html_static_path = ['_static']
 # Language to be used for generating the HTML full-text search index.
 # Sphinx supports the following languages:
 #   'da', 'de', 'en', 'es', 'fi', 'fr', 'h', 'it', 'ja'
-#   'nl', 'no', 'pt', 'ro', 'r', 'sv', 'tr'
+#   'nl', 'no', 'pt', 'ro', 'r', 'sv', 'tr', 'zh'
 #html_search_language = 'en'
 
 # A dictionary with options for the search language support, empty by default.
-# Now only 'ja' uses this config value
+# 'ja' uses this config value.
+# 'zh' user can custom change `jieba` dictionary path.
 #html_search_options = {'type': 'default'}
 
 # The name of a javascript file (relative to the configuration directory) that
@@ -205,7 +209,7 @@ html_static_path = ['_static']
 #html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'Part-StructuredSpottingdoc'
+htmlhelp_basename = 'Part-StructuredSpottingofCuneiformCharactersdoc'
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -227,7 +231,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'Part-StructuredSpotting.tex', 'Part-Structured Spotting Documentation',
+    (master_doc, 'Part-StructuredSpottingofCuneiformCharacters.tex', 'Part-Structured Spotting of Cuneiform Characters Documentation',
      'Maximilian Klingmann', 'manual'),
 ]
 
@@ -257,7 +261,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'part-structuredspotting', 'Part-Structured Spotting Documentation',
+    (master_doc, 'part-structuredspottingofcuneiformcharacters', 'Part-Structured Spotting of Cuneiform Characters Documentation',
      [author], 1)
 ]
 
@@ -271,8 +275,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'Part-StructuredSpotting', 'Part-Structured Spotting Documentation',
-     author, 'Part-StructuredSpotting', 'One line description of project.',
+    (master_doc, 'Part-StructuredSpottingofCuneiformCharacters', 'Part-Structured Spotting of Cuneiform Characters Documentation',
+     author, 'Part-StructuredSpottingofCuneiformCharacters', 'One line description of project.',
      'Miscellaneous'),
 ]
 
@@ -288,12 +292,14 @@ texinfo_documents = [
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
 
+
+# Example configuration for intersphinx: refer to the Python standard library.
+intersphinx_mapping = {'https://docs.python.org/': None}
+
 class Mock(MagicMock):
     @classmethod
     def __getattr__(cls, name):
         return Mock()
 
-# sys.setrecursionlimit(100000)
-MOCK_MODULES = ['numpy', 'matplotlib', 'PyQt4', 'matplotlib.pyplot', 'PyQt4.QtGui', 'PyQt4.QtSvg', 'qimage2ndarray',
-                'scipy.ndimage.morphology', 'skimage', 'skimage.feature', 'skimage.morphology']
+MOCK_MODULES = []
 sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)

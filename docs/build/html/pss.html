@@ -1,298 +1,646 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>pss package &mdash; Part-Structured Spotting for Cuneiform tablets 1.0 documentation</title>
-  
-
-  
-  
-
-  
-
-  
-  
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-
-  
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-
-
-    <link rel="top" title="Part-Structured Spotting for Cuneiform tablets 1.0 documentation" href="index.html"/>
-    <link rel="prev" title="Welcome to Part-Structured Spotting’s documentation!" href="index.html"/>
-
-
-    <script src="_static/js/modernizr.min.js"></script>
-
-</head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
+    <title>API Documentation &mdash; Part-Structured Spotting of Cuneiform Characters 1.0 documentation</title>
     
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-        <div class="wy-side-scroll">
-            <div class="wy-side-nav-search">
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Part-Structured Spotting of Cuneiform Characters 1.0 documentation" href="index.html" />
+    <link rel="prev" title="Welcome to Part-Structured Spotting of Cuneiform Characters’s documentation!" href="index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
+  </head>
+  <body role="document">  
 
-                <a href="index.html" class="icon icon-home"> Part-Structured Spotting for Cuneiform tablets
-
-
-                </a>
-
-
-                <div class="version">
-                    1.0
-                </div>
-
-
-                <div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-    <input type="hidden" name="check_keywords" value="yes" />
-    <input type="hidden" name="area" value="default" />
-  </form>
-</div>
-
-
-            </div>
-
-            <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-
-
-                <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="">pss package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-pss.gui">pss.gui module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-pss.model">pss.model module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-pss.svg">pss.svg module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-pss">Module contents</a></li>
-</ul>
-</li>
-</ul>
-
-
-            </div>
-      </div>
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">Part-Structured Spotting for Cuneiform tablets</a>
-      </nav>
-
-
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-
-
-            <div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="index.html">Docs</a> &raquo;</li>
-      
-    <li>pss package</li>
-      <li class="wy-breadcrumbs-aside">
-
-
-          <a href="_sources/pss.txt" rel="nofollow"> View page source</a>
-
-
-      </li>
-  </ul>
-  <hr/>
-</div>
-            <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-                <div itemprop="articleBody">
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
             
-  <div class="section" id="pss-package">
-<h1>pss package<a class="headerlink" href="#pss-package" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+  <div class="section" id="api-documentation">
+<h1>API Documentation<a class="headerlink" href="#api-documentation" title="Permalink to this headline">¶</a></h1>
+<p>This documentation was automatically generated by Sphinx using the docstrings within the modules.</p>
+<div class="section" id="module-pss.svg">
+<span id="pss-svg-module"></span><h2>pss.svg module<a class="headerlink" href="#module-pss.svg" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pss.svg.QuerySvg">
+<em class="property">class </em><code class="descclassname">pss.svg.</code><code class="descname">QuerySvg</code><span class="sig-paren">(</span><em>path</em>, <em>infix=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/svg.html#QuerySvg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.svg.QuerySvg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>This class opens and manages as the query image.</p>
+<dl class="staticmethod">
+<dt id="pss.svg.QuerySvg.get_symbol_group_size">
+<em class="property">static </em><code class="descname">get_symbol_group_size</code><span class="sig-paren">(</span><em>symbol_group</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/svg.html#QuerySvg.get_symbol_group_size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.svg.QuerySvg.get_symbol_group_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the number of QPainterPaths within a given SymbolGroup
+:param symbol_group: The SymbolGroup to find the size of
+:return: The number of Paths within that SymbolGroup</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="pss.svg.QuerySvg.load_svg">
+<em class="property">static </em><code class="descname">load_svg</code><span class="sig-paren">(</span><em>infix</em>, <em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/svg.html#QuerySvg.load_svg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.svg.QuerySvg.load_svg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Opens an SVG-file
+:param infix: This infix is used by the external library elka_svg.py
+to check for specific groups within the svg.
+:param path: Path, where the SVG file is located
+:return: names and lists of QPainterPaths of the SymbolGroups read from the SVG</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pss.svg.TargetSvg">
+<em class="property">class </em><code class="descclassname">pss.svg.</code><code class="descname">TargetSvg</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/svg.html#TargetSvg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.svg.TargetSvg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>This class opens and manages a given svg file as the target image.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pss.svg.handle_file_not_existing">
+<code class="descclassname">pss.svg.</code><code class="descname">handle_file_not_existing</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/svg.html#handle_file_not_existing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.svg.handle_file_not_existing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks whether the given file is existing
+:param path: Path of file to check for existence
+:raises: FileNotFoundError if path not found</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pss.model">
+<span id="pss-model-module"></span><h2>pss.model module<a class="headerlink" href="#module-pss.model" title="Permalink to this headline">¶</a></h2>
+<p>This module is the core module of this application. It defines a SymbolGroup as the query object and builds
+up a parent-child tree by using the query image, skeletonizing it down to one pixel and placing nodes over the skeleton
+The nodes within the tree are represented by the custom class Node.</p>
+<dl class="class">
+<dt id="pss.model.DistanceTransform">
+<em class="property">class </em><code class="descclassname">pss.model.</code><code class="descname">DistanceTransform</code><span class="sig-paren">(</span><em>query</em>, <em>target</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#DistanceTransform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.DistanceTransform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>This class calculates the distance transforms for all possible nodes of a query and sums them up to get the
+energy minimization for a given target.</p>
+<dl class="method">
+<dt id="pss.model.DistanceTransform.add_root_dt_to_nodes">
+<code class="descname">add_root_dt_to_nodes</code><span class="sig-paren">(</span><em>node</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#DistanceTransform.add_root_dt_to_nodes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.DistanceTransform.add_root_dt_to_nodes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pss.model.DistanceTransform.calculate_distance_transform">
+<code class="descname">calculate_distance_transform</code><span class="sig-paren">(</span><em>node</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#DistanceTransform.calculate_distance_transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.DistanceTransform.calculate_distance_transform" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pss.model.Node">
+<em class="property">class </em><code class="descclassname">pss.model.</code><code class="descname">Node</code><span class="sig-paren">(</span><em>parent=None</em>, <em>position=None</em>, <em>offset=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#Node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.Node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>This class represents a node, defined by Howe et. al.
+It contains the reference to a parent-node and a list of its children-nodes,
+as well as the 2d-representation of that node.
+Additionally an offset is stored within the node. This shows the offset relative to its parent-node</p>
+<dl class="method">
+<dt id="pss.model.Node.add_child">
+<code class="descname">add_child</code><span class="sig-paren">(</span><em>child</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#Node.add_child"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.Node.add_child" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a child to the children list. Added to avoid a breach of the law of demeter.
+:param child: The child to add.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pss.model.Node.add_root_dt">
+<code class="descname">add_root_dt</code><span class="sig-paren">(</span><em>root_dt</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#Node.add_root_dt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.Node.add_root_dt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pss.model.Node.calculate_offset">
+<code class="descname">calculate_offset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#Node.calculate_offset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.Node.calculate_offset" title="Permalink to this definition">¶</a></dt>
+<dd><p>This calculates the offset from the parent_node. The offset itself is to be read from the parent_node&#8217;s
+location. eg. an offset of (1, 1) means the child is (1, 1) from the parents point of view.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pss.model.Node.set_parent">
+<code class="descname">set_parent</code><span class="sig-paren">(</span><em>parent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#Node.set_parent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.Node.set_parent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Setter for the Parent-Node
+:param parent: A Node, which should be the parent of the current node</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pss.model.Query">
+<em class="property">class </em><code class="descclassname">pss.model.</code><code class="descname">Query</code><span class="sig-paren">(</span><em>query</em>, <em>index=0</em>, <em>bin=False</em>, <em>scale=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#Query"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.Query" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>This class represents one symbol group as defined in the given svg
+or the already rasterzized QImage if QueryPng is used.
+When using QuerySvg:
+It uses these svg-paths to create a QImage using QPainterPaths.
+This &#8220;original_image&#8221; is converted to a Numpy-array to get skeletonized
+by skimage. The array holding the skeletonized version of the QImage
+is then used to find joints and corners, also using skimage.
+These vectors are used to create the first nodes representing
+the initial symbol group paths given by their svg.</p>
+<dl class="method">
+<dt id="pss.model.Query.add_nodes_greedily">
+<code class="descname">add_nodes_greedily</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#Query.add_nodes_greedily"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.Query.add_nodes_greedily" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds nodes between junctions and corners greedily.
+All corners and junctions are given as starting points.
+For each of these a neighborhood of DISTANCE is checked. If &#8220;True&#8220;&#8216;s within the enlarged_skeleton
+are found closer than DISTANCE away they get deleted from the true_list. If they are exactly DISTANCE away
+they are added to additional_nodes. This is done for every new &#8220;good&#8221; neighbor found until a corner_node is hit.
+If there is more than one &#8220;good&#8221; neighbors for a given node they get saved into a rest_list.
+This leads to a path getting finished before switching to a new path. The node creation therefor first checks
+one path until it hits a corner_node. When this happens the algorithm switches to the next path (starting point
+in rest_list).
+:return: The list of all nodes representing the QImage</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pss.model.Query.add_relation">
+<code class="descname">add_relation</code><span class="sig-paren">(</span><em>real_child</em>, <em>real_parent</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#Query.add_relation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.Query.add_relation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adding the child to the parent and vice versa
+:param real_child: Child-Node to add
+:param real_parent: Parent-Node where Child-Node should be added</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pss.model.Query.add_remaining_nodes">
+<code class="descname">add_remaining_nodes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#Query.add_remaining_nodes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.Query.add_remaining_nodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>This calls sub-functions to add the remaining nodes between junctions and corners.
+:return: The list of all nodes representing the QImage</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pss.model.Query.build_up_tree">
+<code class="descname">build_up_tree</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#Query.build_up_tree"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.Query.build_up_tree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds up the tree structure starting from the root node.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pss.model.Query.calculate_center_of_mass">
+<code class="descname">calculate_center_of_mass</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#Query.calculate_center_of_mass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.Query.calculate_center_of_mass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the center of mass by using the arithmetic mean of all node positions
+:return: The arithmetic mean of all node positions</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pss.model.Query.create_bounding_box">
+<code class="descname">create_bounding_box</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#Query.create_bounding_box"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.Query.create_bounding_box" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates the Bounding Box given all the paths given to the constructor
+:return: Bounding Box that surrounds all paths of this symbol group</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pss.model.Query.create_copy_of_open_list_and_clear">
+<code class="descname">create_copy_of_open_list_and_clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#Query.create_copy_of_open_list_and_clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.Query.create_copy_of_open_list_and_clear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a copy of the open_list and saves it inside a rest_list. After that the open_list is cleared
+:return: A list of all neighbors</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pss.model.Query.create_original_image">
+<code class="descname">create_original_image</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#Query.create_original_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.Query.create_original_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a QImage and sets its background to COLOR_BG.
+After that the QImage is tried to get filled with the paths
+:return: QImage created out of QPainterPaths, which were given to the constructor</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pss.model.Query.create_true_list">
+<code class="descname">create_true_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#Query.create_true_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.Query.create_true_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a List, which holds all indices of a &#8220;True&#8221;-appearance within the enlarged_skeleton.
+Only Non-Corner-/Non-Junction-Nodes are added to this list.
+:return: A list of 2D-Numpy-Arrays. The Arrays represent the appearance of a &#8220;True&#8221; in the enlarged_skeleton.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pss.model.Query.creating_all_relations_for_tree">
+<code class="descname">creating_all_relations_for_tree</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#Query.creating_all_relations_for_tree"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.Query.creating_all_relations_for_tree" title="Permalink to this definition">¶</a></dt>
+<dd><p>This starts the creation of all relations for the nodes starting from the root node.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pss.model.Query.decide_good_or_bad_neighbor">
+<code class="descname">decide_good_or_bad_neighbor</code><span class="sig-paren">(</span><em>node</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#Query.decide_good_or_bad_neighbor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.Query.decide_good_or_bad_neighbor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decides if a neighbor is seen as good neighbor, meaning a new node should be build there or as a bad neighbor,
+meaning it should get deleted, since it is too close to existing nodes.
+:param node: Current node which neighbors should get checked
+:return: List of &#8220;Good neighbors&#8221; and list of &#8220;Bad neighbors&#8221;</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pss.model.Query.delete_bad_neighbors_from_true_list">
+<code class="descname">delete_bad_neighbors_from_true_list</code><span class="sig-paren">(</span><em>bad_neighbors</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#Query.delete_bad_neighbors_from_true_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.Query.delete_bad_neighbors_from_true_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes bad neighbors from the true_list, so they don&#8217;t get checked ever again. They can&#8217;t get &#8220;Good neighbors&#8221;
+any longer.
+:param bad_neighbors: List of &#8220;Bad neighbors&#8221;, which should get deleted out of the true_list</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pss.model.Query.enlarge_skeleton">
+<code class="descname">enlarge_skeleton</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#Query.enlarge_skeleton"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.Query.enlarge_skeleton" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds two columns and two rows at the top, bottom, left and right to ensure the neighbor-search doesn&#8217;t hit
+a border.
+:return: Numpy-Array, which is a column and row larger on each side.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pss.model.Query.fill_image_with_paths">
+<code class="descname">fill_image_with_paths</code><span class="sig-paren">(</span><em>qpainter</em>, <em>image</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#Query.fill_image_with_paths"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.Query.fill_image_with_paths" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fills the QImage with the QPainterPaths
+:param qpainter: QPainter to let Qt draw into the QImage
+:param image: The empty QImage
+:return: The QImage, filled with QPainterPaths in a binary representation</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pss.model.Query.find_closest_node">
+<code class="descname">find_closest_node</code><span class="sig-paren">(</span><em>current_tree</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#Query.find_closest_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.Query.find_closest_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds node with closest distance to the already created tree with a greedy approach
+:param current_tree: Already created tree
+:return: Child-Node to add to the tree and Parent-Node, where child should get added</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pss.model.Query.find_corners_and_junctions">
+<code class="descname">find_corners_and_junctions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#Query.find_corners_and_junctions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.Query.find_corners_and_junctions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds all junctions and corners of the enlarged_skeleton, which represents a QImage
+:return: List of all junctions and corners found within the enlarged_skeleton Numpy-Array</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pss.model.Query.find_root_node">
+<code class="descname">find_root_node</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#Query.find_root_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.Query.find_root_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the closes node to the center of mass
+:return: The node closed to the center od mass. This becomes the root node for the upcoming parent-child tree</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="pss.model.Query.get_euclidean_addend">
+<em class="property">static </em><code class="descname">get_euclidean_addend</code><span class="sig-paren">(</span><em>a</em>, <em>b</em>, <em>i</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#Query.get_euclidean_addend"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.Query.get_euclidean_addend" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates one addend of the euclidean distance
+:param a: first node
+:param b: second node
+:param i: Index of the axis/dimension
+:return: One calculated addend of form (a.pos.item(i) - b.pos.item(i))^2</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pss.model.Query.get_euclidean_distance">
+<code class="descname">get_euclidean_distance</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#Query.get_euclidean_distance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.Query.get_euclidean_distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the euclidean distance between two given nodes
+:param a: first node
+:param b: second node
+:return: euclidean distance between node a and node b</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pss.model.Query.has_node_more_than_one_neighbor">
+<code class="descname">has_node_more_than_one_neighbor</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#Query.has_node_more_than_one_neighbor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.Query.has_node_more_than_one_neighbor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if a node has more than one neighbor
+:return: True if more than one neighbor</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="pss.model.Query.is_neighbor_the_right_distance_away">
+<em class="property">static </em><code class="descname">is_neighbor_the_right_distance_away</code><span class="sig-paren">(</span><em>node</em>, <em>true_position</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#Query.is_neighbor_the_right_distance_away"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.Query.is_neighbor_the_right_distance_away" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if a neighbor is the right distance to be seen as a &#8220;Good neighbor&#8221;
+:param node: Current node
+:param true_position: Position of potential neighbor
+:return: True if distance is just right to be seen as a &#8220;Good neighbor&#8221;</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="pss.model.Query.is_neighbor_too_close">
+<em class="property">static </em><code class="descname">is_neighbor_too_close</code><span class="sig-paren">(</span><em>node</em>, <em>true_position</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#Query.is_neighbor_too_close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.Query.is_neighbor_too_close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if a neighbor is too close to its node (Too close meaning less than DISTANCE away)
+:param node: Current node
+:param true_position: Position of potential neighbor
+:return: True if distance is too close</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pss.model.Query.is_node_completely_unknown">
+<code class="descname">is_node_completely_unknown</code><span class="sig-paren">(</span><em>new_node</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#Query.is_node_completely_unknown"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.Query.is_node_completely_unknown" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if a given node is completely unknown, meaning it is neither in the closed_list nor in the corner_nodes
+:param new_node: Node to be checked
+:return: True if completely unknown (not in self.closed_list and not in self.corner_nodes)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pss.model.Query.still_neighbors_to_check">
+<code class="descname">still_neighbors_to_check</code><span class="sig-paren">(</span><em>rest_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#Query.still_neighbors_to_check"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.Query.still_neighbors_to_check" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>rest_list</strong> &#8211; List of other Neighbors found when started to populate from corner_node</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True nodes still in open_list or rest_list</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pss.model.Query.try_to_fill_image_with_paths">
+<code class="descname">try_to_fill_image_with_paths</code><span class="sig-paren">(</span><em>image</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#Query.try_to_fill_image_with_paths"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.Query.try_to_fill_image_with_paths" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tries filling up the QImage with QPainterPaths
+:param image: The empty QImage
+:return: The QImage, filled with QPainterPaths in a binary representation</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="pss.model.Query.update_tree">
+<em class="property">static </em><code class="descname">update_tree</code><span class="sig-paren">(</span><em>current_tree</em>, <em>real_child</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#Query.update_tree"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.Query.update_tree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds new child to the current tree and removes it from the nodes list
+:param current_tree: Already created tree
+:param real_child: Child to add to tree and remove from nodes list</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pss.model.Target">
+<em class="property">class </em><code class="descclassname">pss.model.</code><code class="descname">Target</code><span class="sig-paren">(</span><em>target</em>, <em>bin=False</em>, <em>scale=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#Target"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.Target" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>This class represents the target image, which is usually the tablet to scan.
+It is responsible for rasterizing a given svg to a QImage and converting this QImage to
+a valid ndarray, which can be used by skimage, scipy and matplotlib.
+In case TargetBin was used to load in the target-image the conversion to a QImage is not needed,
+since TargetBin already holds a QImage with the image loaded into it. In that case this step
+is skipped and only the conversion to a valid ndarray is done.</p>
+<dl class="method">
+<dt id="pss.model.Target.create_image">
+<code class="descname">create_image</code><span class="sig-paren">(</span><em>renderer</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#Target.create_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.Target.create_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uses a QSvgRenderer to return a QImage from it
+:param renderer: the QSvgRenderer object given by TargetSvg
+:return: QImage representation of the QSvgRenderer</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pss.model.convert_qimage_to_ndarray">
+<code class="descclassname">pss.model.</code><code class="descname">convert_qimage_to_ndarray</code><span class="sig-paren">(</span><em>image</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#convert_qimage_to_ndarray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.convert_qimage_to_ndarray" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a given QImage into a Numpy-Array
+:param image:
+:return: Boolean Numpy-Array representing the QImage. &#8220;True&#8221; = Foreground, &#8220;False&#8221; = Background</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pss.model.create_skeleton">
+<code class="descclassname">pss.model.</code><code class="descname">create_skeleton</code><span class="sig-paren">(</span><em>name</em>, <em>original_array</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#create_skeleton"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.create_skeleton" title="Permalink to this definition">¶</a></dt>
+<dd><p>Skeletonizes a given Numpy-Array to a 1px width. See skimage-documentation for skeletonize
+:param original_array:
+:param name: Name of the QImage (For Logging purposes)
+:return: Skeletonized Numpy-Array</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pss.model.print_time">
+<code class="descclassname">pss.model.</code><code class="descname">print_time</code><span class="sig-paren">(</span><em>end_time</em>, <em>start_time</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#print_time"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.print_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method just prints how long a certain function took
+:param end_time: Timestamp taken after finished building the tree
+:param start_time: Timestamp taken before started building the tree</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pss.model.rand">
+<code class="descclassname">pss.model.</code><code class="descname">rand</code><span class="sig-paren">(</span><em>d0</em>, <em>d1</em>, <em>...</em>, <em>dn</em><span class="sig-paren">)</span><a class="headerlink" href="#pss.model.rand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Random values in a given shape.</p>
+<p>Create an array of the given shape and propagate it with
+random samples from a uniform distribution
+over <code class="docutils literal"><span class="pre">[0,</span> <span class="pre">1)</span></code>.</p>
+<dl class="docutils">
+<dt>d0, d1, ..., dn</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">int, optional</span><dd>The dimensions of the returned array, should all be positive.
+If no argument is given a single Python float is returned.</dd>
+</dl>
+<dl class="docutils">
+<dt>out</dt>
+ <span class="classifier-delimiter">:</span> <span class="classifier">ndarray, shape <code class="docutils literal"><span class="pre">(d0,</span> <span class="pre">d1,</span> <span class="pre">...,</span> <span class="pre">dn)</span></code></span><dd>Random values.</dd>
+</dl>
+<p>random</p>
+<p>This is a convenience function. If you want an interface that
+takes a shape-tuple as the first argument, refer to
+np.random.random_sample .</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+<span class="go">array([[ 0.14022471,  0.96360618],  #random</span>
+<span class="go">       [ 0.37601032,  0.25528411],  #random</span>
+<span class="go">       [ 0.49313049,  0.94909878]]) #random</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="pss.model.set_background">
+<code class="descclassname">pss.model.</code><code class="descname">set_background</code><span class="sig-paren">(</span><em>color</em>, <em>image</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/model.html#set_background"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.model.set_background" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the background color of the QImage
+:param image: QImage which background should be changed
+:param color: Color to change background to</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pss.eval">
+<span id="pss-eval-module"></span><h2>pss.eval module<a class="headerlink" href="#module-pss.eval" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pss.eval.Evaluation">
+<em class="property">class </em><code class="descclassname">pss.eval.</code><code class="descname">Evaluation</code><span class="sig-paren">(</span><em>query</em>, <em>target</em>, <em>dt</em>, <em>limit</em>, <em>scale=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/eval.html#Evaluation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.eval.Evaluation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>This class calculates the minima and extracts the symbols from the target tablet.</p>
+<dl class="method">
+<dt id="pss.eval.Evaluation.extract_found_symbols">
+<code class="descname">extract_found_symbols</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/eval.html#Evaluation.extract_found_symbols"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.eval.Evaluation.extract_found_symbols" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts the symbols at the local minima of the target tablet
+:return: List of symbols represented as boolean arrays and their respective energies</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pss.eval.Evaluation.find_local_minima">
+<code class="descname">find_local_minima</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/eval.html#Evaluation.find_local_minima"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.eval.Evaluation.find_local_minima" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method returns the top n minima in two lists for x and y respectively.
+n is set by self.limit
+:return: x, y lists</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="module-pss.gui">
 <span id="pss-gui-module"></span><h2>pss.gui module<a class="headerlink" href="#module-pss.gui" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
-    <dt id="pss.gui.DistanceTransformPlot">
-        <em class="property">class </em><code class="descclassname">pss.gui.</code><code class="descname">DistanceTransformPlot</code><span
-            class="sig-paren">(</span><em>target</em><span class="sig-paren">)</span><a class="headerlink"
-                                                                                        href="#pss.gui.DistanceTransformPlot"
-                                                                                        title="Permalink to this definition">¶</a>
-    </dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
-    <dl class="method">
-    <dt id="pss.gui.DistanceTransformPlot.create_distance_transform_figure">
-        <code class="descname">create_distance_transform_figure</code><span class="sig-paren">(</span><em>name</em>,
-        <em>dt</em>, <em>title</em><span class="sig-paren">)</span><a class="headerlink"
-                                                                      href="#pss.gui.DistanceTransformPlot.create_distance_transform_figure"
-                                                                      title="Permalink to this definition">¶</a></dt>
-    <dd></dd>
-</dl>
-
-    <dl class="staticmethod">
-        <dt id="pss.gui.DistanceTransformPlot.draw_distance_transform">
-            <em class="property">static </em><code class="descname">draw_distance_transform</code><span
-                class="sig-paren">(</span><em>ax</em>, <em>dt</em>, <em>vmin</em>, <em>vmax</em><span class="sig-paren">)</span><a
-                class="headerlink" href="#pss.gui.DistanceTransformPlot.draw_distance_transform"
-                title="Permalink to this definition">¶</a></dt>
-        <dd></dd>
-    </dl>
-
-    </dd></dl>
-
-    <dl class="class">
-        <dt id="pss.gui.GUIHandler">
-            <em class="property">class </em><code class="descclassname">pss.gui.</code><code
-                class="descname">GUIHandler</code><a class="headerlink" href="#pss.gui.GUIHandler"
-                                                     title="Permalink to this definition">¶</a></dt>
-        <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
-            <p>This class starts up all the gui wanted.</p>
-            <dl class="staticmethod">
-        <dt id="pss.gui.GUIHandler.display_distance_transform">
-            <em class="property">static </em><code class="descname">display_distance_transform</code><span
-                class="sig-paren">(</span><em>target</em><span class="sig-paren">)</span><a class="headerlink"
-                                                                                            href="#pss.gui.GUIHandler.display_distance_transform"
-                                                                                            title="Permalink to this definition">¶</a>
-        </dt>
-        <dd><p>Plots the summed up distance transform for the target image
-            :param target: TargetDistanceTransform-object, which holds summed up distance transform</p>
-        </dd>
-    </dl>
-
-    <dl class="staticmethod">
-        <dt id="pss.gui.GUIHandler.display_query">
-            <em class="property">static </em><code class="descname">display_query</code><span class="sig-paren">(</span><em>query</em><span
-                class="sig-paren">)</span><a class="headerlink" href="#pss.gui.GUIHandler.display_query"
-                                             title="Permalink to this definition">¶</a></dt>
-        <dd><p>Plots the query entered in different forms
-            :param query: The query image to plot</p>
-        </dd>
-    </dl>
-
-    <dl class="staticmethod">
-        <dt id="pss.gui.GUIHandler.display_target">
-            <em class="property">static </em><code class="descname">display_target</code><span
-                class="sig-paren">(</span><em>target</em><span class="sig-paren">)</span><a class="headerlink"
-                                                                                            href="#pss.gui.GUIHandler.display_target"
-                                                                                            title="Permalink to this definition">¶</a>
-        </dt>
-        <dd></dd>
-    </dl>
-
-    <dl class="staticmethod">
-        <dt id="pss.gui.GUIHandler.show">
-            <em class="property">static </em><code class="descname">show</code><span class="sig-paren">(</span><span
-                class="sig-paren">)</span><a class="headerlink" href="#pss.gui.GUIHandler.show"
-                                             title="Permalink to this definition">¶</a></dt>
-        <dd></dd>
-    </dl>
-
-    </dd></dl>
-
-    <dl class="class">
-        <dt id="pss.gui.PrintNodes">
-            <em class="property">class </em><code class="descclassname">pss.gui.</code><code
-                class="descname">PrintNodes</code><span class="sig-paren">(</span><em>symbol_group</em><span
-                class="sig-paren">)</span><a class="headerlink" href="#pss.gui.PrintNodes"
-                                             title="Permalink to this definition">¶</a></dt>
-        <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
-            <p>Prints the Nodes locations to the log</p>
+<dt id="pss.gui.DistanceTransformPlot">
+<em class="property">class </em><code class="descclassname">pss.gui.</code><code class="descname">DistanceTransformPlot</code><span class="sig-paren">(</span><em>dt</em>, <em>index</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/gui.html#DistanceTransformPlot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.gui.DistanceTransformPlot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
 <dl class="method">
-        <dt id="pss.gui.PrintNodes.print_positions">
-            <code class="descname">print_positions</code><span class="sig-paren">(</span><span
-                class="sig-paren">)</span><a class="headerlink" href="#pss.gui.PrintNodes.print_positions"
-                                             title="Permalink to this definition">¶</a></dt>
-        <dd><p>Prints the Nodes</p>
-        </dd>
-    </dl>
+<dt id="pss.gui.DistanceTransformPlot.create_distance_transform_figure">
+<code class="descname">create_distance_transform_figure</code><span class="sig-paren">(</span><em>name</em>, <em>dt</em>, <em>title</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/gui.html#DistanceTransformPlot.create_distance_transform_figure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.gui.DistanceTransformPlot.create_distance_transform_figure" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
-    </dd></dl>
+<dl class="staticmethod">
+<dt id="pss.gui.DistanceTransformPlot.draw_distance_transform">
+<em class="property">static </em><code class="descname">draw_distance_transform</code><span class="sig-paren">(</span><em>ax</em>, <em>dt</em>, <em>vmin</em>, <em>vmax</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/gui.html#DistanceTransformPlot.draw_distance_transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.gui.DistanceTransformPlot.draw_distance_transform" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
-    <dl class="class">
-        <dt id="pss.gui.QueryPlot">
-            <em class="property">class </em><code class="descclassname">pss.gui.</code><code
-                class="descname">QueryPlot</code><span class="sig-paren">(</span><em>query</em><span
-                class="sig-paren">)</span><a class="headerlink" href="#pss.gui.QueryPlot"
-                                             title="Permalink to this definition">¶</a></dt>
-        <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
-            <p>This class is responsible for plotting the Query.</p>
-            <dl class="method">
-        <dt id="pss.gui.QueryPlot.create_original_image_figure">
-            <code class="descname">create_original_image_figure</code><span
-                class="sig-paren">(</span><em>query</em><span class="sig-paren">)</span><a class="headerlink"
-                                                                                           href="#pss.gui.QueryPlot.create_original_image_figure"
-                                                                                           title="Permalink to this definition">¶</a>
-        </dt>
-        <dd></dd>
-    </dl>
-
-    <dl class="method">
-        <dt id="pss.gui.QueryPlot.create_skeleton_figure">
-            <code class="descname">create_skeleton_figure</code><span class="sig-paren">(</span><em>query</em><span
-                class="sig-paren">)</span><a class="headerlink" href="#pss.gui.QueryPlot.create_skeleton_figure"
-                                             title="Permalink to this definition">¶</a></dt>
-        <dd></dd>
-    </dl>
-
-    <dl class="method">
-        <dt id="pss.gui.QueryPlot.create_tree_figure">
-            <code class="descname">create_tree_figure</code><span class="sig-paren">(</span><em>query</em><span
-                class="sig-paren">)</span><a class="headerlink" href="#pss.gui.QueryPlot.create_tree_figure"
-                                             title="Permalink to this definition">¶</a></dt>
-        <dd></dd>
-    </dl>
-
-    <dl class="method">
-        <dt id="pss.gui.QueryPlot.draw_skeleton_image">
-            <code class="descname">draw_skeleton_image</code><span class="sig-paren">(</span><em>ax</em>, <em>array</em><span
-                class="sig-paren">)</span><a class="headerlink" href="#pss.gui.QueryPlot.draw_skeleton_image"
-                                             title="Permalink to this definition">¶</a></dt>
-<dd><p>Draws skeletonized version of the original array
-:param ax: AxisSubplot to draw on
-    :param array: Skeletonized-Array to draw onto AxisSubplot</p>
 </dd></dl>
 
+<dl class="class">
+<dt id="pss.gui.EvaluationPlot">
+<em class="property">class </em><code class="descclassname">pss.gui.</code><code class="descname">EvaluationPlot</code><span class="sig-paren">(</span><em>eval</em>, <em>index</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/gui.html#EvaluationPlot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.gui.EvaluationPlot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>This plots the Evaluation object</p>
 <dl class="method">
-    <dt id="pss.gui.QueryPlot.draw_tree_image">
-        <code class="descname">draw_tree_image</code><span class="sig-paren">(</span><em>ax</em>, <em>root_node</em>,
-        <em>center_of_mass</em><span class="sig-paren">)</span><a class="headerlink"
-                                                                  href="#pss.gui.QueryPlot.draw_tree_image"
-                                                                  title="Permalink to this definition">¶</a></dt>
-<dd><p>Draws tree
-:param ax: AxisSubplot to draw on
-:param root_node: Root-Node (is drawn green)
-    :param center_of_mass: Center-Of-Mass Node (is drawn red)</p>
+<dt id="pss.gui.EvaluationPlot.create_eval_figure">
+<code class="descname">create_eval_figure</code><span class="sig-paren">(</span><em>name</em>, <em>eval</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/gui.html#EvaluationPlot.create_eval_figure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.gui.EvaluationPlot.create_eval_figure" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="pss.gui.EvaluationPlot.draw_distance_transform">
+<em class="property">static </em><code class="descname">draw_distance_transform</code><span class="sig-paren">(</span><em>ax</em>, <em>eval</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/gui.html#EvaluationPlot.draw_distance_transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.gui.EvaluationPlot.draw_distance_transform" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pss.gui.EvaluationPlot.draw_found_symbols">
+<code class="descname">draw_found_symbols</code><span class="sig-paren">(</span><em>eval</em>, <em>name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/gui.html#EvaluationPlot.draw_found_symbols"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.gui.EvaluationPlot.draw_found_symbols" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pss.gui.EvaluationPlot.draw_minima">
+<code class="descname">draw_minima</code><span class="sig-paren">(</span><em>ax</em>, <em>eval</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/gui.html#EvaluationPlot.draw_minima"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.gui.EvaluationPlot.draw_minima" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pss.gui.EvaluationPlot.draw_target_image">
+<code class="descname">draw_target_image</code><span class="sig-paren">(</span><em>ax</em>, <em>target</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/gui.html#EvaluationPlot.draw_target_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.gui.EvaluationPlot.draw_target_image" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pss.gui.EvaluationPlot.format_coord">
+<code class="descname">format_coord</code><span class="sig-paren">(</span><em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/gui.html#EvaluationPlot.format_coord"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.gui.EvaluationPlot.format_coord" title="Permalink to this definition">¶</a></dt>
+<dd><p>For the distance transforms the displayed info is altered to also show the value of the DT
+:param x: x of the cell which the mouse points to
+:param y: y of the cell which the mouse points to</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pss.gui.GUIHandler">
+<em class="property">class </em><code class="descclassname">pss.gui.</code><code class="descname">GUIHandler</code><a class="reference internal" href="_modules/pss/gui.html#GUIHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.gui.GUIHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>This class starts up all the gui wanted.</p>
+<dl class="staticmethod">
+<dt id="pss.gui.GUIHandler.display_distance_transform">
+<em class="property">static </em><code class="descname">display_distance_transform</code><span class="sig-paren">(</span><em>dt</em>, <em>index</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/gui.html#GUIHandler.display_distance_transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.gui.GUIHandler.display_distance_transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the summed up distance transform for the target image
+:param dt: TargetDistanceTransform-object, which holds summed up distance transform</p>
 </dd></dl>
 
 <dl class="staticmethod">
-    <dt id="pss.gui.QueryPlot.plot_center_of_mass">
-        <em class="property">static </em><code class="descname">plot_center_of_mass</code><span
-            class="sig-paren">(</span><em>ax</em>, <em>center_of_mass</em><span class="sig-paren">)</span><a
-            class="headerlink" href="#pss.gui.QueryPlot.plot_center_of_mass" title="Permalink to this definition">¶</a>
-    </dt>
+<dt id="pss.gui.GUIHandler.display_evaluation">
+<em class="property">static </em><code class="descname">display_evaluation</code><span class="sig-paren">(</span><em>eval</em>, <em>index</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/gui.html#GUIHandler.display_evaluation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.gui.GUIHandler.display_evaluation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the target image with embedded bounding boxes and a list of the top n results
+:param eval: Evaluation Object
+:param index: Index of the query</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="pss.gui.GUIHandler.display_query">
+<em class="property">static </em><code class="descname">display_query</code><span class="sig-paren">(</span><em>query</em>, <em>index</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/gui.html#GUIHandler.display_query"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.gui.GUIHandler.display_query" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the query entered in different forms
+:param query: The query image to plot</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="pss.gui.GUIHandler.display_target">
+<em class="property">static </em><code class="descname">display_target</code><span class="sig-paren">(</span><em>target</em>, <em>index</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/gui.html#GUIHandler.display_target"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.gui.GUIHandler.display_target" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="pss.gui.GUIHandler.show">
+<em class="property">static </em><code class="descname">show</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/gui.html#GUIHandler.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.gui.GUIHandler.show" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fires up the matplotlib method show</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pss.gui.PrintNodes">
+<em class="property">class </em><code class="descclassname">pss.gui.</code><code class="descname">PrintNodes</code><span class="sig-paren">(</span><em>symbol_group</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/gui.html#PrintNodes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.gui.PrintNodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>Prints the Nodes locations to the log</p>
+<dl class="method">
+<dt id="pss.gui.PrintNodes.print_positions">
+<code class="descname">print_positions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/gui.html#PrintNodes.print_positions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.gui.PrintNodes.print_positions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prints the Nodes</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pss.gui.QueryPlot">
+<em class="property">class </em><code class="descclassname">pss.gui.</code><code class="descname">QueryPlot</code><span class="sig-paren">(</span><em>query</em>, <em>index</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/gui.html#QueryPlot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.gui.QueryPlot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>This class is responsible for plotting the Query.</p>
+<dl class="method">
+<dt id="pss.gui.QueryPlot.create_original_image_figure">
+<code class="descname">create_original_image_figure</code><span class="sig-paren">(</span><em>query</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/gui.html#QueryPlot.create_original_image_figure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.gui.QueryPlot.create_original_image_figure" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pss.gui.QueryPlot.create_skeleton_figure">
+<code class="descname">create_skeleton_figure</code><span class="sig-paren">(</span><em>query</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/gui.html#QueryPlot.create_skeleton_figure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.gui.QueryPlot.create_skeleton_figure" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pss.gui.QueryPlot.create_tree_figure">
+<code class="descname">create_tree_figure</code><span class="sig-paren">(</span><em>query</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/gui.html#QueryPlot.create_tree_figure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.gui.QueryPlot.create_tree_figure" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pss.gui.QueryPlot.draw_skeleton_image">
+<code class="descname">draw_skeleton_image</code><span class="sig-paren">(</span><em>ax</em>, <em>array</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/gui.html#QueryPlot.draw_skeleton_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.gui.QueryPlot.draw_skeleton_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draws skeletonized version of the original array
+:param ax: AxisSubplot to draw on
+:param array: Skeletonized-Array to draw onto AxisSubplot</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pss.gui.QueryPlot.draw_tree_image">
+<code class="descname">draw_tree_image</code><span class="sig-paren">(</span><em>ax</em>, <em>root_node</em>, <em>center_of_mass</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/gui.html#QueryPlot.draw_tree_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.gui.QueryPlot.draw_tree_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Draws tree
+:param ax: AxisSubplot to draw on
+:param root_node: Root-Node (is drawn green)
+:param center_of_mass: Center-Of-Mass Node (is drawn red)</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="pss.gui.QueryPlot.plot_center_of_mass">
+<em class="property">static </em><code class="descname">plot_center_of_mass</code><span class="sig-paren">(</span><em>ax</em>, <em>center_of_mass</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/gui.html#QueryPlot.plot_center_of_mass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.gui.QueryPlot.plot_center_of_mass" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plots the center of mass into a given subplot
 :param ax: Subplot to draw the center of mass into
 :param center_of_mass: Center of mass to draw to the subplot</p>
 </dd></dl>
 
 <dl class="staticmethod">
-    <dt id="pss.gui.QueryPlot.plot_edge">
-        <em class="property">static </em><code class="descname">plot_edge</code><span
-            class="sig-paren">(</span><em>ax</em>, <em>parent</em>, <em>child</em><span class="sig-paren">)</span><a
-            class="headerlink" href="#pss.gui.QueryPlot.plot_edge" title="Permalink to this definition">¶</a></dt>
+<dt id="pss.gui.QueryPlot.plot_edge">
+<em class="property">static </em><code class="descname">plot_edge</code><span class="sig-paren">(</span><em>ax</em>, <em>parent</em>, <em>child</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/gui.html#QueryPlot.plot_edge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.gui.QueryPlot.plot_edge" title="Permalink to this definition">¶</a></dt>
 <dd><p>This plots edge between parent-child relation
 :param ax: Subplot to draw the edge into
 :param parent: Parent of the relation
@@ -300,84 +648,58 @@
 </dd></dl>
 
 <dl class="staticmethod">
-    <dt id="pss.gui.QueryPlot.plot_nodes">
-        <em class="property">static </em><code class="descname">plot_nodes</code><span
-            class="sig-paren">(</span><em>ax</em>, <em>nodes</em><span class="sig-paren">)</span><a class="headerlink"
-                                                                                                    href="#pss.gui.QueryPlot.plot_nodes"
-                                                                                                    title="Permalink to this definition">¶</a>
-    </dt>
+<dt id="pss.gui.QueryPlot.plot_nodes">
+<em class="property">static </em><code class="descname">plot_nodes</code><span class="sig-paren">(</span><em>ax</em>, <em>nodes</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/gui.html#QueryPlot.plot_nodes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.gui.QueryPlot.plot_nodes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plots the Nodes onto a subplot
 :param ax: Subplot to plot onto
 :param nodes: Nodes-Array to draw the nodes for</p>
 </dd></dl>
 
 <dl class="staticmethod">
-    <dt id="pss.gui.QueryPlot.plot_root_node">
-        <em class="property">static </em><code class="descname">plot_root_node</code><span
-            class="sig-paren">(</span><em>ax</em>, <em>root_node</em><span class="sig-paren">)</span><a
-            class="headerlink" href="#pss.gui.QueryPlot.plot_root_node" title="Permalink to this definition">¶</a></dt>
+<dt id="pss.gui.QueryPlot.plot_root_node">
+<em class="property">static </em><code class="descname">plot_root_node</code><span class="sig-paren">(</span><em>ax</em>, <em>root_node</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/gui.html#QueryPlot.plot_root_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.gui.QueryPlot.plot_root_node" title="Permalink to this definition">¶</a></dt>
 <dd><p>Highlights the root node, which is the node closest to the center of mass
 :param ax: Subplot to draw the root node into
 :param root_node: Root-Node to highlight</p>
 </dd></dl>
 
-    </dd></dl>
+</dd></dl>
 
-    <dl class="class">
-        <dt id="pss.gui.TargetPlot">
-            <em class="property">class </em><code class="descclassname">pss.gui.</code><code
-                class="descname">TargetPlot</code><span class="sig-paren">(</span><em>target</em><span
-                class="sig-paren">)</span><a class="headerlink" href="#pss.gui.TargetPlot"
-                                             title="Permalink to this definition">¶</a></dt>
-        <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
-            <dl class="method">
-        <dt id="pss.gui.TargetPlot.create_target_figure">
-            <code class="descname">create_target_figure</code><span class="sig-paren">(</span><em>name</em>, <em>original_array</em>,
-            <em>title</em><span class="sig-paren">)</span><a class="headerlink"
-                                                             href="#pss.gui.TargetPlot.create_target_figure"
-                                                             title="Permalink to this definition">¶</a></dt>
-        <dd></dd>
-    </dl>
+<dl class="class">
+<dt id="pss.gui.TargetPlot">
+<em class="property">class </em><code class="descclassname">pss.gui.</code><code class="descname">TargetPlot</code><span class="sig-paren">(</span><em>target</em>, <em>index</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/gui.html#TargetPlot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.gui.TargetPlot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="pss.gui.TargetPlot.create_target_figure">
+<code class="descname">create_target_figure</code><span class="sig-paren">(</span><em>name</em>, <em>original_array</em>, <em>title</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/gui.html#TargetPlot.create_target_figure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.gui.TargetPlot.create_target_figure" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
-    <dl class="staticmethod">
-        <dt id="pss.gui.TargetPlot.draw_target_image">
-            <em class="property">static </em><code class="descname">draw_target_image</code><span
-                class="sig-paren">(</span><em>ax</em>, <em>target</em><span class="sig-paren">)</span><a
-                class="headerlink" href="#pss.gui.TargetPlot.draw_target_image"
-                title="Permalink to this definition">¶</a></dt>
-        <dd></dd>
-    </dl>
+<dl class="staticmethod">
+<dt id="pss.gui.TargetPlot.draw_target_image">
+<em class="property">static </em><code class="descname">draw_target_image</code><span class="sig-paren">(</span><em>ax</em>, <em>target</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/gui.html#TargetPlot.draw_target_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.gui.TargetPlot.draw_target_image" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
-    </dd></dl>
+</dd></dl>
 
-    <dl class="function">
-        <dt id="pss.gui.draw_array">
-            <code class="descclassname">pss.gui.</code><code class="descname">draw_array</code><span
-                class="sig-paren">(</span><em>ax</em>, <em>array</em><span class="sig-paren">)</span><a
-                class="headerlink" href="#pss.gui.draw_array" title="Permalink to this definition">¶</a></dt>
-        <dd><p>Fills the AxisSubplot with the array to draw
-            :param ax: AxisSubplot to draw on
-            :param array: Array to draw onto AxisSubplot</p>
-        </dd>
-    </dl>
+<dl class="function">
+<dt id="pss.gui.draw_array">
+<code class="descclassname">pss.gui.</code><code class="descname">draw_array</code><span class="sig-paren">(</span><em>ax</em>, <em>array</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/gui.html#draw_array"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.gui.draw_array" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fills the AxisSubplot with the array to draw
+:param ax: AxisSubplot to draw on
+:param array: Array to draw onto AxisSubplot</p>
+</dd></dl>
 
-    <dl class="function">
-        <dt id="pss.gui.setup_figure">
-            <code class="descclassname">pss.gui.</code><code class="descname">setup_figure</code><span
-                class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink"
-                                                                                          href="#pss.gui.setup_figure"
-                                                                                          title="Permalink to this definition">¶</a>
-        </dt>
+<dl class="function">
+<dt id="pss.gui.setup_figure">
+<code class="descclassname">pss.gui.</code><code class="descname">setup_figure</code><span class="sig-paren">(</span><em>name</em>, <em>rows=1</em>, <em>cols=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/gui.html#setup_figure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.gui.setup_figure" title="Permalink to this definition">¶</a></dt>
 <dd><p>This sets up the plot-figures, respectively the window.
 :param name: The name to set the windows title
 :return: The two empty subplots for the original image and the skeletonized one</p>
 </dd></dl>
 
-    <dl class="function">
-        <dt id="pss.gui.setup_plot">
-            <code class="descclassname">pss.gui.</code><code class="descname">setup_plot</code><span
-                class="sig-paren">(</span><em>ax</em>, <em>array</em>, <em>title</em><span class="sig-paren">)</span><a
-                class="headerlink" href="#pss.gui.setup_plot" title="Permalink to this definition">¶</a></dt>
+<dl class="function">
+<dt id="pss.gui.setup_plot">
+<code class="descclassname">pss.gui.</code><code class="descname">setup_plot</code><span class="sig-paren">(</span><em>ax</em>, <em>array</em>, <em>title</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pss/gui.html#setup_plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pss.gui.setup_plot" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -395,602 +717,67 @@
 </dd></dl>
 
 </div>
-      <div class="section" id="module-pss.model">
-          <span id="pss-model-module"></span>
-          <h2>pss.model module<a class="headerlink" href="#module-pss.model" title="Permalink to this headline">¶</a>
-          </h2>
-          <p>This module is the core module of this application. It defines a SymbolGroup as the query object and builds
-              up a parent-child tree by using the query image, skeletonizing it down to one pixel and placing nodes over
-              the skeleton
-              The nodes within the tree are represented by the custom class Node.</p>
-<dl class="class">
-    <dt id="pss.model.DistanceTransform">
-        <em class="property">class </em><code class="descclassname">pss.model.</code><code class="descname">DistanceTransform</code><span
-            class="sig-paren">(</span><em>query</em>, <em>target</em><span class="sig-paren">)</span><a
-            class="headerlink" href="#pss.model.DistanceTransform" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
-    <p>This class calculates the distance transforms for all possible nodes of a query and sums them up to get the
-        energy minimization for a given target.</p>
-<dl class="method">
-    <dt id="pss.model.DistanceTransform.build_distance_transform_to_parent">
-        <code class="descname">build_distance_transform_to_parent</code><span
-            class="sig-paren">(</span><em>child</em><span class="sig-paren">)</span><a class="headerlink"
-                                                                                       href="#pss.model.DistanceTransform.build_distance_transform_to_parent"
-                                                                                       title="Permalink to this definition">¶</a>
-    </dt>
-    <dd><p>Calculates the sum of the current total distance transform and a new distance transform by the child&#8217;s
-        position
-        :param child: Child to calculate the new distance transform for
-        :return: Added up distance transform from sum_distance_transform and newest child distance transform</p>
-</dd></dl>
-
-          <dl class="method">
-              <dt id="pss.model.DistanceTransform.calculate_distance_transform">
-                  <code class="descname">calculate_distance_transform</code><span class="sig-paren">(</span><span
-                      class="sig-paren">)</span><a class="headerlink"
-                                                   href="#pss.model.DistanceTransform.calculate_distance_transform"
-                                                   title="Permalink to this definition">¶</a></dt>
-              <dd><p>This starts the calculation of the all over distance transform and energy minimization.</p>
-</dd></dl>
-
-          <dl class="method">
-              <dt id="pss.model.DistanceTransform.calculate_height_and_width_of_distance_transform">
-                  <code class="descname">calculate_height_and_width_of_distance_transform</code><span class="sig-paren">(</span><span
-                      class="sig-paren">)</span><a class="headerlink"
-                                                   href="#pss.model.DistanceTransform.calculate_height_and_width_of_distance_transform"
-                                                   title="Permalink to this definition">¶</a></dt>
-              <dd><p>Calculates the maximum dimensions needed for adding up all distance transforms
-                  :return: the height, the width and the absolute starting point (root does not have to be and will
-                  very likely not be the most top-left pixel, since it&#8217;s the center of mass)</p>
-              </dd>
-          </dl>
-
-          <dl class="method">
-              <dt id="pss.model.DistanceTransform.recursively_add_up_all_distance_transforms">
-                  <code class="descname">recursively_add_up_all_distance_transforms</code><span
-                      class="sig-paren">(</span><em>node</em><span class="sig-paren">)</span><a class="headerlink"
-                                                                                                href="#pss.model.DistanceTransform.recursively_add_up_all_distance_transforms"
-                                                                                                title="Permalink to this definition">¶</a>
-              </dt>
-              <dd><p>Iterates over all nodes and their potential children adding up all distance transform created on
-                  the run.
-                  :param node: current node to add to the total distance transform</p>
-              </dd>
-          </dl>
-
-          </dd></dl>
-
-          <dl class="class">
-<dt id="pss.model.Node">
-<em class="property">class </em><code class="descclassname">pss.model.</code><code class="descname">Node</code><span class="sig-paren">(</span><em>parent=None</em>, <em>position=None</em>, <em>offset=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pss.model.Node" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
-<p>This class represents a node, defined by Howe et. al.
-    It contains the reference to a parent-node and a list of its children-nodes,
-    as well as the 2d-representation of that node.
-Additionally an offset is stored within the node. This shows the offset relative to its parent-node</p>
-<dl class="method">
-<dt id="pss.model.Node.add_child">
-<code class="descname">add_child</code><span class="sig-paren">(</span><em>child</em><span class="sig-paren">)</span><a class="headerlink" href="#pss.model.Node.add_child" title="Permalink to this definition">¶</a></dt>
-<dd><p>Adds a child to the children list. Added to avoid a breach of the law of demeter.
-:param child: The child to add.</p>
-</dd></dl>
-
-<dl class="method">
-    <dt id="pss.model.Node.calculate_offset">
-        <code class="descname">calculate_offset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a
-            class="headerlink" href="#pss.model.Node.calculate_offset" title="Permalink to this definition">¶</a></dt>
-    <dd><p>This calculates the offset from the parent_node. The offset itself is to be read from the parent_node&#8217;s
-        location. eg. an offset of (1, 1) means the child is (1, 1) from the parents point of view.</p>
-    </dd>
-</dl>
-
-          <dl class="method">
-<dt id="pss.model.Node.set_parent">
-<code class="descname">set_parent</code><span class="sig-paren">(</span><em>parent</em><span class="sig-paren">)</span><a class="headerlink" href="#pss.model.Node.set_parent" title="Permalink to this definition">¶</a></dt>
-<dd><p>Setter for the Parent-Node
-:param parent: A Node, which should be the parent of the current node</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-    <dt id="pss.model.Query">
-        <em class="property">class </em><code class="descclassname">pss.model.</code><code class="descname">Query</code><span
-            class="sig-paren">(</span><em>query</em>, <em>index=0</em>, <em>bin=False</em>, <em>scale=1</em><span
-            class="sig-paren">)</span><a class="headerlink" href="#pss.model.Query"
-                                         title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
-    <p>This class represents one symbol group as defined in the given svg
-        or the already rasterzized QImage if QueryPng is used.
-        When using QuerySvg:
-It uses these svg-paths to create a QImage using QPainterPaths.
-This &#8220;original_image&#8221; is converted to a Numpy-array to get skeletonized
-        by skimage. The array holding the skeletonized version of the QImage
-is then used to find joints and corners, also using skimage.
-These vectors are used to create the first nodes representing
-        the initial symbol group paths given by their svg.</p>
-<dl class="method">
-    <dt id="pss.model.Query.add_nodes_greedily">
-        <code class="descname">add_nodes_greedily</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a
-            class="headerlink" href="#pss.model.Query.add_nodes_greedily" title="Permalink to this definition">¶</a>
-    </dt>
-<dd><p>Adds nodes between junctions and corners greedily.
-All corners and junctions are given as starting points.
-For each of these a neighborhood of DISTANCE is checked. If &#8220;True&#8220;&#8216;s within the enlarged_skeleton
-are found closer than DISTANCE away they get deleted from the true_list. If they are exactly DISTANCE away
-they are added to additional_nodes. This is done for every new &#8220;good&#8221; neighbor found until a corner_node is hit.
-If there is more than one &#8220;good&#8221; neighbors for a given node they get saved into a rest_list.
-This leads to a path getting finished before switching to a new path. The node creation therefor first checks
-one path until it hits a corner_node. When this happens the algorithm switches to the next path (starting point
-in rest_list).
-:return: The list of all nodes representing the QImage</p>
-</dd></dl>
-
-          <dl class="method">
-              <dt id="pss.model.Query.add_relation">
-                  <code class="descname">add_relation</code><span class="sig-paren">(</span><em>real_child</em>, <em>real_parent</em><span
-                      class="sig-paren">)</span><a class="headerlink" href="#pss.model.Query.add_relation"
-                                                   title="Permalink to this definition">¶</a></dt>
-<dd><p>Adding the child to the parent and vice versa
-:param real_child: Child-Node to add
-:param real_parent: Parent-Node where Child-Node should be added</p>
-</dd></dl>
-
-<dl class="method">
-    <dt id="pss.model.Query.add_remaining_nodes">
-        <code class="descname">add_remaining_nodes</code><span class="sig-paren">(</span><span
-            class="sig-paren">)</span><a class="headerlink" href="#pss.model.Query.add_remaining_nodes"
-                                         title="Permalink to this definition">¶</a></dt>
-<dd><p>This calls sub-functions to add the remaining nodes between junctions and corners.
-:return: The list of all nodes representing the QImage</p>
-</dd></dl>
-
-<dl class="method">
-    <dt id="pss.model.Query.build_up_tree">
-        <code class="descname">build_up_tree</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a
-            class="headerlink" href="#pss.model.Query.build_up_tree" title="Permalink to this definition">¶</a></dt>
-<dd><p>Builds up the tree structure starting from the root node.</p>
-</dd></dl>
-
-<dl class="method">
-    <dt id="pss.model.Query.calculate_center_of_mass">
-        <code class="descname">calculate_center_of_mass</code><span class="sig-paren">(</span><span
-            class="sig-paren">)</span><a class="headerlink" href="#pss.model.Query.calculate_center_of_mass"
-                                         title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculates the center of mass by using the arithmetic mean of all node positions
-:return: The arithmetic mean of all node positions</p>
-</dd></dl>
-
-<dl class="method">
-    <dt id="pss.model.Query.create_bounding_box">
-        <code class="descname">create_bounding_box</code><span class="sig-paren">(</span><span
-            class="sig-paren">)</span><a class="headerlink" href="#pss.model.Query.create_bounding_box"
-                                         title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates the Bounding Box given all the paths given to the constructor
-:return: Bounding Box that surrounds all paths of this symbol group</p>
-</dd></dl>
-
-<dl class="method">
-    <dt id="pss.model.Query.create_copy_of_open_list_and_clear">
-        <code class="descname">create_copy_of_open_list_and_clear</code><span class="sig-paren">(</span><span
-            class="sig-paren">)</span><a class="headerlink" href="#pss.model.Query.create_copy_of_open_list_and_clear"
-                                         title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates a copy of the open_list and saves it inside a rest_list. After that the open_list is cleared
-:return: A list of all neighbors</p>
-</dd></dl>
-
-<dl class="method">
-    <dt id="pss.model.Query.create_original_image">
-        <code class="descname">create_original_image</code><span class="sig-paren">(</span><span
-            class="sig-paren">)</span><a class="headerlink" href="#pss.model.Query.create_original_image"
-                                         title="Permalink to this definition">¶</a></dt>
-    <dd><p>Creates a QImage and sets its background to COLOR_BG.
-        After that the QImage is tried to get filled with the paths
-:return: QImage created out of QPainterPaths, which were given to the constructor</p>
-</dd></dl>
-
-<dl class="method">
-    <dt id="pss.model.Query.create_true_list">
-        <code class="descname">create_true_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a
-            class="headerlink" href="#pss.model.Query.create_true_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates a List, which holds all indices of a &#8220;True&#8221;-appearance within the enlarged_skeleton.
-Only Non-Corner-/Non-Junction-Nodes are added to this list.
-    :return: A list of 2D-Numpy-Arrays. The Arrays represent the appearance of a &#8220;True&#8221; in the
-    enlarged_skeleton.</p>
-</dd></dl>
-
-<dl class="method">
-    <dt id="pss.model.Query.creating_all_relations_for_tree">
-        <code class="descname">creating_all_relations_for_tree</code><span class="sig-paren">(</span><span
-            class="sig-paren">)</span><a class="headerlink" href="#pss.model.Query.creating_all_relations_for_tree"
-                                         title="Permalink to this definition">¶</a></dt>
-    <dd><p>This starts the creation of all relations for the nodes starting from the root node.</p>
-</dd></dl>
-
-<dl class="method">
-    <dt id="pss.model.Query.decide_good_or_bad_neighbor">
-        <code class="descname">decide_good_or_bad_neighbor</code><span class="sig-paren">(</span><em>node</em><span
-            class="sig-paren">)</span><a class="headerlink" href="#pss.model.Query.decide_good_or_bad_neighbor"
-                                         title="Permalink to this definition">¶</a></dt>
-<dd><p>Decides if a neighbor is seen as good neighbor, meaning a new node should be build there or as a bad neighbor,
-meaning it should get deleted, since it is too close to existing nodes.
-:param node: Current node which neighbors should get checked
-:return: List of &#8220;Good neighbors&#8221; and list of &#8220;Bad neighbors&#8221;</p>
-</dd></dl>
-
-<dl class="method">
-    <dt id="pss.model.Query.delete_bad_neighbors_from_true_list">
-        <code class="descname">delete_bad_neighbors_from_true_list</code><span class="sig-paren">(</span><em>bad_neighbors</em><span
-            class="sig-paren">)</span><a class="headerlink" href="#pss.model.Query.delete_bad_neighbors_from_true_list"
-                                         title="Permalink to this definition">¶</a></dt>
-<dd><p>Deletes bad neighbors from the true_list, so they don&#8217;t get checked ever again. They can&#8217;t get &#8220;Good neighbors&#8221;
-any longer.
-:param bad_neighbors: List of &#8220;Bad neighbors&#8221;, which should get deleted out of the true_list</p>
-</dd></dl>
-
-<dl class="method">
-    <dt id="pss.model.Query.enlarge_skeleton">
-        <code class="descname">enlarge_skeleton</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a
-            class="headerlink" href="#pss.model.Query.enlarge_skeleton" title="Permalink to this definition">¶</a></dt>
-<dd><p>Adds two columns and two rows at the top, bottom, left and right to ensure the neighbor-search doesn&#8217;t hit
-a border.
-:return: Numpy-Array, which is a column and row larger on each side.</p>
-</dd></dl>
-
-<dl class="method">
-    <dt id="pss.model.Query.fill_image_with_paths">
-        <code class="descname">fill_image_with_paths</code><span class="sig-paren">(</span><em>qpainter</em>,
-        <em>image</em><span class="sig-paren">)</span><a class="headerlink"
-                                                         href="#pss.model.Query.fill_image_with_paths"
-                                                         title="Permalink to this definition">¶</a></dt>
-<dd><p>Fills the QImage with the QPainterPaths
-:param qpainter: QPainter to let Qt draw into the QImage
-:param image: The empty QImage
-:return: The QImage, filled with QPainterPaths in a binary representation</p>
-</dd></dl>
-
-<dl class="method">
-    <dt id="pss.model.Query.find_closest_node">
-        <code class="descname">find_closest_node</code><span class="sig-paren">(</span><em>current_tree</em><span
-            class="sig-paren">)</span><a class="headerlink" href="#pss.model.Query.find_closest_node"
-                                         title="Permalink to this definition">¶</a></dt>
-<dd><p>Finds node with closest distance to the already created tree with a greedy approach
-:param current_tree: Already created tree
-:return: Child-Node to add to the tree and Parent-Node, where child should get added</p>
-</dd></dl>
-
-<dl class="method">
-    <dt id="pss.model.Query.find_corners_and_junctions">
-        <code class="descname">find_corners_and_junctions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a
-            class="headerlink" href="#pss.model.Query.find_corners_and_junctions"
-            title="Permalink to this definition">¶</a></dt>
-<dd><p>Finds all junctions and corners of the enlarged_skeleton, which represents a QImage
-:return: List of all junctions and corners found within the enlarged_skeleton Numpy-Array</p>
-</dd></dl>
-
-<dl class="method">
-    <dt id="pss.model.Query.find_root_node">
-        <code class="descname">find_root_node</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a
-            class="headerlink" href="#pss.model.Query.find_root_node" title="Permalink to this definition">¶</a></dt>
-<dd><p>Finds the closes node to the center of mass
-:return: The node closed to the center od mass. This becomes the root node for the upcoming parent-child tree</p>
-</dd></dl>
-
-<dl class="staticmethod">
-    <dt id="pss.model.Query.get_euclidean_addend">
-        <em class="property">static </em><code class="descname">get_euclidean_addend</code><span
-            class="sig-paren">(</span><em>a</em>, <em>b</em>, <em>i</em><span class="sig-paren">)</span><a
-            class="headerlink" href="#pss.model.Query.get_euclidean_addend" title="Permalink to this definition">¶</a>
-    </dt>
-<dd><p>Calculates one addend of the euclidean distance
-:param a: first node
-:param b: second node
-:param i: Index of the axis/dimension
-:return: One calculated addend of form (a.pos.item(i) - b.pos.item(i))^2</p>
-</dd></dl>
-
-<dl class="method">
-    <dt id="pss.model.Query.get_euclidean_distance">
-        <code class="descname">get_euclidean_distance</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span
-            class="sig-paren">)</span><a class="headerlink" href="#pss.model.Query.get_euclidean_distance"
-                                         title="Permalink to this definition">¶</a></dt>
-<dd><p>Finds the euclidean distance between two given nodes
-:param a: first node
-:param b: second node
-:return: euclidean distance between node a and node b</p>
-</dd></dl>
-
-<dl class="method">
-    <dt id="pss.model.Query.has_node_more_than_one_neighbor">
-        <code class="descname">has_node_more_than_one_neighbor</code><span class="sig-paren">(</span><span
-            class="sig-paren">)</span><a class="headerlink" href="#pss.model.Query.has_node_more_than_one_neighbor"
-                                         title="Permalink to this definition">¶</a></dt>
-<dd><p>Checks if a node has more than one neighbor
-:return: True if more than one neighbor</p>
-</dd></dl>
-
-<dl class="staticmethod">
-    <dt id="pss.model.Query.is_neighbor_the_right_distance_away">
-        <em class="property">static </em><code class="descname">is_neighbor_the_right_distance_away</code><span
-            class="sig-paren">(</span><em>node</em>, <em>true_position</em><span class="sig-paren">)</span><a
-            class="headerlink" href="#pss.model.Query.is_neighbor_the_right_distance_away"
-            title="Permalink to this definition">¶</a></dt>
-<dd><p>Checks if a neighbor is the right distance to be seen as a &#8220;Good neighbor&#8221;
-:param node: Current node
-:param true_position: Position of potential neighbor
-:return: True if distance is just right to be seen as a &#8220;Good neighbor&#8221;</p>
-</dd></dl>
-
-<dl class="staticmethod">
-    <dt id="pss.model.Query.is_neighbor_too_close">
-        <em class="property">static </em><code class="descname">is_neighbor_too_close</code><span
-            class="sig-paren">(</span><em>node</em>, <em>true_position</em><span class="sig-paren">)</span><a
-            class="headerlink" href="#pss.model.Query.is_neighbor_too_close" title="Permalink to this definition">¶</a>
-    </dt>
-<dd><p>Checks if a neighbor is too close to its node (Too close meaning less than DISTANCE away)
-:param node: Current node
-:param true_position: Position of potential neighbor
-:return: True if distance is too close</p>
-</dd></dl>
-
-<dl class="method">
-    <dt id="pss.model.Query.is_node_completely_unknown">
-        <code class="descname">is_node_completely_unknown</code><span class="sig-paren">(</span><em>new_node</em><span
-            class="sig-paren">)</span><a class="headerlink" href="#pss.model.Query.is_node_completely_unknown"
-                                         title="Permalink to this definition">¶</a></dt>
-<dd><p>Checks if a given node is completely unknown, meaning it is neither in the closed_list nor in the corner_nodes
-:param new_node: Node to be checked
-:return: True if completely unknown (not in self.closed_list and not in self.corner_nodes)</p>
-</dd></dl>
-
-<dl class="method">
-    <dt id="pss.model.Query.still_neighbors_to_check">
-        <code class="descname">still_neighbors_to_check</code><span class="sig-paren">(</span><em>rest_list</em><span
-            class="sig-paren">)</span><a class="headerlink" href="#pss.model.Query.still_neighbors_to_check"
-                                         title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>rest_list</strong> &#8211; List of other Neighbors found when started to populate from corner_node</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True nodes still in open_list or rest_list</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-    <dt id="pss.model.Query.try_to_fill_image_with_paths">
-        <code class="descname">try_to_fill_image_with_paths</code><span class="sig-paren">(</span><em>image</em><span
-            class="sig-paren">)</span><a class="headerlink" href="#pss.model.Query.try_to_fill_image_with_paths"
-                                         title="Permalink to this definition">¶</a></dt>
-<dd><p>Tries filling up the QImage with QPainterPaths
-:param image: The empty QImage
-:return: The QImage, filled with QPainterPaths in a binary representation</p>
-</dd></dl>
-
-<dl class="staticmethod">
-    <dt id="pss.model.Query.update_tree">
-        <em class="property">static </em><code class="descname">update_tree</code><span class="sig-paren">(</span><em>current_tree</em>,
-        <em>real_child</em><span class="sig-paren">)</span><a class="headerlink" href="#pss.model.Query.update_tree"
-                                                              title="Permalink to this definition">¶</a></dt>
-<dd><p>Adds new child to the current tree and removes it from the nodes list
-:param current_tree: Already created tree
-:param real_child: Child to add to tree and remove from nodes list</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-    <dt id="pss.model.Target">
-        <em class="property">class </em><code class="descclassname">pss.model.</code><code
-            class="descname">Target</code><span class="sig-paren">(</span><em>target</em>, <em>bin=False</em>, <em>scale=1</em><span
-            class="sig-paren">)</span><a class="headerlink" href="#pss.model.Target"
-                                         title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
-    <p>This class represents the target image, which is usually the tablet to scan.
-        It is responsible for rasterizing a given svg to a QImage and converting this QImage to
-        a valid ndarray, which can be used by skimage, scipy and matplotlib.
-        In case TargetBin was used to load in the target-image the conversion to a QImage is not needed,
-        since TargetBin already holds a QImage with the image loaded into it. In that case this step
-        is skipped and only the conversion to a valid ndarray is done.</p>
-<dl class="method">
-    <dt id="pss.model.Target.create_image">
-        <code class="descname">create_image</code><span class="sig-paren">(</span><em>renderer</em><span
-            class="sig-paren">)</span><a class="headerlink" href="#pss.model.Target.create_image"
-                                         title="Permalink to this definition">¶</a></dt>
-    <dd><p>Uses a QSvgRenderer to return a QImage from it
-        :param renderer: the QSvgRenderer object given by TargetSvg
-        :return: QImage representation of the QSvgRenderer</p>
-</dd></dl>
-
-</dd></dl>
-
-          <dl class="function">
-              <dt id="pss.model.convert_qimage_to_ndarray">
-                  <code class="descclassname">pss.model.</code><code
-                      class="descname">convert_qimage_to_ndarray</code><span
-                      class="sig-paren">(</span><em>image</em><span class="sig-paren">)</span><a class="headerlink"
-                                                                                                 href="#pss.model.convert_qimage_to_ndarray"
-                                                                                                 title="Permalink to this definition">¶</a>
-              </dt>
-              <dd><p>Converts a given QImage into a Numpy-Array
-                  :param image:
-                  :return: Boolean Numpy-Array representing the QImage. &#8220;True&#8221; = Foreground, &#8220;False&#8221;
-                  = Background</p>
-</dd></dl>
-
-          <dl class="function">
-              <dt id="pss.model.create_skeleton">
-                  <code class="descclassname">pss.model.</code><code class="descname">create_skeleton</code><span
-                      class="sig-paren">(</span><em>name</em>, <em>original_array</em><span class="sig-paren">)</span><a
-                      class="headerlink" href="#pss.model.create_skeleton" title="Permalink to this definition">¶</a>
-              </dt>
-              <dd><p>Skeletonizes a given Numpy-Array to a 1px width. See skimage-documentation for skeletonize
-                  :param original_array:
-                  :param name: Name of the QImage (For Logging purposes)
-                  :return: Skeletonized Numpy-Array</p>
-</dd></dl>
-
-          <dl class="function">
-              <dt id="pss.model.print_time">
-                  <code class="descclassname">pss.model.</code><code class="descname">print_time</code><span
-                      class="sig-paren">(</span><em>end_time</em>, <em>start_time</em><span class="sig-paren">)</span><a
-                      class="headerlink" href="#pss.model.print_time" title="Permalink to this definition">¶</a></dt>
-              <dd><p>This method just prints how long a certain function took
-                  :param end_time: Timestamp taken after finished building the tree
-                  :param start_time: Timestamp taken before started building the tree</p>
-              </dd>
-          </dl>
-
-          <dl class="function">
-              <dt id="pss.model.set_background">
-                  <code class="descclassname">pss.model.</code><code class="descname">set_background</code><span
-                      class="sig-paren">(</span><em>color</em>, <em>image</em><span class="sig-paren">)</span><a
-                      class="headerlink" href="#pss.model.set_background" title="Permalink to this definition">¶</a>
-              </dt>
-              <dd><p>Sets the background color of the QImage
-                  :param image: QImage which background should be changed
-                  :param color: Color to change background to</p>
-              </dd>
-          </dl>
-
-      </div>
-      <div class="section" id="module-pss.svg">
-          <span id="pss-svg-module"></span>
-          <h2>pss.svg module<a class="headerlink" href="#module-pss.svg" title="Permalink to this headline">¶</a></h2>
-          <dl class="class">
-              <dt id="pss.svg.QuerySVG">
-                  <em class="property">class </em><code class="descclassname">pss.svg.</code><code class="descname">QuerySVG</code><span
-                      class="sig-paren">(</span><em>path</em>, <em>infix=''</em><span class="sig-paren">)</span><a
-                      class="headerlink" href="#pss.svg.QuerySVG" title="Permalink to this definition">¶</a></dt>
-              <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
-                  <p>This class opens and manages as the query image.</p>
-<dl class="staticmethod">
-              <dt id="pss.svg.QuerySVG.get_symbol_group_size">
-                  <em class="property">static </em><code class="descname">get_symbol_group_size</code><span
-                      class="sig-paren">(</span><em>symbol_group</em><span class="sig-paren">)</span><a
-                      class="headerlink" href="#pss.svg.QuerySVG.get_symbol_group_size"
-                      title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the number of QPainterPaths within a given SymbolGroup
-:param symbol_group: The SymbolGroup to find the size of
-:return: The number of Paths within that SymbolGroup</p>
-</dd></dl>
-
-<dl class="staticmethod">
-    <dt id="pss.svg.QuerySVG.load_svg">
-        <em class="property">static </em><code class="descname">load_svg</code><span
-            class="sig-paren">(</span><em>infix</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink"
-                                                                                                      href="#pss.svg.QuerySVG.load_svg"
-                                                                                                      title="Permalink to this definition">¶</a>
-    </dt>
-<dd><p>Opens an SVG-file
-    :param infix: This infix is used by the external library elka_svg.py
-    to check for specific groups within the svg.
-:param path: Path, where the SVG file is located
-:return: names and lists of QPainterPaths of the SymbolGroups read from the SVG</p>
-</dd></dl>
-
-</dd></dl>
-
-          <dl class="class">
-              <dt id="pss.svg.TargetSVG">
-                  <em class="property">class </em><code class="descclassname">pss.svg.</code><code class="descname">TargetSVG</code><span
-                      class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="headerlink"
-                                                                                                href="#pss.svg.TargetSVG"
-                                                                                                title="Permalink to this definition">¶</a>
-              </dt>
-              <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
-                  <p>This class opens and manages a given svg file as the target image.</p>
-</dd></dl>
-
-          <dl class="function">
-              <dt id="pss.svg.handle_file_not_existing">
-                  <code class="descclassname">pss.svg.</code><code class="descname">handle_file_not_existing</code><span
-                      class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="headerlink"
-                                                                                                href="#pss.svg.handle_file_not_existing"
-                                                                                                title="Permalink to this definition">¶</a>
-              </dt>
-              <dd><p>Checks whether the given file is existing
-                  :param path: Path of file to check for existence
-                  :raises: FileNotFoundError if path not found</p>
-              </dd>
-          </dl>
-
-      </div>
-<div class="section" id="module-pss">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pss" title="Permalink to this headline">¶</a></h2>
-</div>
 </div>
 
 
-                </div>
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-
-
-        <a href="index.html" class="btn btn-neutral" title="Welcome to Part-Structured Spotting’s documentation!"
-           accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
-    </div>
-  
-
-  <hr/>
-
-  <div role="contentinfo">
-    <p>
-        &copy; Copyright 2016, Maximilian Klingmann.
-
-    </p>
-  </div>
-              Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
-                  href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a
-                  href="https://readthedocs.org">Read the Docs</a>.
-
-</footer>
-
         </div>
       </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">API Documentation</a><ul>
+<li><a class="reference internal" href="#module-pss.svg">pss.svg module</a></li>
+<li><a class="reference internal" href="#module-pss.model">pss.model module</a></li>
+<li><a class="reference internal" href="#module-pss.eval">pss.eval module</a></li>
+<li><a class="reference internal" href="#module-pss.gui">pss.gui module</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Welcome to Part-Structured Spotting of Cuneiform Characters&#8217;s documentation!</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/pss.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Maximilian Klingmann.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+      |
+      <a href="_sources/pss.txt"
+          rel="nofollow">Page source</a>
+    </div>
 
-    </section>
+    
 
-  </div>
-  
-
-
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION: '1.0',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
-      });
-  </script>
-   
-
-</body>
+    
+  </body>
 </html>

@@ -45,8 +45,12 @@ class Settings(object):  # pragma: no cover
         self.arg_parser.add_argument("-l", "--limit",
                                      help="This gives the top n results (default=10)", type=int)
         self.arg_parser.add_argument("-i", "--index",
-                                     help="This uses the i-th symbol of the query set", type=int)
-
+                                     help="This uses the i-th symbol of the query set " +
+                                          "(Must be given, if the query is an SVG)", type=int)
+        self.arg_parser.add_argument("-q", "--query",
+                                     help="Path to the query file", type=str)
+        self.arg_parser.add_argument("-t", "--target",
+                                     help="Path to the target file", type=str)
 
 
 class ArgumentListener(object):  # pragma: no cover

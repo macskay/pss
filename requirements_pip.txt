@@ -5,3 +5,4 @@ nose-cov==1.6
 mock==1.0.1
 matplotlib==1.4.3
 qimage2ndarray==1.5
+mahotas==1.4.1

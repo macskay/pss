@@ -11,19 +11,21 @@ from logging import getLogger
 from math import sqrt
 from operator import xor
 from dt import compute
+from random import uniform
 
 from PyQt4 import QtGui
-from PyQt4.QtGui import QPainter
+from PyQt4.QtGui import QPainter, QMatrix, QTransform
 from mahotas import distance
 from numpy import zeros, array, delete, insert, c_, mean, inf, invert, ndarray, add, sqrt as rt, nanmax, nanmin, full, \
     ones, copy, roll
+from numpy.random import rand
 from qimage2ndarray import recarray_view
 from scipy.ndimage.morphology import distance_transform_edt, distance_transform_cdt
 from skimage.feature import corner_harris
 from skimage.feature import corner_peaks
 from skimage.morphology import skeletonize
 from matplotlib import pyplot as plt
-
+from skimage.util import random_noise
 
 from external.generalized_distance_transform import of_image
 
@@ -70,7 +72,7 @@ class Query(object):
             self.original_array = convert_qimage_to_ndarray(self.image)
         else:
             self.image = query.image
-            self.original_array = recarray_view(query.image).red <= 128
+            self.original_array = recarray_view(query.image).red <= 195
             self.name = "PNG-Image"
 
         self.skeleton = create_skeleton(self.name, self.original_array)
@@ -518,6 +520,9 @@ class Target(object):
             self.bounding_box = target.renderer.viewBox()
             self.image = self.create_image(target.renderer)
             self.original_array = convert_qimage_to_ndarray(self.image)
+
+            self.original_array = random_noise(self.original_array, mode="s&p", amount=0.3)
+
         else:
             self.image = target.image
             self.original_array = recarray_view(self.image).red >= 150
@@ -554,101 +559,60 @@ class DistanceTransform(object):  # pragma: no cover
         """
         self.query = query
         self.target = target
+        query_shape = self.query.original_array.shape
+
+        self.height = self.target.original_array.shape[0]+2*query_shape[0]
+        self.width = self.target.original_array.shape[1]+2*query_shape[1]
 
         self.target.original_array = self.target.original_array.astype(float)
         target_copy = deepcopy(self.target.original_array)
         target_copy[target_copy == 1.0] = 2**15
 
-        query_shape = self.query.original_array.shape
-        self.height = self.target.original_array.shape[0]+2*query_shape[0]
-        self.width = self.target.original_array.shape[1]+2*query_shape[1]
         empty_dt = ones((self.height, self.width))
         empty_dt[query_shape[0]:-query_shape[0], query_shape[1]:-query_shape[1]] = target_copy
+        self.root_dt = distance(empty_dt)/5
 
-        self.single_node = distance_transform_edt(empty_dt)**2
+        self.add_root_dt_to_nodes(self.query.root_node)
+        self.calculate_distance_transform(self.query.root_node)
+        self.sum_dt = self.query.root_node.root_dt[query_shape[0]:-query_shape[0], query_shape[1]:-query_shape[1]]
+        self.root_dt_normalized = self.root_dt[query_shape[0]:-query_shape[0], query_shape[1]:-query_shape[1]]
 
-        sg_logger.info("Starting Calculating Distance Transform")
-        node = self.query.root_node
-        self.sum_dt = self.calc(node)
-        self.sum_dt = self.sum_dt[query_shape[0]:-query_shape[0], query_shape[1]:-query_shape[1]]
-        sg_logger.info("Finished Calculating Distance Transform")
 
-    # vergleich siehe folie 53 slides
-    def calc(self, node):
-        global translated
 
-        # for each child get the gdts
-        child_gdts = list()
+    def calculate_distance_transform(self, node):
         for child in node.children:
-            gdt_child = self.calc(child)
-            child_gdts.append(gdt_child)
+            y = child.offset[0]
+            x = child.offset[1]
 
-        # after getting all the gdts add them up with a single node to get the sum
-        sum_dt = deepcopy(self.single_node)
-        for child in child_gdts:
-            sum_dt += child
+            if y >= 0 and x > 0:
+                node.root_dt[abs(y):, abs(x):] += self.calculate_distance_transform(child)
+            elif y <= 0 and x < 0:
+                node.root_dt[:self.height - abs(y), :self.width - abs(x)] += self.calculate_distance_transform(child)
+            elif y < 0 <= x:
+                node.root_dt[:self.height - abs(y), abs(x):] += self.calculate_distance_transform(child)
+            elif y > 0 >= x:
+                node.root_dt[abs(y):, :self.width - abs(x)] += self.calculate_distance_transform(child)
+            node.root_dt /= 1.5
 
-        # translate the sum if necessary
         if node.offset is not None:
-            offset = roll(sum_dt, node.offset[0], axis=1)
-            offset = roll(offset, node.offset[1], axis=0)
-            translated = sum_dt + offset
-        else:
-            return sum_dt
+            y = node.offset[0]
+            x = node.offset[1]
 
-        # gdt the translated sum and return it to the parent
-        gdt = of_image(translated)
-        return gdt
+            if y >= 0 and x > 0:
+                return node.root_dt[:self.height - abs(y), :self.width - abs(x)]
+            elif y <= 0 and x < 0:
+                return node.root_dt[abs(y):, abs(x):]
+            elif y < 0 <= x:
+                return node.root_dt[abs(y):, :self.width - abs(x)]
+            elif y > 0 >= x:
+                return node.root_dt[:self.height - abs(y), abs(x):]
 
-        # query_shape = self.query.original_array.shape
-        #
-        # self.height = self.target.original_array.shape[0]+2*query_shape[0]
-        # self.width = self.target.original_array.shape[1]+2*query_shape[1]
-        #
-        # empty_dt = ones((self.height, self.width))
-        # empty_dt[query_shape[0]:-query_shape[0], query_shape[1]:-query_shape[1]] = self.target.original_array
-        # self.root_dt = (empty_dt)
-        #
-        # self.add_root_dt_to_nodes(self.query.root_node)
-        # self.calculate_distance_transform(self.query.root_node)
-        # self.sum_dt = self.query.root_node.root_dt[query_shape[0]:-query_shape[0], query_shape[1]:-query_shape[1]]
-        # self.root_dt_normalized = self.root_dt[query_shape[0]:-query_shape[0], query_shape[1]:-query_shape[1]]
+        return node.root_dt
 
-    # def calculate_distance_transform(self, node):
-    #     for child in node.children:
-    #         y = child.offset[0]
-    #         x = child.offset[1]
-    #
-    #         if y >= 0 and x > 0:
-    #             node.root_dt[abs(y):, abs(x):] += self.calculate_distance_transform(child)
-    #         elif y <= 0 and x < 0:
-    #             node.root_dt[:self.height - abs(y), :self.width - abs(x)] += self.calculate_distance_transform(child)
-    #         elif y < 0 <= x:
-    #             node.root_dt[:self.height - abs(y), abs(x):] += self.calculate_distance_transform(child)
-    #         elif y > 0 >= x:
-    #             node.root_dt[abs(y):, :self.width - abs(x)] += self.calculate_distance_transform(child)
-    #         #node.root_dt /= 1.5
-    #     if node.offset is not None:
-    #         y = node.offset[0]
-    #         x = node.offset[1]
-    #
-    #         if y >= 0 and x > 0:
-    #             return node.root_dt[:self.height - abs(y), :self.width - abs(x)]
-    #         elif y <= 0 and x < 0:
-    #             return node.root_dt[abs(y):, abs(x):]
-    #         elif y < 0 <= x:
-    #             return node.root_dt[abs(y):, :self.width - abs(x)]
-    #         elif y > 0 >= x:
-    #             return node.root_dt[:self.height - abs(y), abs(x):]
-    #
-    #     return node.root_dt
-    #
-    # def add_root_dt_to_nodes(self, node):
-    #     for child in node.children:
-    #         self.add_root_dt_to_nodes(child)
-    #     node.add_root_dt(copy(self.root_dt))
-
-
+    def add_root_dt_to_nodes(self, node):
+        for child in node.children:
+            self.add_root_dt_to_nodes(child)
+        node.add_root_dt(copy(self.root_dt))
 
 
 def convert_qimage_to_ndarray(image):  # pragma: no cover

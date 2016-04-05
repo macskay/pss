@@ -1,11 +1,16 @@
-from numpy import argsort, nonzero, genfromtxt, array
+from itertools import chain
+
+from math import isnan
+from numpy import argsort, nonzero, genfromtxt
 from scipy.ndimage import minimum_filter
-from sklearn.metrics import precision_recall_curve, precision_score
+from sklearn.metrics import precision_recall_curve
 from matplotlib import pyplot as plt
-from sklearn.preprocessing import normalize
 
 
 class Evaluation(object):
+    """
+    This class calculates the minima and extracts the symbols from the target tablet.
+    """
     def __init__(self, query, target, dt, limit, scale=1):
         self.query = query
         self.target = target
@@ -16,6 +21,11 @@ class Evaluation(object):
         self.found_symbols = self.extract_found_symbols()
 
     def find_local_minima(self):
+        """
+        This method returns the top n minima in two lists for x and y respectively.
+        n is set by self.limit
+        :return: x, y lists
+        """
         size = min(self.dt.sum_dt.shape[1], self.dt.sum_dt.shape[0]) // 10
 
         res = minimum_filter(self.dt.sum_dt, size=size, mode="nearest")
@@ -25,6 +35,10 @@ class Evaluation(object):
         return x[0:self.limit], y[0:self.limit]
 
     def extract_found_symbols(self):
+        """
+        Extracts the symbols at the local minima of the target tablet
+        :return: List of symbols represented as boolean arrays and their respective energies
+        """
         found_symbols = list()
 
         height, width = self.query.original_array.shape
@@ -36,21 +50,3 @@ class Evaluation(object):
             found_symbols.append((box, self.dt.sum_dt[y, x]))
 
         return found_symbols
-
-
-class PR(object):
-    def __init__(self, path):
-        self.eva_array = array([1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
-        self.probs_pred = genfromtxt(path + "/normal_eva_33x30.csv", delimiter=';')
-
-        self.calculate_precision_recall()
-
-    def calculate_precision_recall(self):
-        p, r, t = precision_recall_curve(self.eva_array, self.probs_pred[0])
-
-        plt.plot(r, p, label="Precision-Recall curve")
-        plt.ylim([0.0, 1.05])
-        plt.xlim([0.0, 1.0])
-        plt.xlabel("Recall")
-        plt.ylabel("Precision")
-        plt.show()

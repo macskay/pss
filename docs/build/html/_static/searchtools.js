@@ -2,9 +2,9 @@
  * searchtools.js_t
  * ~~~~~~~~~~~~~~~~
  *
- * Sphinx JavaScript utilties for the full-text search.
+ * Sphinx JavaScript utilities for the full-text search.
  *
- * :copyright: Copyright 2007-2015 by the Sphinx team, see AUTHORS.
+ * :copyright: Copyright 2007-2016 by the Sphinx team, see AUTHORS.
  * :license: BSD, see LICENSE for details.
  *
  */
@@ -191,7 +191,7 @@ var Stemmer = function() {
       w = firstch.toLowerCase() + w.substr(1);
     return w;
   }
-};
+}
 
 
 
@@ -538,7 +538,7 @@ var Search = {
   /**
    * search for full-text terms in the index
    */
-  performTermsSearch: function (searchterms, excluded, terms, titleterms) {
+  performTermsSearch : function(searchterms, excluded, terms, titleterms) {
     var filenames = this._index.filenames;
     var titles = this._index.titles;
 
@@ -557,16 +557,14 @@ var Search = {
       ];
 
       // no match but word was a required one
-      if ($u.every(_o, function (o) {
-            return o.files === undefined;
-          })) {
+      if ($u.every(_o, function(o){return o.files === undefined;})) {
         break;
       }
       // found search word in contents
-      $u.each(_o, function (o) {
+      $u.each(_o, function(o) {
         var _files = o.files;
         if (_files === undefined)
-          return;
+          return
 
         if (_files.length === undefined)
           _files = [_files];
@@ -576,7 +574,7 @@ var Search = {
         for (j = 0; j < _files.length; j++) {
           file = _files[j];
           if (!(file in scoreMap))
-            scoreMap[file] = {};
+            scoreMap[file] = {}
           scoreMap[file][word] = o.score;
         }
       });
@@ -614,9 +612,7 @@ var Search = {
       if (valid) {
         // select one (max) score for the file.
         // for better ranking, we should calculate ranking by using words statistics like basic tf-idf...
-        var score = $u.max($u.map(fileMap[file], function (w) {
-          return scoreMap[file][w]
-        }));
+        var score = $u.max($u.map(fileMap[file], function(w){return scoreMap[file][w]}));
         results.push([filenames[file], titles[file], '', null, score]);
       }
     }
@@ -627,7 +623,7 @@ var Search = {
    * helper function to return a node containing the
    * search summary for a given text. keywords is a list
    * of stemmed words, hlwords is the list of normal, unstemmed
-   * words. the first one is used to find the occurance, the
+   * words. the first one is used to find the occurrence, the
    * latter for highlighting it.
    */
   makeSearchSummary : function(text, keywords, hlwords) {
